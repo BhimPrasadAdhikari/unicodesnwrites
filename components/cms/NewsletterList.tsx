@@ -206,7 +206,9 @@ export default function NewsletterList({ newsletters }: { newsletters: Newslette
                                             )}
                                             {IN_FLIGHT_STATUSES.includes(newsletter.status)
                                                 ? <StopCampaignButton label={newsletter.subject} onConfirm={() => handleStop(newsletter._id)} onError={setFeedback} />
-                                                : <ConfirmDeleteButton compact label={newsletter.subject} onConfirm={() => handleDelete(newsletter._id)} onError={setFeedback} />}
+                                                : newsletter.status === 'sent'
+                                                    ? null
+                                                    : <ConfirmDeleteButton compact label={newsletter.subject} onConfirm={() => handleDelete(newsletter._id)} onError={setFeedback} />}
                                         </div>
                                     </TableCell>
                                 </TableRow>

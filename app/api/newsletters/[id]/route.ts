@@ -154,6 +154,10 @@ export async function DELETE(
         if (existing.status === 'sending' || existing.status === 'paused') {
             return NextResponse.json({ error: 'Stop this campaign before deleting it' }, { status: 409 });
         }
+        // A sent issue is the record of who got what (and stops a post being emailed twice).
+        if (existing.status === 'sent') {
+            return NextResponse.json({ error: 'Sent issues are kept as a delivery record and cannot be deleted.' }, { status: 409 });
+        }
         const newsletter = await Newsletter.findByIdAndDelete(params.id);
          if (!newsletter) return NextResponse.json({ error: 'Not found' }, { status: 404 });
         await NewsletterSend.deleteMany({ newsletter: newsletter._id });
