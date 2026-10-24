@@ -12,10 +12,13 @@ export default function AnalyticsWidget() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch('/api/analytics/overview?range=7days');
-        const json = await res.json();
-        const timelineRes = await fetch('/api/analytics/traffic-timeline?range=7days');
-        const timelineJson = await timelineRes.json();
+        const [res, timelineRes] = await Promise.all([
+          fetch('/api/analytics/overview?range=7days'),
+          fetch('/api/analytics/traffic-timeline?range=7days'),
+        ]);
+        // A 401 or 500 must not render as a week of zeros.
+        if (!res.ok || !timelineRes.ok) throw new Error('Analytics request failed');
+        const [json, timelineJson] = await Promise.all([res.json(), timelineRes.json()]);
         
         setData({
           ...json,
@@ -56,7 +59,13 @@ export default function AnalyticsWidget() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+        Traffic couldn&apos;t load. Refresh to try again.
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full min-h-[420px] flex-col justify-between rounded-xl border border-border bg-card p-6 transition-all duration-200 hover:border-border">

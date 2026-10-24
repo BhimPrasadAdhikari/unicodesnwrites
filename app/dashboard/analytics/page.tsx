@@ -59,6 +59,12 @@ export default function AnalyticsPage() {
     fetchMetrics();
   }, [searchParams]);
 
+  const exportQuery = (() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!params.get('range')) params.set('range', '7days');
+    return params.toString();
+  })();
+
   // Format helper
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60);
@@ -82,7 +88,8 @@ export default function AnalyticsPage() {
               <span>Guide</span>
             </Link>
             <a
-              href="/api/analytics/export?format=csv&range=30days"
+              // Export the same range the page is showing
+              href={`/api/analytics/export?format=csv&${exportQuery}`}
               className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-xs font-semibold text-foreground transition hover:bg-muted"
               target="_blank"
               rel="noreferrer"
