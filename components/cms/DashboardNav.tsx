@@ -12,11 +12,15 @@ import {
   Cpu,
   CreditCard,
   GraduationCap,
+  HeartPulse,
+  Inbox,
   Layers,
   LayoutDashboard,
   LogOut,
   Menu,
   ShoppingBag,
+  Star,
+  UserRound,
   Users,
   X,
   type LucideIcon,
@@ -54,6 +58,7 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
       { href: '/dashboard/products', label: 'Tools', glyph: 'tools' },
       { href: '/dashboard/sales', label: 'Sales', icon: CreditCard },
       { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingBag },
+      { href: '/dashboard/reviews', label: 'Reviews', icon: Star },
     ],
   },
   {
@@ -64,10 +69,19 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
     ],
   },
   {
+    label: 'Readers',
+    items: [
+      { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
+      { href: '/dashboard/members', label: 'Members', icon: UserRound },
+    ],
+  },
+  {
     label: 'Measure',
     items: [
       { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/dashboard/analytics/content', label: 'Content', icon: BarChart3 },
       { href: '/dashboard/analytics/ai', label: 'AI telemetry', icon: Cpu },
+      { href: '/dashboard/health', label: 'System health', icon: HeartPulse },
     ],
   },
 ];
