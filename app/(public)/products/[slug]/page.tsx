@@ -1,4 +1,9 @@
 import Link from 'next/link';
+import { cache } from 'react';
+import type { Metadata } from 'next';
+import { Types } from 'mongoose';
+import Review from '@/lib/models/Review';
+import { siteConfig } from '@/lib/config/site.config';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -16,12 +21,37 @@ import { Section, Container } from '@/components/ui/Section';
 
 export const dynamic = 'force-dynamic';
 
-async function getProduct(slug: string) {
+// Shared by generateMetadata and the page within one request.
+const getProduct = cache(async (slug: string) => {
   if (slug.length > 120 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
   await connectDB();
   const product = await Product.findOne({ slug, published: true });
   if (!product) return null;
   return JSON.parse(JSON.stringify(product));
+});
+
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await props.params;
+  const product = await getProduct(slug);
+  if (!product) return { title: 'Product not found', robots: { index: false } };
+  return {
+    title: product.title,
+    description: product.shortDescription,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      title: product.title,
+      description: product.shortDescription,
+      images: product.thumbnailImage ? [product.thumbnailImage] : undefined,
+    },
+  };
+}
+
+async function getRatingSummary(productId: string) {
+  const [row] = await Review.aggregate<{ count: number; average: number }>([
+    { $match: { product: new Types.ObjectId(productId), approved: true } },
+    { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } },
+  ]);
+  return row && row.count > 0 ? row : null;
 }
 
 export default async function ProductPage(props: { params: Promise<{ slug: string }> }) {
@@ -32,8 +62,34 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
     notFound();
   }
 
+  const rating = await getRatingSummary(String(product._id)).catch(() => null);
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.shortDescription,
+    image: product.thumbnailImage || undefined,
+    sku: String(product._id),
+    category: product.category,
+    brand: { '@type': 'Brand', name: siteConfig.name },
+    offers: {
+      '@type': 'Offer',
+      price: (product.price / 100).toFixed(2),
+      priceCurrency: (product.currency || 'USD').toUpperCase(),
+      availability: 'https://schema.org/InStock',
+      url: `https://${siteConfig.domain}/products/${product.slug}`,
+    },
+    ...(rating
+      ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating.average.toFixed(1), reviewCount: rating.count } }
+      : {}),
+  };
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c') }}
+      />
       <AnalyticsTracker 
         event="product_view" 
         metadata={{ 

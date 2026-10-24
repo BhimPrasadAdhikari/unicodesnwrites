@@ -12,7 +12,8 @@ import { BookOpen } from 'lucide-react';
 import { livePostFilter } from '@/lib/utils/post-visibility';
 
 export const metadata = {
-  title: 'Blog & Breakdowns | unicodesnwrites',
+  title: 'Blog & Breakdowns',
+  alternates: { canonical: '/blog' },
   description: 'In-depth write-ups on machine learning systems, research paper math derived from scratch, and practical guides on autonomous agents.',
 };
 

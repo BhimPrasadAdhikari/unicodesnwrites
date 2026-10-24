@@ -18,7 +18,6 @@ const staticRoutes: MetadataRoute.Sitemap = [
   ['/courses', 'weekly', 0.95],
   ['/blog', 'daily', 0.9],
   ['/projects', 'weekly', 0.9],
-  ['/portfolio', 'monthly', 0.7],
   ['/products', 'weekly', 0.9],
   ['/newsletter', 'weekly', 0.8],
   ['/about', 'monthly', 0.6],

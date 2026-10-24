@@ -18,7 +18,7 @@ const learnLinks = [
 ];
 
 const elsewhereLinks = [
-  { href: '/portfolio', label: 'About' },
+  { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/terms', label: 'Terms' },

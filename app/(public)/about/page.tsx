@@ -66,7 +66,8 @@ const education = [
 ]
 
 export const metadata: Metadata = {
-   title: `Portfolio · ${siteConfig.author.name}`,
+   title: `About ${siteConfig.author.name}`,
+  alternates: { canonical: '/about' },
    description: `The personal portfolio, background, skills, and experience of ${siteConfig.author.name}.`,
 }
 

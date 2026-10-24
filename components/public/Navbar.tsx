@@ -24,7 +24,7 @@ const primaryLinks: { href: string; label: string; glyph: GlyphKind }[] = [
 const mobileLinks: { href: string; label: string; glyph?: GlyphKind }[] = [
   ...primaryLinks,
   { href: '/newsletter', label: 'Letters', glyph: 'letters' },
-  { href: '/portfolio', label: 'About' },
+  { href: '/about', label: 'About' },
 ];
 
 const isCurrentPath = (pathname: string, href: string) =>
@@ -97,8 +97,8 @@ export function Navbar() {
               <button type="button" onClick={() => signOut({ callbackUrl: '/' })} aria-label="Sign out" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground"><LogOut className="h-4 w-4" /></button>
             </> : status === 'unauthenticated' ? <Link href="/login" className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"><LogIn className="h-4 w-4" /> Sign in</Link> : null}
             <Link
-              href="/portfolio"
-              aria-current={isCurrentPath(pathname, '/portfolio') ? 'page' : undefined}
+              href="/about"
+              aria-current={isCurrentPath(pathname, '/about') ? 'page' : undefined}
               className="inline-flex h-9 items-center px-3 text-[15px] font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               About

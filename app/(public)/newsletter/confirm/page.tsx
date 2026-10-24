@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import NewsletterConfirmation from '@/components/public/NewsletterConfirmation';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default function ConfirmationPage() {
   return (

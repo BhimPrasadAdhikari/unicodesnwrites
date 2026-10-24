@@ -15,7 +15,7 @@ type PageProps = { params: Promise<{ slug: string; lessonSlug: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug, lessonSlug } = await params;
   const workspace = await getPublishedLessonWorkspace(slug, lessonSlug);
-  return workspace ? { title: `${workspace.lesson.title} — ${workspace.course.title}`, description: workspace.lesson.summary } : { title: 'Lesson not found' };
+  return workspace ? { title: `${workspace.lesson.title} — ${workspace.course.title}`, description: workspace.lesson.summary, robots: { index: false, follow: true } } : { title: 'Lesson not found', robots: { index: false } };
 }
 
 export default async function CourseLessonPage({ params }: PageProps) {

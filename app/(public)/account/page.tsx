@@ -13,6 +13,7 @@ import { User } from '@/lib/models/User';
 
 export const metadata = {
   title: 'Account and Profile settings',
+  robots: { index: false, follow: false },
   description:
     'Manage your learner profile, view your learning statistics, protect your sign-in, retrieve products, and control your personal data.',
 };

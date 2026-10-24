@@ -10,7 +10,8 @@ import { Container, Section } from '@/components/ui/Section';
 import { siteConfig } from '@/lib/config/site.config';
 
 export const metadata: Metadata = {
-  title: 'Contact | unicodesnwrites',
+  title: 'Contact',
+  alternates: { canonical: '/contact' },
   description: 'Send feedback, a collaboration idea, or a product support question to unicodesnwrites.',
 };
 
@@ -63,7 +64,7 @@ export default function ContactPage() {
                 <p className="text-sm leading-6 text-muted-foreground">
                   Looking for biography, résumé, experience, or personal links? Those details now live in the dedicated portfolio.
                 </p>
-                <Link href="/portfolio" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium underline decoration-primary decoration-2 underline-offset-4 hover:text-primary">About me <ArrowUpRight className="h-4 w-4" /></Link>
+                <Link href="/about" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium underline decoration-primary decoration-2 underline-offset-4 hover:text-primary">About me <ArrowUpRight className="h-4 w-4" /></Link>
               </div>
 
               <div className="mt-7 flex items-center gap-4">

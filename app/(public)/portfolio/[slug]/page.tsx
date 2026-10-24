@@ -32,11 +32,12 @@ export async function generateMetadata({ params }: ProjectDetailPageProps) {
   const { slug } = await params;
   const project = await Project.findOne({ slug, published: true });
   
-  if (!project) return {};
+  if (!project) return { title: 'Project not found' };
 
   return {
-    title: `${project.title} | UnicodeSnwrites`,
+    title: project.title,
     description: project.shortDescription,
+    openGraph: { title: project.title, description: project.shortDescription, images: project.images?.[0] ? [project.images[0]] : undefined },
     alternates: { canonical: `/projects/${project.slug}` },
   };
 }

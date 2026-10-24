@@ -10,6 +10,7 @@ import { Container } from "@/components/ui/Section";
 
 export const metadata = {
   title: "My learning",
+  robots: { index: false, follow: false },
   description: "Continue your enrolled AIML courses.",
 };
 export const dynamic = "force-dynamic";

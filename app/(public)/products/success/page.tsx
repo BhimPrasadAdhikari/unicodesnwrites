@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Download } from 'lucide-react';
 import OrderProcessing from './OrderProcessing';
@@ -10,6 +11,8 @@ import { Button } from '@/components/ui/Button';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const isValidStripeSessionId = (value: string) => /^cs_(?:test|live)_[A-Za-z0-9]+$/.test(value) && value.length <= 255;
 

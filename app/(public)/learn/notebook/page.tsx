@@ -7,7 +7,7 @@ import { Container } from '@/components/ui/Section';
 import { authOptions } from '@/lib/config/auth';
 import { listNotebookEntries } from '@/lib/services/learner-persistence';
 
-export const metadata = { title: 'AI notebook', description: 'Review transcript-grounded notes saved across your AIML lessons.' };
+export const metadata = { title: 'AI notebook', description: 'Review transcript-grounded notes saved across your AIML lessons.', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 export default async function NotebookPage() {
