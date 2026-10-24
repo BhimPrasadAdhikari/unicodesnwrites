@@ -32,7 +32,7 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ unsubscribeUrl }) =>
               While you wait for the next issue, feel free to check out our latest articles on the blog.
             </Text>
             <Section style={btnContainer}>
-              <Button style={button} href="https://unicodesnwrites.tech/blog">
+              <Button style={button} href="https://www.unicodesnwrites.tech/blog">
                 Read Latest Articles
               </Button>
             </Section>

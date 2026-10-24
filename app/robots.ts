@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { siteConfig } from '@/lib/config/site.config'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/dashboard/', '/api/', '/admin/'],
     },
-    sitemap: 'https://unicodesnwrites.tech/sitemap.xml',
+    sitemap: `https://${siteConfig.domain}/sitemap.xml`,
   }
 }
