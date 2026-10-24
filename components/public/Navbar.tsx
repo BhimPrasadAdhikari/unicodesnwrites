@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUpRight, BookOpenCheck, LogIn, LogOut, Menu, Settings, X } from 'lucide-react';
+import { ArrowUpRight, BookOpenCheck, LogIn, LogOut, Menu, Search, Settings, X } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/Button';
@@ -90,6 +90,7 @@ export function Navbar() {
           </nav>
 
           <div className="hidden items-center gap-2 lg:flex">
+            <Link href="/search" aria-label="Search" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground"><Search className="h-4 w-4" /></Link>
             <ThemeToggle />
             {status === 'authenticated' ? <>
               <Link href={session.user.role === 'admin' ? '/dashboard' : '/learn'} className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"><BookOpenCheck className="h-4 w-4" />{session.user.role === 'admin' ? 'Admin studio' : 'My learning'}</Link>
@@ -109,6 +110,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-1 lg:hidden">
+            <Link href="/search" aria-label="Search" className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground"><Search className="h-4 w-4" /></Link>
             <ThemeToggle />
             <Button
               type="button"

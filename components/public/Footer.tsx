@@ -8,6 +8,8 @@ import { siteConfig } from '@/lib/config/site.config';
 
 const readLinks = [
   { href: '/blog', label: 'Writing' },
+  { href: '/blog/series', label: 'Series' },
+  { href: '/search', label: 'Search' },
   { href: '/projects', label: 'Builds' },
 ];
 
