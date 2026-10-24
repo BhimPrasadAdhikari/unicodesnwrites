@@ -17,6 +17,11 @@ const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
   port: Number(process.env.EMAIL_PORT) || 587,
   secure: false, // true for 465, false for other ports
+  // Fail fast instead of hanging a serverless request on a slow SMTP server
+  // (nodemailer's defaults are 2 minutes to connect and 10 minutes idle).
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 15_000,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,

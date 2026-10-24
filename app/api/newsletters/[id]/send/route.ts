@@ -7,6 +7,11 @@ import {
 } from '@/lib/services/newsletter-delivery';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 
+// Same headroom as the scheduler: budget + one in-flight send stays under maxDuration.
+const SEND_TIME_BUDGET_MS = 35_000;
+
+export const maxDuration = 60;
+
 export async function POST(
     req: NextRequest,
     props: { params: Promise<{ id: string }> }
@@ -52,6 +57,8 @@ export async function POST(
             retryFailed,
             // An admin clicking send is an explicit request to try again now.
             resumePaused: true,
+            // Leave headroom under the function limit; the rest stays queued for the next click or cron run.
+            deadline: Date.now() + SEND_TIME_BUDGET_MS,
         });
 
         const responseStatus = result.pendingCount > 0 ? 202 : 200;
