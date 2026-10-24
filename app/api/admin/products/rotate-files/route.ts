@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Types } from 'mongoose';
 
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { consumeRateLimit } from '@/lib/auth/security';
 import { connectDB } from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 
@@ -27,6 +28,11 @@ const isBlobUrl = (value: string) => {
 export async function POST() {
   try {
     await requireAdminSession();
+    // One run at a time: a double click would otherwise move every file twice.
+    const lock = await consumeRateLimit({ scope: 'rotate-product-files', identifier: 'all', limit: 1, windowSeconds: 120 });
+    if (!lock.allowed) {
+      return NextResponse.json({ error: 'Files were just moved. Wait two minutes before moving them again.' }, { status: 429 });
+    }
     await connectDB();
     const products = await Product.find({}).select('fileUrl fileName title').lean<Array<{ _id: Types.ObjectId; fileUrl?: string; fileName?: string; title: string }>>();
 
