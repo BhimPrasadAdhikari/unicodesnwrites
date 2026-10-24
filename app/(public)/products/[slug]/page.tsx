@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { cache } from 'react';
 import type { Metadata } from 'next';
 import { Types } from 'mongoose';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/config/auth';
 import Review from '@/lib/models/Review';
 import { siteConfig } from '@/lib/config/site.config';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
@@ -54,8 +56,12 @@ async function getRatingSummary(productId: string) {
   return row && row.count > 0 ? row : null;
 }
 
-export default async function ProductPage(props: { params: Promise<{ slug: string }> }) {
+export default async function ProductPage(props: { params: Promise<{ slug: string }>; searchParams: Promise<{ checkout?: string }> }) {
   const params = await props.params;
+  const { checkout } = await props.searchParams;
+  // Prefill Stripe with the signed-in email so the purchase shows up under /account.
+  const session = await getServerSession(authOptions);
+  const buyerEmail = session?.user?.sessionValid ? session.user.email ?? undefined : undefined;
   const product = await getProduct(params.slug);
 
   if (!product) {
@@ -159,7 +165,12 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
                 <p className="mb-5 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">SECURE PAYMENT · PROTECTED DOWNLOAD · EMAIL DELIVERY</p>
 
                 <div>
-                  <CheckoutButton productId={product._id} priceId={product.stripePriceId} />
+                  {checkout === 'cancelled' ? (
+                    <p role="status" className="mb-3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
+                      Checkout cancelled. You weren&apos;t charged; pick up again whenever you like.
+                    </p>
+                  ) : null}
+                  <CheckoutButton productId={product._id} priceId={product.stripePriceId} email={buyerEmail} />
                 </div>
 
                 <p className="mt-4 text-[13px] text-muted-foreground">

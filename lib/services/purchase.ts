@@ -60,7 +60,7 @@ export async function createCheckoutForProduct({
   const session = await createCheckoutSession({
     priceId: product.stripePriceId,
     successUrl: `${appUrl}/products/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${appUrl}/products/${product.slug}`,
+    cancelUrl: `${appUrl}/products/${product.slug}?checkout=cancelled`,
     customerEmail,
     metadata: {
       productId: product._id.toString(),
