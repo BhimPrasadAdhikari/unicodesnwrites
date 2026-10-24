@@ -119,7 +119,7 @@ export default async function SuccessPage(props: {
                 <Link href="/products">Browse more tools</Link>
               </Button>
             </div>
-            <p className="pen-note mt-6 text-base">the link expires in 24 hours; ask for a new one any time</p>
+            <p className="pen-note mt-6 text-base">the link expires in 24 hours; <Link href="/products/download" className="underline">get a fresh one any time</Link></p>
           </div>
         </Container>
       </Section>

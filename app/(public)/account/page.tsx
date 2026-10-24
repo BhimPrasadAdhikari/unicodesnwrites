@@ -35,6 +35,7 @@ export default async function AccountPage() {
     purchasedAt: string;
     downloadsRemaining: number;
     downloadUrl: string | null;
+    downloadable: boolean;
   }> = [];
   let enrolledCount = 0;
   let notebookCount = 0;
@@ -52,6 +53,7 @@ export default async function AccountPage() {
     const now = new Date();
     const [rawPurchases, downloadablePurchaseIds, eCount, nCount] = await Promise.all([
       Purchase.find({ customerEmail: user.email })
+        .collation({ locale: 'en', strength: 2 })
         .populate({ path: 'product', model: Product, select: 'title slug' })
         .sort({ purchasedAt: -1 })
         .limit(100)
@@ -61,7 +63,7 @@ export default async function AccountPage() {
         status: 'completed',
         downloadToken: { $exists: true, $ne: '' },
         downloadTokenExpiry: { $gt: now },
-      }).distinct('_id'),
+      }).collation({ locale: 'en', strength: 2 }).distinct('_id'),
       CourseEnrollment.countDocuments({ user: user._id }),
       LearnerNotebookEntry.countDocuments({ user: user._id }),
     ]);
@@ -91,7 +93,9 @@ export default async function AccountPage() {
         status: purchase.status || 'completed',
         purchasedAt: purchasedAtStr,
         downloadsRemaining,
-        downloadUrl: downloadable ? `/api/download?token=${encodeURIComponent(purchase.downloadToken)}` : null,
+        // The account route reuses a valid token or issues a fresh one, so owners are never locked out.
+        downloadUrl: purchase.status === 'completed' ? `/api/account/purchases/${purchase._id.toString()}/download` : null,
+        downloadable,
       };
     });
   } catch (error) {

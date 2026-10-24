@@ -32,6 +32,8 @@ type PurchaseItem = {
   status: string;
   purchasedAt: string;
   downloadsRemaining: number;
+  /** The current link is still valid (otherwise downloading issues a fresh one) */
+  downloadable?: boolean;
   downloadUrl: string | null;
 };
 
@@ -447,7 +449,7 @@ export function AccountSettings({
                     {purchase.downloadUrl ? (
                       <Button asChild variant="outline" className="shrink-0">
                         <a href={purchase.downloadUrl}>
-                          <Download className="mr-2 h-4 w-4" /> Download ({purchase.downloadsRemaining})
+                          <Download className="mr-2 h-4 w-4" /> {purchase.downloadable ? `Download (${purchase.downloadsRemaining} left)` : 'Download'}
                         </a>
                       </Button>
                     ) : purchase.slug ? (
