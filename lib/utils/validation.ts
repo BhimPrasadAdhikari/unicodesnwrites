@@ -49,7 +49,7 @@ export const productSchema = z.object({
 export const reviewSchema = z.object({
   productId: objectIdSchema,
   rating: z.number().int().min(1).max(5),
-  comment: z.string().trim().min(10, 'Review must be at least 10 characters').max(1000, 'Review is too long').transform(cleanMultiline),
+  comment: z.string().trim().min(10, 'Review must be at least 10 characters').max(500, 'Review is too long (500 characters max)').transform(cleanMultiline),
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80, 'Name is too long').transform(cleanSingleLine),
   email: normalizedEmail,
 });

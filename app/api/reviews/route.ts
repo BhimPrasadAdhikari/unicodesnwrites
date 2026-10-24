@@ -4,6 +4,9 @@ import Review from '@/lib/models/Review';
 import Purchase from '@/lib/models/Purchase';
 import { reviewSchema } from '@/lib/utils/validation';
 import { consumeRateLimit, getClientAddress, normalizeEmail } from '@/lib/auth/security';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/config/auth';
+import { isObjectId } from '@/lib/utils/object-id';
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,12 +32,13 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
 
-    // Check if verified purchase
-    const purchase = await Purchase.findOne({
-      customerEmail: email,
-      product: productId,
-      status: 'completed',
-    });
+    // "Verified purchase" needs proof of who is writing: a signed-in account whose
+    // email bought the product. A typed-in email alone proves nothing.
+    const session = await getServerSession(authOptions);
+    const sessionEmail = session?.user?.sessionValid && session.user.email ? normalizeEmail(session.user.email) : null;
+    const purchase = sessionEmail
+      ? await Purchase.findOne({ customerEmail: sessionEmail, product: productId, status: 'completed' }).select('_id').lean()
+      : null;
 
     const isVerified = !!purchase;
 
@@ -63,7 +67,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get('productId');
 
-    if (!productId) {
+    if (!productId || !isObjectId(productId)) {
       return NextResponse.json({ error: 'Product ID required' }, { status: 400 });
     }
 
@@ -72,7 +76,11 @@ export async function GET(req: NextRequest) {
     const reviews = await Review.find({
       product: productId,
       approved: true,
-    }).sort({ createdAt: -1 });
+    })
+      .select('customerName rating comment verified createdAt')
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
 
     return NextResponse.json(reviews);
   } catch (error) {

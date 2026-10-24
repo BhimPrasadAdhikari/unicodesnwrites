@@ -40,7 +40,7 @@ export async function GET() {
 
     // Imported subscribers may have no confirmedAt; fall back to when the record was created.
     const joinedIn = (range: Record<string, Date>) => ({
-      status: 'confirmed',
+      status: 'confirmed' as const,
       $or: [{ confirmedAt: range }, { confirmedAt: null, createdAt: range }],
     });
 

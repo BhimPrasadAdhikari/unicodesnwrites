@@ -8,13 +8,14 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { Input } from '@/components/ui/Input';
+import { safeInternalPath } from '@/lib/utils/safe-path';
 
 function VerificationCard() {
   const search = useSearchParams();
   const token = search.get('token');
   const sent = search.get('sent') === '1';
   const requested = search.get('from');
-  const returnTo = requested?.startsWith('/') && !requested.startsWith('//') && !requested.includes('\\') ? requested : null;
+  const returnTo = safeInternalPath(requested, null);
   const loginHref = returnTo ? `/login?from=${encodeURIComponent(returnTo)}` : '/login';
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>(token ? 'idle' : sent ? 'success' : 'error');
   const [message, setMessage] = useState(sent ? 'Check your inbox. The verification link expires in 30 minutes.' : token ? 'Confirm below to verify this email address.' : 'This verification link is missing or invalid.');

@@ -79,6 +79,7 @@ export async function createPurchaseFromSession(session: Stripe.Checkout.Session
 }
 
 export async function completeCheckoutSession(session: Stripe.Checkout.Session) {
+  await dbConnect();
   const productId = session.metadata?.productId;
   const purchaseId = session.metadata?.purchaseId;
 
@@ -144,8 +145,10 @@ export async function completeCheckoutSession(session: Stripe.Checkout.Session) 
 export async function markPurchaseRefundedByPaymentIntent(paymentIntentId: string) {
   await dbConnect();
 
+  // Only a completed purchase moves to refunded, so a replayed webhook can't
+  // subtract from the product totals twice.
   const purchase = await Purchase.findOneAndUpdate(
-    { stripePaymentIntentId: paymentIntentId },
+    { stripePaymentIntentId: paymentIntentId, status: 'completed' },
     {
       status: 'refunded',
       refundedAt: new Date(),
@@ -154,8 +157,15 @@ export async function markPurchaseRefundedByPaymentIntent(paymentIntentId: strin
   );
 
   if (!purchase) {
+    const existing = await Purchase.findOne({ stripePaymentIntentId: paymentIntentId });
+    if (existing) return existing;
     throw new ProductPurchaseError('Purchase not found for refund', 404);
   }
+
+  await Product.updateOne(
+    { _id: purchase.product },
+    { $inc: { totalSales: -1, totalRevenue: -(purchase.amount || 0) } }
+  );
 
   return purchase;
 }
