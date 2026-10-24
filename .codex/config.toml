@@ -1,0 +1,37 @@
+# Project-local Codex guardrails for this repository.
+# OpenAI docs: project .codex/config.toml is loaded only for trusted projects.
+
+approval_policy = "on-request"
+approvals_reviewer = "user"
+sandbox_mode = "workspace-write"
+allow_login_shell = false
+
+[sandbox_workspace_write]
+network_access = false
+
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+exclude = [
+  "*KEY*",
+  "*SECRET*",
+  "*TOKEN*",
+  "*PASSWORD*",
+  "DATABASE_URL",
+  "MONGODB_URI",
+  "STRIPE_*",
+  "MAILGUN_*",
+  "NEXTAUTH_SECRET",
+  "AUTH_SECRET"
+]
+set = { CODEX_PROJECT_SANDBOX = "1", NODE_ENV = "development", NEXT_TELEMETRY_DISABLED = "1" }
+
+[[hooks.PreToolUse]]
+matcher = "Bash|apply_patch|Edit|Write"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command_windows = 'powershell -NoProfile -ExecutionPolicy Bypass -File ".codex/hooks/protect-env-files.ps1"'
+command = 'pwsh -NoProfile -ExecutionPolicy Bypass -File ".codex/hooks/protect-env-files.ps1"'
+timeout = 10
+statusMessage = "Checking protected env files"

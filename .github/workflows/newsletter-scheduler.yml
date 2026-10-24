@@ -1,0 +1,45 @@
+name: Newsletter scheduler
+
+# Vercel Hobby only allows a daily cron, so this calls the newsletter scheduler
+# every 10 minutes to start due campaigns and resume paused ones server-side.
+# GitHub may delay or skip scheduled runs under load; the scheduler is idempotent.
+#
+# Setup: add the repository secret CRON_SECRET (same value as the
+# Vercel env var). Optionally set the repository variable NEWSLETTER_SCHEDULER_URL.
+# Use the canonical host: the apex domain 307-redirects to www, and curl doesn't
+# follow redirects (following one would also drop the Authorization header).
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: newsletter-scheduler
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  run-scheduler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Call scheduler
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SCHEDULER_URL: ${{ vars.NEWSLETTER_SCHEDULER_URL || 'https://www.unicodesnwrites.tech/api/newsletters/scheduler' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning::CRON_SECRET is not set; skipping."
+            exit 0
+          fi
+          status=$(curl -sS -o response.json -w '%{http_code}' --max-time 90 \
+            -X POST -H "Authorization: Bearer $CRON_SECRET" "$SCHEDULER_URL")
+          cat response.json
+          echo
+          # Anything but 2xx (including a redirect page) means the scheduler didn't run.
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "::error::Scheduler returned HTTP $status"
+            exit 1
+          fi
