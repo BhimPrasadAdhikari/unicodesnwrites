@@ -14,6 +14,7 @@
  *                       (theme CSS is loaded globally in globals.css)
  * • rehype-raw       — allows raw HTML pass-through in content authored
  *                       directly in the CMS (e.g. <details>, <video>)
+ * • remark-math + rehype-katex — LaTeX between $$…$$ (see lib/markdown-plugins.ts)
  *
  * remark-breaks is intentionally omitted: it converts every single newline
  * inside a paragraph into a <br>, which conflicts with tight ordered / unordered
@@ -26,9 +27,8 @@
  */
 
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
-import rehypeHighlight from 'rehype-highlight';
+import 'katex/dist/katex.min.css';
+import { rehypePlugins, remarkPlugins } from '@/lib/markdown-plugins';
 import { preserveSpacing } from '@/lib/utils/markdown';
 import { mdxComponents } from '@/lib/mdx-components';
 import dynamic from 'next/dynamic';
@@ -130,8 +130,8 @@ export default function BlogContent({
 
   let markdownBody = (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeHighlight, rehypeRaw]}
+      remarkPlugins={remarkPlugins}
+      rehypePlugins={rehypePlugins}
       components={markdownComponents}
     >
       {processedContent}
@@ -147,8 +147,8 @@ export default function BlogContent({
     markdownBody = (
       <>
         <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeHighlight, rehypeRaw]}
+          remarkPlugins={remarkPlugins}
+          rehypePlugins={rehypePlugins}
           components={markdownComponents}
         >
           {firstHalf}
@@ -158,8 +158,8 @@ export default function BlogContent({
         <BlogNewsletterPrompt />
 
         <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeHighlight, rehypeRaw]}
+          remarkPlugins={remarkPlugins}
+          rehypePlugins={rehypePlugins}
           components={markdownComponents}
         >
           {secondHalf}

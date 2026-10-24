@@ -52,6 +52,14 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const session = await getServerSession(authOptions);
   const enrollment = session?.user?.id && session.user.role !== 'admin' ? await getEnrollment(session.user.id, slug) : null;
   const enrolled = session?.user.role === 'admin' || Boolean(enrollment?.enrollment);
+  const completedSlugs = new Set<string>(enrollment?.enrollment?.completedLessonSlugs ?? []);
+  const lessonOrder = course.modules.flatMap((module) => module.lessons.map((lesson) => lesson.slug));
+  // Resume at the last lesson opened if it isn't finished, else the first unfinished one.
+  const lastOpened = enrollment?.enrollment?.lastLessonSlug;
+  const resumeLessonSlug =
+    (lastOpened && lessonOrder.includes(lastOpened) && !completedSlugs.has(lastOpened) ? lastOpened : null) ??
+    lessonOrder.find((lessonSlug) => !completedSlugs.has(lessonSlug)) ??
+    course.firstLessonSlug;
   const courseUrl = `https://${siteConfig.domain}/courses/${course.slug}`;
   const structuredData = {
     '@context': 'https://schema.org',
@@ -118,7 +126,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               <h1 className="max-w-4xl text-title">{course.title}</h1>
               <p className="mt-5 max-w-3xl font-serif text-[19px] leading-[1.5] text-muted-foreground sm:text-[22px]">{course.summary}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                {course.firstLessonSlug ? <CourseEnrollmentAction slug={course.slug} firstLessonSlug={course.firstLessonSlug} authenticated={Boolean(session?.user?.id)} verified={Boolean(session?.user?.emailVerified || session?.user?.role === 'admin')} enrolled={enrolled} /> : null}
+                {course.firstLessonSlug ? <CourseEnrollmentAction slug={course.slug} firstLessonSlug={enrolled ? resumeLessonSlug : course.firstLessonSlug} authenticated={Boolean(session?.user?.id)} verified={Boolean(session?.user?.emailVerified || session?.user?.role === 'admin')} enrolled={enrolled} /> : null}
                 <a href="#curriculum" className="inline-flex h-12 items-center rounded-lg border border-foreground px-6 text-[15px] font-medium transition-colors hover:bg-secondary">
                   View curriculum
                 </a>
@@ -196,14 +204,22 @@ export default async function CourseDetailPage({ params }: PageProps) {
                   <div className="divide-y divide-border/70">
                     {module.lessons.map((lesson, lessonIndex) => (
                       <Link key={lesson.key} href={`/courses/${course.slug}/learn/${lesson.slug}`} className="group flex items-center gap-4 p-5 transition hover:bg-muted/35">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background text-xs font-bold">{lessonIndex + 1}</span>
+                        {completedSlugs.has(lesson.slug) ? (
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-success/30 bg-success/10 text-success" aria-label="Completed"><CheckCircle2 className="h-4 w-4" /></span>
+                        ) : (
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background text-xs font-bold">{lessonIndex + 1}</span>
+                        )}
                         <span className="min-w-0 flex-1">
                           <span className="block font-semibold group-hover:text-primary">{lesson.title}</span>
                           <span className="mt-1 block text-xs text-muted-foreground">
                             {lesson.type.replaceAll('-', ' ')} • {lesson.durationMinutes} min
                           </span>
                         </span>
-                        <Play className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                        {enrolled ? (
+                          <Play className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                        ) : (
+                          <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Enroll to open</span>
+                        )}
                       </Link>
                     ))}
                   </div>

@@ -10,10 +10,9 @@ import ProjectGallery from '@/components/public/ProjectGallery';
 import MermaidDiagram from '@/components/ui/MermaidDiagram';
 import { preserveSpacing } from '@/lib/utils/markdown';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import 'katex/dist/katex.min.css';
+import { rehypePlugins, remarkPlugins } from '@/lib/markdown-plugins';
 import remarkBreaks from 'remark-breaks';
-import rehypeRaw from 'rehype-raw';
-import rehypeHighlight from 'rehype-highlight';
 import { ExternalLink, Github, Eye, AlertTriangle, Lightbulb, GitFork, Star, Code2 } from 'lucide-react';
 
 import { Button } from "@/components/ui/Button";
@@ -140,8 +139,8 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                         prose-headings:font-serif prose-headings:font-medium prose-headings:tracking-tight prose-p:font-serif prose-p:text-[19px] prose-p:leading-[1.65] prose-p:text-foreground prose-li:font-serif prose-li:text-[19px] prose-a:text-foreground prose-a:decoration-primary prose-a:underline-offset-4 hover:prose-a:text-primary prose-img:rounded-xl prose-img:border prose-img:border-border prose-pre:bg-card
                      ">
                         <ReactMarkdown 
-                          remarkPlugins={[remarkGfm, remarkBreaks]}
-                          rehypePlugins={[rehypeHighlight, rehypeRaw]}
+                          remarkPlugins={[...remarkPlugins, remarkBreaks]}
+                          rehypePlugins={rehypePlugins}
                           components={{
                             code({ node, inline, className, children, ...props }: any) {
                                const match = /language-(\w+)/.exec(className || '')

@@ -18,7 +18,7 @@ function VerificationCard() {
   const returnTo = safeInternalPath(requested, null);
   const loginHref = returnTo ? `/login?from=${encodeURIComponent(returnTo)}` : '/login';
   const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>(token ? 'idle' : sent ? 'success' : 'error');
-  const [message, setMessage] = useState(sent ? 'Check your inbox. The verification link expires in 30 minutes.' : token ? 'Confirm below to verify this email address.' : 'This verification link is missing or invalid.');
+  const [message, setMessage] = useState(sent ? 'Check your inbox. The verification link expires in 30 minutes.' : token ? 'Confirm below to verify this email address.' : 'Your email isn’t verified yet. Request a fresh verification link to continue.');
   const [password, setPassword] = useState('');
 
   const verify = async () => {

@@ -215,7 +215,7 @@ export function CourseLessonWorkspace({
     ? Math.round((completedCount / totalLessons) * 100)
     : 0;
 
-  const markComplete = async () => {
+  const markComplete = async ({ advance = true }: { advance?: boolean } = {}) => {
     const willBeComplete = !isComplete;
     const next = willBeComplete
       ? [...new Set([...completedLessons, workspace.lesson.slug])]
@@ -244,7 +244,7 @@ export function CourseLessonWorkspace({
           courseSlug: workspace.course.slug,
           lessonSlug: workspace.lesson.slug,
         });
-        if (willBeComplete && workspace.navigation.next) {
+        if (advance && willBeComplete && workspace.navigation.next) {
           router.push(
             `/courses/${workspace.course.slug}/learn/${workspace.navigation.next.slug}`,
           );
@@ -282,7 +282,7 @@ export function CourseLessonWorkspace({
       if (!response.ok) throw new Error(data.error || "Unable to grade quiz");
       setQuizResult(data);
       setQuizAttemptCount((count) => count + 1);
-      if (data.passed && !isComplete) await markComplete();
+      if (data.passed && !isComplete) await markComplete({ advance: false });
     } catch (error) {
       setQuizError(
         error instanceof Error ? error.message : "Unable to grade quiz",
@@ -427,7 +427,7 @@ export function CourseLessonWorkspace({
             </div>
             <button
               type="button"
-              onClick={markComplete}
+              onClick={() => markComplete()}
               className={cn(
                 "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-[15px] font-medium transition",
                 isComplete
@@ -795,6 +795,15 @@ export function CourseLessonWorkspace({
                         ? "Concept check passed."
                         : "Review the explanations and try again."}
                     </p>
+                    {quizResult.passed && workspace.navigation.next ? (
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/courses/${workspace.course.slug}/learn/${workspace.navigation.next!.slug}`)}
+                        className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:bg-foreground/90"
+                      >
+                        Next lesson →
+                      </button>
+                    ) : null}
                   </div>
                 )}
                 <div className="space-y-6">

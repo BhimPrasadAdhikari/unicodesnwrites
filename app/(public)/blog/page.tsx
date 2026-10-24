@@ -62,7 +62,7 @@ export default async function BlogPage({
   }
   const resolvedSearchParams = await searchParams;
 
-  const page = parseInt(resolvedSearchParams.page || '1');
+  const page = Math.max(1, Number.parseInt(resolvedSearchParams.page || '1', 10) || 1);
   const limit = 10;
   const skip = (page - 1) * limit;
 
@@ -86,6 +86,8 @@ export default async function BlogPage({
   const [allPosts, seriesList, categories] = await Promise.all([
     Post.find(query)
       .sort({ publishedAt: -1 })
+      // The list never shows the body; leaving it out keeps this query small.
+      .select('-content -aiSummary')
       .populate({ path: 'author', model: User, select: 'name' })
       .lean() as unknown as IPost[],
     showSeries
@@ -101,9 +103,11 @@ export default async function BlogPage({
   );
 
   // ── Partition posts: standalone vs series parts ────────────────────────────
-  const standalonePosts = allPosts.filter(
-    (p) => !p.seriesId || !allSeriesIdStrings.has(p.seriesId.toString())
-  );
+  // A search or category filter shows every matching post, series parts included;
+  // the unfiltered feed folds series parts into their series card.
+  const standalonePosts = showSeries
+    ? allPosts.filter((p) => !p.seriesId || !allSeriesIdStrings.has(p.seriesId.toString()))
+    : allPosts;
   const standaloneTotal = standalonePosts.length;
 
   // ── Augment series with partCount + latestPublishedAt ────────────────────
@@ -139,6 +143,8 @@ export default async function BlogPage({
   const pagedItems = items.slice(skip, skip + limit);
   const total = items.length;
   const totalPages = Math.ceil(total / limit);
+  const pageHref = (p: number) =>
+    `/blog?page=${p}${resolvedSearchParams.category ? `&category=${encodeURIComponent(resolvedSearchParams.category)}` : ''}${resolvedSearch ? `&q=${encodeURIComponent(resolvedSearch)}` : ''}`;
 
   // Count for header stat (series + standalone posts)
   const totalArticles = standaloneTotal + (showSeries ? augmentedSeries.reduce((acc, s) => acc + s.partCount, 0) : 0);
@@ -184,21 +190,32 @@ export default async function BlogPage({
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex justify-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <Link
-                      key={p}
-                      href={`/blog?page=${p}${resolvedSearchParams.category ? `&category=${encodeURIComponent(resolvedSearchParams.category)}` : ''}${resolvedSearch ? `&q=${encodeURIComponent(resolvedSearch)}` : ''}`}
-                      className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                        p === page
-                          ? 'bg-foreground text-background'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {p}
-                    </Link>
-                  ))}
-                </div>
+                <nav aria-label="Pagination" className="flex flex-wrap items-center justify-center gap-2">
+                  {page > 1 ? (
+                    <Link href={pageHref(page - 1)} rel="prev" className="min-h-10 rounded-lg px-4 py-2 text-sm text-muted-foreground hover:text-foreground">← Newer</Link>
+                  ) : null}
+                  {pageNumbers(page, totalPages).map((p, index) =>
+                    p === null ? (
+                      <span key={`gap-${index}`} className="px-2 text-sm text-muted-foreground" aria-hidden="true">…</span>
+                    ) : (
+                      <Link
+                        key={p}
+                        href={pageHref(p)}
+                        aria-current={p === page ? 'page' : undefined}
+                        className={`min-h-10 rounded-lg px-4 py-2 text-sm transition-colors ${
+                          p === page
+                            ? 'bg-foreground text-background'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {p}
+                      </Link>
+                    )
+                  )}
+                  {page < totalPages ? (
+                    <Link href={pageHref(page + 1)} rel="next" className="min-h-10 rounded-lg px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Older →</Link>
+                  ) : null}
+                </nav>
               )}
             </div>
 
@@ -210,4 +227,16 @@ export default async function BlogPage({
       </Section>
     </div>
   );
+}
+
+/** Page numbers to show: first, last and two either side of the current page, with gaps as null. */
+function pageNumbers(current: number, total: number): Array<number | null> {
+  const wanted = new Set([1, total, current - 2, current - 1, current, current + 1, current + 2]);
+  const pages = [...wanted].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+  const out: Array<number | null> = [];
+  pages.forEach((p, i) => {
+    if (i > 0 && p - pages[i - 1] > 1) out.push(null);
+    out.push(p);
+  });
+  return out;
 }
