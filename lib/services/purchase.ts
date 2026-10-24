@@ -182,6 +182,7 @@ export async function authorizeProductDownload(
   const purchase = await Purchase.findOne({ downloadToken: token }).populate({
     path: 'product',
     model: Product,
+    select: '+fileUrl',
   });
 
   if (!purchase) {

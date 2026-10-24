@@ -11,7 +11,7 @@ async function getProduct(id: string) {
   if (!isValidObjectId(id)) return null;
   await dbConnect();
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).select('+fileUrl');
     if (!product) return null;
     return JSON.parse(JSON.stringify(product));
   } catch (error) {
