@@ -14,6 +14,8 @@ export type AdminAction = {
   /** Ask once more before running (destructive or hard to undo) */
   confirm?: string;
   tone?: 'default' | 'danger' | 'primary';
+  /** Shown after the action succeeds; gets the JSON response */
+  successMessage?: (data: Record<string, unknown>) => string;
 };
 
 /** Buttons that call an admin API and refresh the server-rendered list on success. */
@@ -22,6 +24,7 @@ export function AdminRowActions({ actions, className }: { actions: AdminAction[]
   const [running, setRunning] = useState<string | null>(null);
   const [armed, setArmed] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const run = async (action: AdminAction) => {
     if (action.confirm && armed !== action.label) {
@@ -31,16 +34,18 @@ export function AdminRowActions({ actions, className }: { actions: AdminAction[]
     setArmed(null);
     setRunning(action.label);
     setError('');
+    setNotice('');
     try {
       const response = await fetch(action.url, {
         method: action.method,
         headers: action.body ? { 'Content-Type': 'application/json' } : undefined,
         body: action.body ? JSON.stringify(action.body) : undefined,
       });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok && response.status !== 207) {
         throw new Error(data.error || `${action.label} failed`);
       }
+      if (action.successMessage) setNotice(action.successMessage(data));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : `${action.label} failed`);
@@ -75,6 +80,7 @@ export function AdminRowActions({ actions, className }: { actions: AdminAction[]
         );
       })}
       {error ? <p role="alert" className="basis-full text-xs text-destructive">{error}</p> : null}
+      {notice ? <p role="status" className="basis-full text-xs text-muted-foreground">{notice}</p> : null}
     </div>
   );
 }

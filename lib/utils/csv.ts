@@ -11,6 +11,8 @@ function neutralize(value: unknown): unknown {
 }
 
 export function toCSV<T extends object>(data: T[], fields?: string[]): string {
+  // json2csv refuses an empty list unless it knows the columns; an empty export is just a header (or nothing).
+  if (data.length === 0) return fields ? `${fields.map((field) => `"${field}"`).join(',')}\n` : '';
   try {
     const opts = fields ? { fields } : {};
     const parser = new Parser(opts);

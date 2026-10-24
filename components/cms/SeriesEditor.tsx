@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { useRouter } from 'next/navigation';
 import ImageUploader from './ImageUploader';
 import { Loader2 } from 'lucide-react';
@@ -32,6 +33,8 @@ export default function SeriesEditor({ initialData }: SeriesEditorProps) {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [initialSnapshot] = useState(() => JSON.stringify(formData));
+  useUnsavedChangesWarning(JSON.stringify(formData) !== initialSnapshot, saving);
 
   const handleChange = (field: keyof SeriesFormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

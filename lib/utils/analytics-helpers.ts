@@ -31,9 +31,10 @@ export function getDateRange(range: string, customStart?: string, customEnd?: st
         end: now
       };
     case 'thisMonth':
+      // Up to now, not the end of the month: the previous period is then the same length.
       return {
         start: startOfMonth(now),
-        end: endOfMonth(now)
+        end: now
       };
     case 'lastMonth':
       const lastMonth = subDays(startOfMonth(now), 1);

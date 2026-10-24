@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useForm, Controller, type FieldErrors, type FieldPath, type Resolver } from 'react-hook-form';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectSchema, ProjectFormData } from '@/lib/utils/validations/project';
 import TechStackSelector from './TechStackSelector';
@@ -33,7 +34,7 @@ export default function ProjectEditor({ initialData, isEditing = false }: Projec
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
-  const { register, handleSubmit, control, watch, setValue, trigger, formState: { errors } } = useForm<ProjectFormData>({
+  const { register, handleSubmit, control, watch, setValue, trigger, formState: { errors, isDirty } } = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema) as Resolver<ProjectFormData>,
     defaultValues: {
       title: initialData?.title || '',
@@ -57,6 +58,7 @@ export default function ProjectEditor({ initialData, isEditing = false }: Projec
       endDate: initialData?.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
     }
   });
+  useUnsavedChangesWarning(isDirty, isSubmitting);
 
   // Auto-set thumbnail to first image if not set
   useEffect(() => {

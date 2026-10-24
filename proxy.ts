@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { safeInternalPath } from '@/lib/utils/safe-path';
 
 export default withAuth(
-  function middleware(req) {
+  function proxy(req) {
     const token = req.nextauth.token;
     const isAuth = !!token && token.sessionValid !== false;
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') || req.nextUrl.pathname.startsWith('/signup');

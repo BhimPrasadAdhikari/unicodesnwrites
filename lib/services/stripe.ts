@@ -73,6 +73,8 @@ export const createCheckoutSession = async ({
     cancel_url: cancelUrl,
     customer_email: customerEmail,
     metadata: metadata,
+    // Lets buyers enter a code created under Studio → Coupons.
+    allow_promotion_codes: true,
   });
 };
 

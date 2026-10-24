@@ -276,6 +276,7 @@ export default async function BlogPostPage({
               author={authorName === 'Author' ? siteConfig.author.name : authorName}
               publishedAt={post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined}
               slug={post.slug}
+              replyEmail={siteConfig.author.email}
             />
 
             <BlogReadingProgress postSlug={post.slug} readingTime={post.readingTime} />
