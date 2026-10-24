@@ -53,7 +53,9 @@ const ProductSchema: Schema = new Schema(
     tags: [{ type: String }],
     thumbnailImage: { type: String, required: true },
     galleryImages: [{ type: String }],
-    fileUrl: { type: String, required: true },
+    // The storage URL of the paid file. Never sent to readers: queries that need it
+    // (downloads, the admin editor) ask for it with .select('+fileUrl').
+    fileUrl: { type: String, required: true, select: false },
     fileName: { type: String, required: true },
     fileSize: { type: Number, required: true },
     fileSizeDisplay: { type: String, required: true },

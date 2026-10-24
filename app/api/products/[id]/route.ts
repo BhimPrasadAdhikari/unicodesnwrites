@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: RouteProps) {
     await dbConnect();
     const { id } = await params;
     if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).select('+fileUrl');
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
