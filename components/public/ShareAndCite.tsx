@@ -10,6 +10,8 @@ interface ShareAndCiteProps {
   /** ISO date the post was published */
   publishedAt?: string
   slug: string
+  /** Where readers send questions and corrections */
+  replyEmail?: string
 }
 
 /** BibTeX keys can't hold most punctuation; keep letters, digits and dashes. */
@@ -31,7 +33,7 @@ async function copyText(text: string) {
  * End-of-post tools: share to the places technical readers gather, and a
  * ready-to-paste citation (BibTeX and plain text) for anyone writing a paper.
  */
-export default function ShareAndCite({ url, title, author, publishedAt, slug }: ShareAndCiteProps) {
+export default function ShareAndCite({ url, title, author, publishedAt, slug, replyEmail }: ShareAndCiteProps) {
   const [copied, setCopied] = useState<"link" | "bibtex" | "plain" | null>(null)
   const date = publishedAt ? new Date(publishedAt) : null
   const year = date ? String(date.getUTCFullYear()) : "n.d."
@@ -95,6 +97,19 @@ export default function ShareAndCite({ url, title, author, publishedAt, slug }: 
           </a>
         ))}
       </div>
+
+      {replyEmail ? (
+        <p className="mt-5 text-sm text-muted-foreground">
+          Spotted a mistake or have a question?{" "}
+          <a
+            href={`mailto:${replyEmail}?subject=${encodeURIComponent(`Re: ${title}`)}`}
+            className="font-medium text-foreground underline decoration-primary decoration-2 underline-offset-4"
+          >
+            Reply by email
+          </a>
+          ; I read every one and fix posts when readers catch something.
+        </p>
+      ) : null}
 
       <details className="group mt-5 rounded-xl border border-border bg-card">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium">
