@@ -77,7 +77,11 @@ export default function OverviewMetricsCards() {
   }
 
   if (!stats) {
-    return null;
+    return (
+      <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
+        Couldn&apos;t load the headline numbers. Refresh the page to try again.
+      </div>
+    );
   }
 
   const metricCards = [
@@ -85,7 +89,7 @@ export default function OverviewMetricsCards() {
       title: 'Total Revenue',
       value: stats.revenue?.formatted ?? '$0.00',
       subtitle: 'From digital products & sales',
-      change: stats.revenue?.change ?? 0,
+      change: stats.revenue?.change ?? null,
       icon: DollarSign,
       color: 'emerald',
       bgGlow: 'bg-success/10 text-success border-success/20',
@@ -95,7 +99,7 @@ export default function OverviewMetricsCards() {
       title: 'Total Sales',
       value: (stats.sales?.value ?? 0).toLocaleString(),
       subtitle: 'Completed product orders',
-      change: stats.sales?.change ?? 0,
+      change: stats.sales?.change ?? null,
       icon: ShoppingBag,
       color: 'violet',
       bgGlow: 'bg-secondary text-foreground border-border',
@@ -105,7 +109,7 @@ export default function OverviewMetricsCards() {
       title: 'Subscribers',
       value: (stats.subscribers?.value ?? 0).toLocaleString(),
       subtitle: 'Confirmed newsletter readers',
-      change: stats.subscribers?.change ?? 0,
+      change: stats.subscribers?.change ?? null,
       icon: Users,
       color: 'cyan',
       bgGlow: 'bg-accent/10 text-accent border-accent/20',
@@ -115,7 +119,7 @@ export default function OverviewMetricsCards() {
       title: 'Total Views',
       value: (stats.views?.value ?? 0).toLocaleString(),
       subtitle: `${stats.views?.articles ?? 0} published articles`,
-      change: stats.views?.change ?? 0,
+      change: stats.views?.change ?? null,
       icon: Eye,
       color: 'amber',
       bgGlow: 'bg-warning/10 text-warning border-warning/20',
@@ -157,7 +161,7 @@ export default function OverviewMetricsCards() {
               <div className="flex items-center gap-1.5 pt-1 text-xs font-medium">
                 {hasComparison ? (
                   <>
-                    <span className={`inline-flex items-center gap-0.5 rounded-md px-2 py-0.5 font-mono text-[12px] font-medium ${card.badgeBg}`}>
+                    <span className={`inline-flex items-center gap-0.5 rounded-md px-2 py-0.5 font-mono text-[12px] font-medium ${isPositive ? card.badgeBg : 'bg-destructive/10 text-destructive'}`}>
                       {isPositive ? (
                         <TrendingUp className="h-3 w-3" />
                       ) : (
@@ -165,10 +169,10 @@ export default function OverviewMetricsCards() {
                       )}
                       {isPositive ? `+${card.change}%` : `${card.change}%`}
                     </span>
-                    <span className="text-2xs text-muted-foreground">vs last month</span>
+                    <span className="text-2xs text-muted-foreground">last 30 days vs the 30 before</span>
                   </>
                 ) : (
-                  <span className="text-2xs text-muted-foreground">No baseline data yet</span>
+                  <span className="text-2xs text-muted-foreground">No data for the 30 days before</span>
                 )}
               </div>
             </CardContent>

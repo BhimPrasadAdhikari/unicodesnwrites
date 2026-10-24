@@ -71,7 +71,7 @@ export async function listLearnerEnrollments(userId: string) {
 export async function getAdminEnrollmentOverview() {
   await connectDB();
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const [total, activeLearnerIds, completed, activeLast7Days, recent, byCourse, quizSummaryRows, lessonActivity, notebookEntries, learnersWithNotes, learnerQuizRows, learnerStateRows] = await Promise.all([
+  const [total, activeLearnerIds, completed, activeLast7Days, recent, byCourse, quizSummaryRows, lessonActivity, notebookEntries, learnersWithNotes] = await Promise.all([
     CourseEnrollment.countDocuments(), CourseEnrollment.distinct('user', { status: 'active' }), CourseEnrollment.countDocuments({ status: 'completed' }), CourseEnrollment.countDocuments({ lastAccessedAt: { $gte: sevenDaysAgo } }),
     CourseEnrollment.find().sort({ enrolledAt: -1 }).limit(25).populate('user', 'name email').populate('course', 'title slug').lean(),
     CourseEnrollment.aggregate([{ $group: { _id: '$course', enrollments: { $sum: 1 }, completions: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } } } }, { $sort: { enrollments: -1 } }, { $lookup: { from: 'courses', localField: '_id', foreignField: '_id', as: 'course' } }, { $unwind: '$course' }, { $project: { title: '$course.title', slug: '$course.slug', enrollments: 1, completions: 1 } }]),
@@ -86,8 +86,15 @@ export async function getAdminEnrollmentOverview() {
     ]),
     LearnerNotebookEntry.countDocuments(),
     LearnerLessonState.distinct('user', { notes: { $type: 'string', $ne: '' } }),
-    CourseQuizAttempt.aggregate([{ $group: { _id: { user: '$user', course: '$course' }, attempts: { $sum: 1 }, averageScore: { $avg: '$score' }, passed: { $sum: { $cond: ['$passed', 1, 0] } } } }]),
-    LearnerLessonState.aggregate([{ $group: { _id: { user: '$user', course: '$course' }, lessonsVisited: { $sum: 1 }, notesCount: { $sum: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$notes', ''] } }, 0] }, 1, 0] } }, lastStudyAt: { $max: '$lastAccessedAt' } } }]),
+  ]);
+  // Per-learner metrics only for the rows on screen, not every learner on the platform.
+  const recentScope = {
+    user: { $in: recent.map((item) => item.user?._id || item.user).filter(Boolean) },
+    course: { $in: recent.map((item) => item.course?._id || item.course).filter(Boolean) },
+  };
+  const [learnerQuizRows, learnerStateRows] = await Promise.all([
+    CourseQuizAttempt.aggregate([{ $match: recentScope }, { $group: { _id: { user: '$user', course: '$course' }, attempts: { $sum: 1 }, averageScore: { $avg: '$score' }, passed: { $sum: { $cond: ['$passed', 1, 0] } } } }]),
+    LearnerLessonState.aggregate([{ $match: recentScope }, { $group: { _id: { user: '$user', course: '$course' }, lessonsVisited: { $sum: 1 }, notesCount: { $sum: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$notes', ''] } }, 0] }, 1, 0] } }, lastStudyAt: { $max: '$lastAccessedAt' } } }]),
   ]);
   const quizSummary = quizSummaryRows[0] || { attempts: 0, averageScore: 0, passed: 0 };
   const keyFor = (user: unknown, course: unknown) => `${String(user)}:${String(course)}`;
