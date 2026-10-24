@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ProductList from '@/components/cms/ProductList';
+import { RotateProductFiles } from '@/components/cms/RotateProductFiles';
 import dbConnect from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 import { Plus } from 'lucide-react';
@@ -30,6 +31,8 @@ export default async function ProductsPage() {
       />
 
       <ProductList products={products} />
+
+      <RotateProductFiles />
     </div>
   );
 }
