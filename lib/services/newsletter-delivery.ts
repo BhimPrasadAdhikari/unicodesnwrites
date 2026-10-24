@@ -231,6 +231,8 @@ export async function startOrContinueNewsletterDelivery(
     /** Resume a paused campaign before its `resumeAfter` (an admin clicked send). */
     resumePaused?: boolean;
     now?: Date;
+    /** Epoch ms: stop claiming new recipients after this, so the request ends before the platform kills it. */
+    deadline?: number;
   },
 ): Promise<NewsletterDeliveryResult> {
   await dbConnect();
@@ -385,6 +387,8 @@ export async function startOrContinueNewsletterDelivery(
   let providerError: string | undefined;
   let resumeAfter: Date | undefined;
   for (let index = 0; index < batchSize; index += 1) {
+    // Unclaimed recipients stay pending for the next run.
+    if (options?.deadline && Date.now() >= options.deadline) break;
     if (index > 0 && index % CANCELLATION_CHECK_INTERVAL === 0) {
       const current = await Newsletter.findById(newsletterObjectId).select('status').lean();
       if (current?.status !== 'sending') break; // stopped by an admin mid-batch
