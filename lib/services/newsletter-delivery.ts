@@ -403,7 +403,7 @@ export async function startOrContinueNewsletterDelivery(
         await markPermanentFailure(send._id, leaseToken, 'Subscriber is no longer confirmed');
         continue;
       }
-      await sendNewsletterToSubscriber(newsletter, subscriber);
+      await sendNewsletterToSubscriber(newsletter, subscriber, String(send._id));
       await NewsletterSend.updateOne(
         { _id: send._id, status: 'processing', leaseToken },
         {
