@@ -3,11 +3,15 @@ import { authOptions } from '@/lib/config/auth';
 import AnalyticsWidget from '@/components/cms/AnalyticsWidget';
 import EventsMetricsCard from '@/components/cms/EventsMetricsCard';
 import OverviewMetricsCards from '@/components/cms/OverviewMetricsCards';
+import OverviewPulse from '@/components/cms/OverviewPulse';
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { BarChart3, ExternalLink, Layers } from 'lucide-react';
 import { Glyph, type GlyphKind } from '@/components/ui/Glyph';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Overview | Admin Dashboard',
@@ -69,6 +73,11 @@ export default async function DashboardPage() {
 
       {/* Top-level Key Performance Metrics */}
       <OverviewMetricsCards />
+
+      {/* What needs you, 30-day trends and the most-read posts */}
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl border border-border bg-card" aria-label="Loading trends" />}>
+        <OverviewPulse />
+      </Suspense>
 
       {/* Analytics & Custom Events Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
