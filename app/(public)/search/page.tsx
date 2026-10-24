@@ -22,7 +22,27 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   };
 }
 
-type Hit = { kind: GlyphKind; label: string; title: string; summary?: string; href: string };
+type Hit = { kind: GlyphKind; label: string; title: string; summary?: string; snippet?: string; href: string; rank: number };
+
+/** Markdown to readable text for snippets: drops code, links' URLs, HTML and markup characters. */
+function plainText(markdown: string) {
+  return markdown
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#>*_`|$\\]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** About 90 characters either side of the first match, so readers see why a post matched. */
+function snippetAround(text: string, term: string) {
+  const index = text.toLowerCase().indexOf(term.toLowerCase());
+  if (index < 0) return undefined;
+  const start = Math.max(0, index - 90);
+  const end = Math.min(text.length, index + term.length + 90);
+  return `${start > 0 ? '…' : ''}${text.slice(start, end).trim()}${end < text.length ? '…' : ''}`;
+}
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -30,11 +50,12 @@ async function search(term: string): Promise<Hit[]> {
   const pattern = { $regex: escapeRegex(term), $options: 'i' };
   await connectDB();
   const [posts, courses, products, projects] = await Promise.all([
-    Post.find({ ...livePostFilter(), $or: [{ title: pattern }, { excerpt: pattern }, { tags: pattern }, { category: pattern }] })
+    // Bodies too: a reader searching "KV cache" should find the post that explains it.
+    Post.find({ ...livePostFilter(), $or: [{ title: pattern }, { excerpt: pattern }, { tags: pattern }, { category: pattern }, { content: pattern }] })
       .sort({ publishedAt: -1 })
-      .limit(20)
-      .select('title slug excerpt category')
-      .lean<Array<{ title: string; slug: string; excerpt?: string; category?: string }>>(),
+      .limit(30)
+      .select('title slug excerpt category tags content')
+      .lean<Array<{ title: string; slug: string; excerpt?: string; category?: string; tags?: string[]; content?: string }>>(),
     Course.find({ status: 'published', $or: [{ title: pattern }, { summary: pattern }, { topic: pattern }] })
       .limit(10)
       .select('title slug summary')
@@ -50,11 +71,25 @@ async function search(term: string): Promise<Hit[]> {
   ]);
 
   return [
-    ...posts.map((post) => ({ kind: 'papers' as const, label: post.category || 'Writing', title: post.title, summary: post.excerpt, href: `/blog/${post.slug}` })),
-    ...courses.map((course) => ({ kind: 'courses' as const, label: 'Course', title: course.title, summary: course.summary, href: `/courses/${course.slug}` })),
-    ...products.map((product) => ({ kind: 'tools' as const, label: 'Tool', title: product.title, summary: product.shortDescription, href: `/products/${product.slug}` })),
-    ...projects.map((project) => ({ kind: 'builds' as const, label: 'Build', title: project.title, summary: project.shortDescription, href: `/projects/${project.slug}` })),
-  ];
+    ...posts.map((post) => {
+      const lower = term.toLowerCase();
+      const inTitle = post.title.toLowerCase().includes(lower);
+      const inMeta = inTitle || (post.excerpt || '').toLowerCase().includes(lower) || (post.tags || []).some((tag) => tag.toLowerCase().includes(lower));
+      return {
+        kind: 'papers' as const,
+        label: post.category || 'Writing',
+        title: post.title,
+        summary: post.excerpt,
+        // Show the passage only when the match is in the body, not already visible in the title or summary.
+        snippet: inMeta ? undefined : snippetAround(plainText(post.content || ''), term),
+        href: `/blog/${post.slug}`,
+        rank: inTitle ? 0 : inMeta ? 1 : 2,
+      };
+    }),
+    ...courses.map((course) => ({ kind: 'courses' as const, label: 'Course', title: course.title, summary: course.summary, href: `/courses/${course.slug}`, rank: 1 })),
+    ...products.map((product) => ({ kind: 'tools' as const, label: 'Tool', title: product.title, summary: product.shortDescription, href: `/products/${product.slug}`, rank: 1 })),
+    ...projects.map((project) => ({ kind: 'builds' as const, label: 'Build', title: project.title, summary: project.shortDescription, href: `/projects/${project.slug}`, rank: 1 })),
+  ].sort((a, b) => a.rank - b.rank);
 }
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
@@ -106,7 +141,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                     <span className="min-w-0">
                       <span className="block font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{hit.label}</span>
                       <span className="mt-1 block font-serif text-xl font-medium leading-snug group-hover:text-primary">{hit.title}</span>
-                      {hit.summary ? <span className="mt-1 line-clamp-2 block text-sm text-muted-foreground">{hit.summary}</span> : null}
+                      {hit.snippet ? (
+                        <span className="mt-1 line-clamp-3 block text-sm text-muted-foreground">
+                          <Highlight text={hit.snippet} term={term} />
+                        </span>
+                      ) : hit.summary ? (
+                        <span className="mt-1 line-clamp-2 block text-sm text-muted-foreground">{hit.summary}</span>
+                      ) : null}
                     </span>
                   </Link>
                 </li>
@@ -120,5 +161,21 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </section>
       ) : null}
     </Container>
+  );
+}
+
+/** Marks each occurrence of the search term within a snippet. */
+function Highlight({ text, term }: { text: string; term: string }) {
+  const parts = text.split(new RegExp(`(${escapeRegex(term)})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.toLowerCase() === term.toLowerCase() ? (
+          <mark key={index} className="rounded-sm bg-primary/15 px-0.5 text-foreground">{part}</mark>
+        ) : (
+          <span key={index}>{part}</span>
+        )
+      )}
+    </>
   );
 }
