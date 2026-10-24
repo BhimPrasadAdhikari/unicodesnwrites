@@ -43,6 +43,7 @@ export async function GET() {
         refunded: purchase.refundedAt ? new Date(purchase.refundedAt).toISOString() : '',
         downloads: purchase.downloadCount ?? 0,
       })),
+      ['order', 'date', 'product', 'name', 'email', 'amount', 'currency', 'status', 'refunded', 'downloads'],
     );
 
     return new NextResponse(csv, {
