@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Upload, FileText, Check, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function SubscriberImport() {
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
     const [result, setResult] = useState<any>(null);
+    const [errorMessage, setErrorMessage] = useState('');
+    const router = useRouter();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -32,9 +35,11 @@ export default function SubscriberImport() {
 
             setResult(json);
             setStatus('success');
+            router.refresh();
             setFile(null); // Clear file
         } catch (error) {
             console.error(error);
+            setErrorMessage(error instanceof Error ? error.message : 'Upload failed');
             setStatus('error');
         }
     };
@@ -89,7 +94,7 @@ export default function SubscriberImport() {
                 {status === 'error' && (
                     <div className="bg-destructive/10 text-destructive p-4 rounded-md flex items-center gap-3">
                         <AlertCircle className="h-5 w-5" />
-                        <p>Import failed. Please check your CSV format.</p>
+                        <p>{errorMessage || "Import failed. Please check your CSV format."}</p>
                     </div>
                 )}
             </div>

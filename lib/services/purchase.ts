@@ -60,7 +60,7 @@ export async function createCheckoutForProduct({
   const session = await createCheckoutSession({
     priceId: product.stripePriceId,
     successUrl: `${appUrl}/products/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${appUrl}/products/${product.slug}`,
+    cancelUrl: `${appUrl}/products/${product.slug}?checkout=cancelled`,
     customerEmail,
     metadata: {
       productId: product._id.toString(),
@@ -79,6 +79,7 @@ export async function createPurchaseFromSession(session: Stripe.Checkout.Session
 }
 
 export async function completeCheckoutSession(session: Stripe.Checkout.Session) {
+  await dbConnect();
   const productId = session.metadata?.productId;
   const purchaseId = session.metadata?.purchaseId;
 
@@ -99,7 +100,8 @@ export async function completeCheckoutSession(session: Stripe.Checkout.Session) 
   const purchase = await Purchase.create({
     purchaseId: purchaseId,
     product: productId,
-    customerEmail: session.customer_details?.email || '',
+    // Stored lowercased so /account (which matches on the signed-in email) finds it.
+    customerEmail: (session.customer_details?.email || '').trim().toLowerCase(),
     customerName: session.customer_details?.name || '',
     amount: session.amount_total || 0,
     currency: session.currency || 'usd',
@@ -144,8 +146,10 @@ export async function completeCheckoutSession(session: Stripe.Checkout.Session) 
 export async function markPurchaseRefundedByPaymentIntent(paymentIntentId: string) {
   await dbConnect();
 
+  // Only a completed purchase moves to refunded, so a replayed webhook can't
+  // subtract from the product totals twice.
   const purchase = await Purchase.findOneAndUpdate(
-    { stripePaymentIntentId: paymentIntentId },
+    { stripePaymentIntentId: paymentIntentId, status: 'completed' },
     {
       status: 'refunded',
       refundedAt: new Date(),
@@ -154,8 +158,15 @@ export async function markPurchaseRefundedByPaymentIntent(paymentIntentId: strin
   );
 
   if (!purchase) {
+    const existing = await Purchase.findOne({ stripePaymentIntentId: paymentIntentId });
+    if (existing) return existing;
     throw new ProductPurchaseError('Purchase not found for refund', 404);
   }
+
+  await Product.updateOne(
+    { _id: purchase.product },
+    { $inc: { totalSales: -1, totalRevenue: -(purchase.amount || 0) } }
+  );
 
   return purchase;
 }
@@ -224,6 +235,52 @@ export async function consumeAuthorizedProductDownload(
 
   await recordProductDownload(claimedPurchase, product, context);
   return claimedPurchase;
+}
+
+/**
+ * A fresh download link for a completed purchase: new token, new expiry and the
+ * download allowance restored. Callers must already have proved ownership.
+ */
+export async function reissueDownloadToken(purchaseId: string) {
+  await dbConnect();
+  const purchase = await Purchase.findOneAndUpdate(
+    { _id: purchaseId, status: 'completed' },
+    {
+      downloadToken: generateDownloadToken(),
+      downloadTokenExpiry: getExpiryDate(Number(process.env.DOWNLOAD_TOKEN_EXPIRY_HOURS) || 24),
+      downloadCount: 0,
+    },
+    { new: true }
+  );
+  if (!purchase) {
+    throw new ProductPurchaseError('Purchase not found', 404);
+  }
+  return purchase;
+}
+
+/** Emails a fresh link for every completed purchase made with this address. Returns how many were sent. */
+export async function emailFreshDownloadLinks(email: string) {
+  await dbConnect();
+  const purchases = await Purchase.find({ customerEmail: email, status: 'completed' })
+    .collation({ locale: 'en', strength: 2 })
+    .sort({ purchasedAt: -1 })
+    .limit(20)
+    .select('_id product')
+    .lean();
+
+  let sent = 0;
+  for (const item of purchases) {
+    const product = await Product.findById(item.product);
+    if (!product) continue;
+    const purchase = await reissueDownloadToken(String(item._id));
+    try {
+      await sendPurchaseConfirmation(purchase, product);
+      sent += 1;
+    } catch (error) {
+      console.error('Failed to email a fresh download link', error);
+    }
+  }
+  return sent;
 }
 
 export async function resendPurchaseConfirmationEmail(purchaseId: string) {

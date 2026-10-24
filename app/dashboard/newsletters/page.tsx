@@ -13,6 +13,7 @@ export default async function NewslettersPage() {
     // Fetch newsletters
     const newsletters = await Newsletter.find({})
         .sort({ updatedAt: -1 })
+        .select('-content')
         .lean();
     const digest = await findDigestCandidates();
         

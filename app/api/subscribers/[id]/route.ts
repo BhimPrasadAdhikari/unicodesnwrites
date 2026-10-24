@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import dbConnect from '@/lib/db/connection';
 import Subscriber from '@/lib/models/Subscriber';
+import NewsletterSend from '@/lib/models/NewsletterSend';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 import { sendSubscriberConfirmation } from '@/lib/services/email';
 
@@ -67,6 +68,8 @@ export async function DELETE(
 
         const deleted = await Subscriber.findByIdAndDelete(params.id);
         if (!deleted) return NextResponse.json({ error: 'Subscriber not found' }, { status: 404 });
+        // Their queued and past deliveries go too, so nothing is sent to a deleted address.
+        await NewsletterSend.deleteMany({ subscriber: deleted._id });
 
         return NextResponse.json({ message: 'Subscriber deleted' }, { status: 200 });
     } catch (error) {

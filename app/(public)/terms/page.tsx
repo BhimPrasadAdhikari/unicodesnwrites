@@ -4,7 +4,8 @@ import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | unicodesnwrites',
+  title: 'Terms of Service',
+  alternates: { canonical: '/terms' },
   description: 'Terms and conditions for using unicodesnwrites.',
 };
 

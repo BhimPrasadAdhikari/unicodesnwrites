@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
+import ShareAndCite from '@/components/public/ShareAndCite';
 import { connectDB } from '@/lib/db/connection';
 import { Post, IPost } from '@/lib/models/Post';
 import { Series } from '@/lib/models/Series';
@@ -45,11 +47,20 @@ export async function generateMetadata({
       url: `/blog/${post.slug}`,
       title: post.title,
       description: post.excerpt,
-      images: post.coverImage ? [post.coverImage] : [],
+      images: [post.coverImage || `/og/post/${post.slug}`],
       publishedTime: post.publishedAt?.toISOString(),
       modifiedTime: post.updatedAt?.toISOString(),
+      authors: [siteConfig.author.name],
+      tags: post.tags,
     },
-    twitter: { card: 'summary_large_image', title: post.title, description: post.excerpt, images: post.coverImage ? [post.coverImage] : undefined },
+    twitter: { card: 'summary_large_image', title: post.title, description: post.excerpt, images: [post.coverImage || `/og/post/${post.slug}`] },
+    // Google Scholar and reference managers read these.
+    other: {
+      citation_title: post.title,
+      citation_author: siteConfig.author.name,
+      ...(post.publishedAt ? { citation_publication_date: format(new Date(post.publishedAt), 'yyyy/MM/dd') } : {}),
+      citation_journal_title: siteConfig.name,
+    },
   };
 }
 
@@ -73,8 +84,14 @@ export default async function BlogPostPage({
     notFound();
   }
 
-  // Increment view count
-  await Post.findByIdAndUpdate(post._id, { $inc: { views: 1 } });
+  // Count human page loads only: skip crawlers and router prefetches.
+  const requestHeaders = await headers();
+  const userAgent = requestHeaders.get('user-agent') || '';
+  const isPrefetch = requestHeaders.get('next-router-prefetch') === '1' || requestHeaders.get('purpose') === 'prefetch';
+  const countView = !isPrefetch && !/bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|headless/i.test(userAgent);
+  if (countView) {
+    await Post.updateOne({ _id: post._id }, { $inc: { views: 1 } }, { timestamps: false });
+  }
 
   const authorName = post.author && typeof post.author === 'object' && 'name' in post.author && post.author.name
     ? post.author.name
@@ -94,23 +111,14 @@ export default async function BlogPostPage({
   if (post.seriesId) {
     const postSeriesIdStr = post.seriesId.toString();
 
-    // Find the series — try findById first, fall back to string match
-    let series = await Series.findById(post.seriesId).lean();
-    if (!series) {
-      // seriesId might be stored as string; find by comparing toString()
-      const allSeries = await Series.find().lean();
-      series = allSeries.find((s) => s._id.toString() === postSeriesIdStr) ?? null;
-    }
-
-    // Find sibling posts using JS string comparison
-    const allPublished = await Post.find(livePostFilter())
-      .sort({ seriesPart: 1 })
-      .select('slug title seriesPart seriesId')
-      .lean() as unknown as IPost[];
-
-    const siblingPosts = allPublished.filter(
-      (p) => p.seriesId && p.seriesId.toString() === postSeriesIdStr
-    );
+    // Older posts may hold seriesId as a string, so match both forms.
+    const [series, siblingPosts] = await Promise.all([
+      Series.findById(post.seriesId).lean(),
+      Post.find({ ...livePostFilter(), seriesId: { $in: [post.seriesId, postSeriesIdStr] } })
+        .sort({ seriesPart: 1 })
+        .select('slug title seriesPart seriesId')
+        .lean() as unknown as Promise<IPost[]>,
+    ]);
 
     if (series && siblingPosts.length > 0) {
       const currentIndex = siblingPosts.findIndex((p) => p.slug === slug);
@@ -138,11 +146,14 @@ export default async function BlogPostPage({
     headline: post.title,
     description: post.excerpt,
     url: `https://${siteConfig.domain}/blog/${post.slug}`,
-    image: post.coverImage || undefined,
+    image: post.coverImage || `https://${siteConfig.domain}/og/post/${post.slug}`,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://${siteConfig.domain}/blog/${post.slug}` },
+    articleSection: post.category,
+    wordCount: post.content ? post.content.split(/\s+/).length : undefined,
     datePublished: post.publishedAt?.toISOString(),
     dateModified: post.updatedAt?.toISOString(),
-    author: { '@type': 'Person', name: authorName },
-    publisher: { '@type': 'Person', name: siteConfig.author.name },
+    author: { '@type': 'Person', name: authorName, url: `https://${siteConfig.domain}/about` },
+    publisher: { '@type': 'Person', name: siteConfig.author.name, url: `https://${siteConfig.domain}/about` },
     keywords: post.tags?.join(', '),
     inLanguage: 'en',
   };
@@ -178,7 +189,7 @@ export default async function BlogPostPage({
                 <span aria-hidden="true">·</span>
                 <span>{post.readingTime} min</span>
                 <span aria-hidden="true">·</span>
-                <span>{(post.views || 0) + 1} views</span>
+                <span>{(post.views || 0) + (countView ? 1 : 0)} views</span>
               </p>
 
               <h1 className="mb-5 font-serif text-[clamp(2.125rem,5vw,3.5rem)] font-medium leading-[1.05] tracking-[-0.025em]">
@@ -258,6 +269,14 @@ export default async function BlogPostPage({
                 </div>
               </div>
             )}
+
+            <ShareAndCite
+              url={`https://${siteConfig.domain}/blog/${post.slug}`}
+              title={post.title}
+              author={authorName === 'Author' ? siteConfig.author.name : authorName}
+              publishedAt={post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined}
+              slug={post.slug}
+            />
 
             <BlogReadingProgress postSlug={post.slug} readingTime={post.readingTime} />
 

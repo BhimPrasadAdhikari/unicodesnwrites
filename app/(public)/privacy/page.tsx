@@ -5,7 +5,8 @@ import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | unicodesnwrites',
+  title: 'Privacy Policy',
+  alternates: { canonical: '/privacy' },
   description: 'Our commitment to privacy, data rights, and transparency.',
 };
 

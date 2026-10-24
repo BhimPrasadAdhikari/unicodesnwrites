@@ -101,6 +101,8 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: true,
       },
+      { source: '/portfolio', destination: '/about', permanent: true },
+      { source: '/portfolio/:slug', destination: '/projects/:slug', permanent: true },
     ];
   },
 };

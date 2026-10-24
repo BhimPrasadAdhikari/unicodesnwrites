@@ -58,12 +58,13 @@ export default function EditNewsletterPage({ params }: { params?: { id: string }
         }
     }, [isNew, params?.id, reloadKey]);
 
-    const handleSave = async () => {
-        if (isLoading || loadError) return;
+    /** Saves the draft; resolves true when the server accepted it. */
+    const handleSave = async (): Promise<boolean> => {
+        if (isLoading || loadError) return false;
         const validation = createNewsletterSchema.safeParse({ subject, previewText, content });
         if (!validation.success) {
             setFeedback({ type: 'error', message: validation.error.issues[0]?.message || 'Check the campaign fields.' });
-            return;
+            return false;
         }
         
         setIsSaving(true);
@@ -88,8 +89,10 @@ export default function EditNewsletterPage({ params }: { params?: { id: string }
                 setPreviewText(validation.data.previewText || '');
                 setFeedback({ type: 'success', message: 'Draft saved.' });
             }
+            return true;
         } catch (error) {
             setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Campaign could not be saved.' });
+            return false;
         } finally {
             setIsSaving(false);
         }
@@ -117,12 +120,18 @@ export default function EditNewsletterPage({ params }: { params?: { id: string }
                 description="Draft the subject line, preview text, and content before scheduling or broadcasting to subscribers."
                 action={(
                     <div className="flex flex-wrap gap-2">
-                        <Button onClick={handleSave} loading={isSaving} variant="outline">
+                        <Button onClick={() => handleSave()} loading={isSaving} variant="outline">
                             {!isSaving && <Save className="h-4 w-4 mr-2" />}
                             Save Draft
                         </Button>
                         {!isNew && (
-                            <Button onClick={() => router.push(`/dashboard/newsletters/${params?.id}/send`)}>
+                            <Button
+                            loading={isSaving}
+                            onClick={async () => {
+                                // Save first so the review screen shows (and sends) what is in the editor.
+                                if (await handleSave()) router.push(`/dashboard/newsletters/${params?.id}/send`);
+                            }}
+                        >
                                 <Send className="h-4 w-4 mr-2" />
                                 Next: Review & Send
                             </Button>

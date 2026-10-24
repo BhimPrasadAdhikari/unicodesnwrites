@@ -183,6 +183,7 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
             <Search className="h-4 w-4" />
             <input
               type="text"
+              aria-label="Search tools"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search products"
@@ -191,6 +192,7 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
           </label>
 
           <select
+            aria-label="Filter by type"
             value={typeFilter}
             onChange={(event) => setTypeFilter(event.target.value)}
             className="h-12 rounded-xl border border-border bg-background px-4 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
@@ -203,6 +205,7 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
           </select>
 
           <select
+            aria-label="Filter by license"
             value={licenseFilter}
             onChange={(event) => setLicenseFilter(event.target.value)}
             className="h-12 rounded-xl border border-border bg-background px-4 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
@@ -215,6 +218,7 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
           </select>
 
           <select
+            aria-label="Filter by price"
             value={priceFilter}
             onChange={(event) => setPriceFilter(event.target.value)}
             className="h-12 rounded-xl border border-border bg-background px-4 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"
@@ -227,6 +231,7 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
           </select>
 
           <select
+            aria-label="Sort by"
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
             className="h-12 rounded-xl border border-border bg-background px-4 text-sm text-foreground [&>option]:bg-background [&>option]:text-foreground"

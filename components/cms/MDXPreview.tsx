@@ -10,9 +10,8 @@
  */
 
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeRaw from 'rehype-raw';
+import 'katex/dist/katex.min.css';
+import { rehypePlugins, remarkPlugins } from '@/lib/markdown-plugins';
 import { preserveSpacing } from '@/lib/utils/markdown';
 import { mdxComponents } from '@/lib/mdx-components';
 
@@ -26,8 +25,8 @@ export default function MDXPreview({ content }: MDXPreviewProps) {
   return (
     <div className="mdx-content text-base">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight, rehypeRaw]}
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
         components={mdxComponents}
       >
         {processedContent}

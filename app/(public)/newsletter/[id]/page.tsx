@@ -23,8 +23,10 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
     if (!newsletter) return { title: 'Newsletter Not Found' };
     
     return {
-        title: `${newsletter.subject} | unicodesnwrites Newsletter`,
+        title: `${newsletter.subject} · Letters`,
         description: newsletter.previewText,
+        alternates: { canonical: `/newsletter/${params.id}` },
+        openGraph: { title: newsletter.subject, description: newsletter.previewText, type: 'article' },
     };
 }
 

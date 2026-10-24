@@ -8,6 +8,8 @@ import { siteConfig } from '@/lib/config/site.config';
 
 const readLinks = [
   { href: '/blog', label: 'Writing' },
+  { href: '/blog/series', label: 'Series' },
+  { href: '/search', label: 'Search' },
   { href: '/projects', label: 'Builds' },
 ];
 
@@ -18,8 +20,9 @@ const learnLinks = [
 ];
 
 const elsewhereLinks = [
-  { href: '/portfolio', label: 'About' },
+  { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
+  { href: '/feed.xml', label: 'RSS feed' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/terms', label: 'Terms' },
 ];
@@ -29,11 +32,18 @@ function Column({ title, links }: { title: string; links: { href: string; label:
     <div>
       <p className="mb-4 text-eyebrow text-muted-foreground">{title}</p>
       <nav className="flex flex-col gap-1" aria-label={title}>
-        {links.map((link) => (
-          <Link key={link.href} href={link.href} className="py-1.5 text-[15px] text-foreground transition-colors hover:text-primary">
-            {link.label}
-          </Link>
-        ))}
+        {links.map((link) =>
+          // The feed is a route handler, not a page: a plain link avoids a client-side navigation attempt.
+          link.href.endsWith('.xml') ? (
+            <a key={link.href} href={link.href} className="py-1.5 text-[15px] text-foreground transition-colors hover:text-primary">
+              {link.label}
+            </a>
+          ) : (
+            <Link key={link.href} href={link.href} className="py-1.5 text-[15px] text-foreground transition-colors hover:text-primary">
+              {link.label}
+            </Link>
+          )
+        )}
       </nav>
     </div>
   );

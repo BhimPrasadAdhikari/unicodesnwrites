@@ -46,16 +46,14 @@ export async function POST(req: NextRequest) {
         await completeCheckoutSession(session);
       } catch (err: any) {
         console.error('Error creating purchase from webhook:', err);
-         return NextResponse.json(
-          { error: `Purchase creation failed: ${err.message}` },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: 'Purchase creation failed' }, { status: 500 });
       }
     } else if (event.type === 'charge.refunded') {
       const charge = event.data.object as Stripe.Charge;
       const paymentIntentId = charge.payment_intent as string;
 
-      if (paymentIntentId) {
+      // A partial refund leaves the buyer's access in place; only a full refund revokes it.
+      if (paymentIntentId && charge.refunded) {
         try {
           await markPurchaseRefundedByPaymentIntent(paymentIntentId);
           console.log(`Purchase refunded for PaymentIntent: ${paymentIntentId}`);

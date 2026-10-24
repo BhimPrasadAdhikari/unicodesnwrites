@@ -4,51 +4,68 @@ import Subscriber from '@/lib/models/Subscriber';
 import { parseCSV } from '@/lib/utils/csv';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 
+const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_ROWS = 50_000;
+const CHUNK = 500;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function POST(req: NextRequest) {
     try {
         await requireAdminSession();
 
         const formData = await req.formData();
-        const file = formData.get('file') as File;
+        const file = formData.get('file');
 
-        if (!file) {
+        if (!(file instanceof File)) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
+        if (file.size > MAX_BYTES) {
+            return NextResponse.json({ error: 'CSV is larger than 5 MB. Split it and import in parts.' }, { status: 413 });
+        }
+
         const text = await file.text();
-        const records = parseCSV(text);
+        const records = parseCSV(text).slice(0, MAX_ROWS);
 
         await dbConnect();
 
-        let added = 0;
-        let duplicates = 0;
         let invalid = 0;
-
+        // Last row wins when a file lists the same address twice.
+        const rows = new Map<string, { email: string; name?: string }>();
         for (const record of records) {
-            if (!record.email || !record.email.includes('@')) {
+            const email = (record.email || '').trim().toLowerCase();
+            if (!EMAIL.test(email) || email.length > 254) {
                 invalid++;
                 continue;
             }
+            rows.set(email, { email, name: record.name?.trim().slice(0, 100) || undefined });
+        }
 
+        // One lookup per chunk instead of one per row. Existing records (including
+        // people who unsubscribed) are never touched by an import.
+        let added = 0;
+        let duplicates = 0;
+        const all = [...rows.values()];
+        for (let i = 0; i < all.length; i += CHUNK) {
+            const chunk = all.slice(i, i + CHUNK);
+            const existing = new Set(
+                (await Subscriber.find({ email: { $in: chunk.map((row) => row.email) } }).select('email').lean()).map((row) => row.email)
+            );
+            const fresh = chunk.filter((row) => !existing.has(row.email));
+            duplicates += chunk.length - fresh.length;
+            if (!fresh.length) continue;
+            const now = new Date();
             try {
-                // Check duplicate
-                const exists = await Subscriber.findOne({ email: record.email.toLowerCase() });
-                if (exists) {
-                    duplicates++;
-                    continue;
-                }
-
-                await Subscriber.create({
-                    email: record.email.toLowerCase(),
-                    name: record.name,
-                    source: 'import',
-                    status: 'confirmed', // Auto-confirm imports (assuming consent provided off-platform)
-                    confirmedAt: new Date(),
-                });
-                added++;
+                const inserted = await Subscriber.insertMany(
+                    fresh.map((row) => ({ ...row, source: 'import', status: 'confirmed', confirmedAt: now })),
+                    { ordered: false }
+                );
+                added += inserted.length;
             } catch (err) {
-                console.error('Import error for record:', record, err);
-                invalid++;
+                // ordered:false keeps going past bad rows; count what made it in.
+                const inserted = (err as { insertedDocs?: unknown[] }).insertedDocs?.length ?? 0;
+                added += inserted;
+                invalid += fresh.length - inserted;
             }
         }
 

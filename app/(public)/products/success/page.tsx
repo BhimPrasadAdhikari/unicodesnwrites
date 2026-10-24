@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Download } from 'lucide-react';
 import OrderProcessing from './OrderProcessing';
@@ -10,6 +11,8 @@ import { Button } from '@/components/ui/Button';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const isValidStripeSessionId = (value: string) => /^cs_(?:test|live)_[A-Za-z0-9]+$/.test(value) && value.length <= 255;
 
@@ -116,7 +119,7 @@ export default async function SuccessPage(props: {
                 <Link href="/products">Browse more tools</Link>
               </Button>
             </div>
-            <p className="pen-note mt-6 text-base">the link expires in 24 hours; ask for a new one any time</p>
+            <p className="pen-note mt-6 text-base">the link expires in 24 hours; <Link href="/products/download" className="underline">get a fresh one any time</Link></p>
           </div>
         </Container>
       </Section>

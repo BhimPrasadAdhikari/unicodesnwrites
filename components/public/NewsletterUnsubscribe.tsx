@@ -53,7 +53,7 @@ export default function NewsletterUnsubscribe() {
     }
 
     return (
-        <main className="mx-auto flex min-h-[70vh] max-w-xl items-center px-4 py-16">
+        <div className="mx-auto flex min-h-[70vh] max-w-xl items-center px-4 py-16">
             <div className="w-full rounded-3xl border border-border bg-card p-8 text-center sm:p-10">
                 {status === 'idle' && (
                     <>
@@ -116,6 +116,6 @@ export default function NewsletterUnsubscribe() {
                     </div>
                 )}
             </div>
-        </main>
+        </div>
     );
 }

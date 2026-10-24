@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Projects',
+  alternates: { canonical: '/projects' },
   description: 'Case studies for applied AI, machine learning, and full-stack product systems.',
 };
 

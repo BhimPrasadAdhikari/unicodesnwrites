@@ -1,9 +1,16 @@
+import type { Metadata } from 'next';
 import {connectDB} from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 import { Section, Container } from '@/components/ui/Section';
 import ProductsFilterGrid from '@/components/public/ProductsFilterGrid';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Tools, kits and books',
+  description: 'Starter kits, AI applications, digital books and tools from the notebook, ready to own and run.',
+  alternates: { canonical: '/products' },
+};
 
 async function getProducts() {
   try {

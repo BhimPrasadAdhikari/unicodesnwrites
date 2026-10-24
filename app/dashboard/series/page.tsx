@@ -14,16 +14,13 @@ export default async function SeriesPage() {
 
   const series = await Series.find().sort({ createdAt: -1 }).lean();
   
-  // Get part counts for each series
-  const seriesWithCounts = await Promise.all(
-    series.map(async (s) => {
-      const partCount = await Post.countDocuments({ seriesId: s._id });
-      return {
-        ...s,
-        partCount,
-      };
-    })
-  );
+  // Part counts for every series in one query
+  const counts = await Post.aggregate<{ _id: unknown; count: number }>([
+    { $match: { seriesId: { $in: series.map((s) => s._id) } } },
+    { $group: { _id: '$seriesId', count: { $sum: 1 } } },
+  ]);
+  const countBySeries = new Map(counts.map((row) => [String(row._id), row.count]));
+  const seriesWithCounts = series.map((s) => ({ ...s, partCount: countBySeries.get(String(s._id)) ?? 0 }));
 
   return (
     <div>

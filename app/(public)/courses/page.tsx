@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'AIML Courses',
+  alternates: { canonical: '/courses' },
   description: 'Concept-first learning paths for understanding language models, retrieval, agents, evaluation, and modern AI and ML systems.',
 };
 

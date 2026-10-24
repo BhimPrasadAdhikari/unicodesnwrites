@@ -3,11 +3,21 @@ import { Parser } from '@json2csv/plainjs';
 /**
  * Converts an array of objects to a CSV string
  */
+// Spreadsheet apps run cells starting with these as formulas (CSV injection).
+const FORMULA_PREFIX = /^[=+\-@\t\r]/;
+
+function neutralize(value: unknown): unknown {
+  return typeof value === 'string' && FORMULA_PREFIX.test(value) ? `'${value}` : value;
+}
+
 export function toCSV<T extends object>(data: T[], fields?: string[]): string {
   try {
     const opts = fields ? { fields } : {};
     const parser = new Parser(opts);
-    return parser.parse(data);
+    const safe = data.map((row) =>
+      Object.fromEntries(Object.entries(row).map(([key, value]) => [key, neutralize(value)]))
+    );
+    return parser.parse(safe);
   } catch (err) {
     console.error('Error converting to CSV:', err);
     throw new Error('Failed to generate CSV');
@@ -33,8 +43,9 @@ export function parseCSV(csvText: string): Record<string, string>[] {
     // This assumes simple CSV without commas in values for now
     
     if (currentLine.length === headers.length) {
-      const obj: Record<string, string> = {};
+      const obj: Record<string, string> = Object.create(null);
       for (let j = 0; j < headers.length; j++) {
+        if (headers[j] === '__proto__' || headers[j] === 'constructor' || headers[j] === 'prototype') continue;
         obj[headers[j]] = currentLine[j].trim().replace(/^"|"$/g, '');
       }
       result.push(obj);

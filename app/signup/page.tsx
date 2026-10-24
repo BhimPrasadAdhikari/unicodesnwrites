@@ -8,12 +8,13 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { Input } from '@/components/ui/Input';
+import { safeInternalPath } from '@/lib/utils/safe-path';
 
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requested = searchParams.get('from');
-  const returnTo = requested?.startsWith('/') && !requested.startsWith('//') && !requested.includes('\\') ? requested : null;
+  const returnTo = safeInternalPath(requested, null);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

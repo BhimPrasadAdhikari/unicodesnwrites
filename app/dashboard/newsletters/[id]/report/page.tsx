@@ -52,7 +52,8 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
     const recipients = newsletter.recipientCount || sent + failed + bounced + pending + processing;
     
     const openRate = sent > 0 ? (opened / sent * 100).toFixed(1) : 0;
-    const clickRate = opened > 0 ? (clicked / opened * 100).toFixed(1) : 0;
+    const clickRate = sent > 0 ? (clicked / sent * 100).toFixed(1) : 0;
+    const clickToOpen = opened > 0 ? (clicked / opened * 100).toFixed(1) : 0;
     const deliveryRate = recipients > 0 ? ((sent / recipients) * 100).toFixed(1) : '0.0';
 
     const recentActivity = await NewsletterSend.find({ newsletter: newsletter._id })
@@ -80,10 +81,13 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
                         { label: 'Recipients', value: recipients, detail: 'Total audience' },
                         { label: 'Sent', value: sent, detail: `${deliveryRate}% delivered` },
                         { label: 'Open rate', value: `${openRate}%`, detail: `${opened} opens` },
-                        { label: 'Click rate', value: `${clickRate}%`, detail: `${clicked} clicks` },
+                        { label: 'Click rate', value: `${clickRate}%`, detail: `${clicked} clicks · ${clickToOpen}% of opens` },
                         { label: 'Failures', value: failed + bounced, detail: `${pending + processing} pending` },
                     ].map((metric) => <div key={metric.label} className="rounded-xl border border-border bg-background/70 p-4"><p className="text-xs font-medium text-muted-foreground">{metric.label}</p><p className="mt-2 text-2xl font-semibold tracking-tight">{metric.value}</p><p className="mt-1 text-xs text-muted-foreground">{metric.detail}</p></div>)}
                 </div>
+                <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                    Opens are counted from a tracking image, so they are estimates: some mail apps block images and Apple Mail loads them for everyone. Clicks are exact. Issues sent before tracking was added show zero.
+                </p>
             </section>
 
              <section className="overflow-hidden rounded-xl border border-border bg-card/70">

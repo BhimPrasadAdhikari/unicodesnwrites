@@ -10,6 +10,7 @@ import WelcomeEmail from '@/lib/email-templates/welcome';
 import NewsletterEmail from '@/lib/email-templates/newsletter';
 import UnsubscribeConfirmationEmail from '@/lib/email-templates/unsubscribe-confirm';
 import { generateUnsubscribeToken } from '@/lib/utils/email-tokens';
+import { addTracking } from '@/lib/services/newsletter-tracking';
 
 const transporter = nodemailer.createTransport({
   pool: true, // reuse SMTP connections across a newsletter batch
@@ -160,14 +161,16 @@ export const sendWelcomeEmail = async (subscriber: ISubscriber) => {
 
 export const sendNewsletterToSubscriber = async (
   newsletter: INewsletter,
-  subscriber: ISubscriber
+  subscriber: ISubscriber,
+  /** The NewsletterSend id; when given, links and an open pixel are tracked per recipient */
+  sendId?: string
 ) => {
   const unsubscribeQuery = `email=${encodeURIComponent(subscriber.email)}&token=${generateUnsubscribeToken(subscriber.email)}`;
   const unsubscribeUrl = `${APP_URL}/newsletter/unsubscribe?${unsubscribeQuery}`;
   // RFC 8058 one-click unsubscribe: mail clients POST directly to this endpoint.
   const oneClickUnsubscribeUrl = `${APP_URL}/api/newsletter/unsubscribe?${unsubscribeQuery}`;
   
-  const html = await render(
+  const rendered = await render(
     <NewsletterEmail 
       subject={newsletter.subject} 
       content={newsletter.content} 
@@ -176,6 +179,7 @@ export const sendNewsletterToSubscriber = async (
       postalAddress={process.env.NEWSLETTER_POSTAL_ADDRESS}
     />
   );
+  const html = sendId ? addTracking(rendered, sendId) : rendered;
   
   const headers = {
     'List-Unsubscribe': `<${oneClickUnsubscribeUrl}>`,

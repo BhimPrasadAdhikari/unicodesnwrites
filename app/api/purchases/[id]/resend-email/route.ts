@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/config/auth';
+import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { isObjectId } from '@/lib/utils/object-id';
 import {
   ProductPurchaseError,
   resendPurchaseConfirmationEmail,
@@ -12,16 +12,19 @@ interface RouteProps {
 
 export async function POST(req: NextRequest, { params }: RouteProps) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    await requireAdminSession();
 
     const { id } = await params;
+    if (!isObjectId(id)) {
+      return NextResponse.json({ error: 'Invalid purchase ID' }, { status: 400 });
+    }
     await resendPurchaseConfirmationEmail(id);
 
     return NextResponse.json({ message: 'Email resent successfully' });
   } catch (error) {
+    if (error instanceof AdminAccessError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
     if (error instanceof ProductPurchaseError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }

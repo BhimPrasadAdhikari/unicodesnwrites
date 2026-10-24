@@ -38,7 +38,7 @@ export const ConfirmationEmail: React.FC<ConfirmationEmailProps> = ({ confirmUrl
               &copy; {new Date().getFullYear()} unicodesnwrites. All rights reserved.
             </Text>
             <Text style={footerText}>
-              <Link href="https://unicodesnwrites.tech" style={link}>Visit Website</Link>
+              <Link href="https://www.unicodesnwrites.tech" style={link}>Visit Website</Link>
             </Text>
           </Section>
         </Container>

@@ -1,5 +1,6 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { safeInternalPath } from '@/lib/utils/safe-path';
 
 export default withAuth(
   function middleware(req) {
@@ -10,7 +11,9 @@ export default withAuth(
 
     if (isAuthPage) {
       if (isAuth) {
-        return NextResponse.redirect(new URL(token?.role === 'admin' ? '/dashboard' : '/learn', req.url));
+        // Already signed in: go where the sign-in link was taking you.
+        const home = token?.role === 'admin' ? '/dashboard' : '/learn';
+        return NextResponse.redirect(new URL(safeInternalPath(req.nextUrl.searchParams.get('from'), home), req.url));
       }
       return null;
     }
