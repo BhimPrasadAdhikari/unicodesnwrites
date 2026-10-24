@@ -466,7 +466,7 @@ export function CourseLessonWorkspace({
               </Link>
             ) : (
               <Link
-                href={`/courses/${workspace.course.slug}`}
+                href={`/courses/${workspace.course.slug}/complete`}
                 className="inline-flex min-h-11 items-center text-sm font-semibold underline decoration-primary decoration-2 underline-offset-4"
               >
                 Finish course
