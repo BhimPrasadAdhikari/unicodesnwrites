@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray, type FieldErrors, type FieldPath } from 'react-hook-form';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema } from '@/lib/utils/validation';
 import { z } from 'zod';
@@ -34,7 +35,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
     setValue,
     watch,
     trigger,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: initialData || {
@@ -62,6 +63,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
       featured: false,
     },
   });
+  useUnsavedChangesWarning(isDirty, loading);
 
   // Create a minimal form object for the hook
   const formMethods = {
