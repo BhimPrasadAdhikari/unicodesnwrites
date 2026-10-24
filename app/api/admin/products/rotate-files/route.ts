@@ -28,7 +28,7 @@ export async function POST() {
   try {
     await requireAdminSession();
     await connectDB();
-    const products = await Product.find({}).select('+fileUrl fileName title').lean<Array<{ _id: Types.ObjectId; fileUrl?: string; fileName?: string; title: string }>>();
+    const products = await Product.find({}).select('fileUrl fileName title').lean<Array<{ _id: Types.ObjectId; fileUrl?: string; fileName?: string; title: string }>>();
 
     const moved: string[] = [];
     const failed: string[] = [];

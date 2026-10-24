@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
     const post = await Post.findOne({ slug, ...livePostFilter() })
-      .select('title content updatedAt +aiSummary +aiSummaryAt')
+      .select('title content updatedAt aiSummary aiSummaryAt')
       .lean<{ _id: Types.ObjectId; title: string; content: string; updatedAt?: Date; aiSummary?: ArticleSummary; aiSummaryAt?: Date }>();
     if (!post) {
       return NextResponse.json({ error: 'Post not found.' }, { status: 404 });
