@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
   ShoppingBag,
   Star,
   TicketPercent,
@@ -74,6 +75,7 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
     label: 'Readers',
     items: [
       { href: '/dashboard/inbox', label: 'Inbox', icon: Inbox },
+      { href: '/dashboard/comments', label: 'Comments', icon: MessageSquare },
       { href: '/dashboard/members', label: 'Members', icon: UserRound },
     ],
   },

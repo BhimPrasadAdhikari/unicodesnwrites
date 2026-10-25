@@ -10,6 +10,7 @@ import EmailVerificationToken from '@/lib/models/EmailVerificationToken';
 import PasswordResetToken from '@/lib/models/PasswordResetToken';
 import Purchase from '@/lib/models/Purchase';
 import Review from '@/lib/models/Review';
+import Comment from '@/lib/models/Comment';
 import Subscriber from '@/lib/models/Subscriber';
 import { User } from '@/lib/models/User';
 import { accountDeleteSchema, accountProfileSchema } from '@/lib/utils/validations/auth';
@@ -62,6 +63,7 @@ export async function DELETE(request: NextRequest) {
       LearnerLessonState.deleteMany({ user: user._id }),
       CourseQuizAttempt.deleteMany({ user: user._id }),
       LearnerNotebookEntry.deleteMany({ user: user._id }),
+      Comment.deleteMany({ user: user._id }),
       EmailVerificationToken.deleteMany({ userId: user._id }),
       PasswordResetToken.deleteMany({ userId: user._id }),
       Subscriber.deleteMany({ email: user.email }),

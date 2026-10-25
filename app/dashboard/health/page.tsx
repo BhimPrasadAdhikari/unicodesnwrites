@@ -10,6 +10,7 @@ import Newsletter from '@/lib/models/Newsletter';
 import NewsletterSend from '@/lib/models/NewsletterSend';
 import { Post } from '@/lib/models/Post';
 import Review from '@/lib/models/Review';
+import Comment from '@/lib/models/Comment';
 import { livePostFilter } from '@/lib/utils/post-visibility';
 
 export const metadata: Metadata = { title: 'System health | CMS' };
@@ -70,7 +71,7 @@ export default async function HealthPage() {
   const queue: Check[] = [];
   const content: Check[] = [];
   if (dbOk) {
-    const [pending, failed, lastSend, active, newMessages, waitingReviews, livePosts] = await Promise.all([
+    const [pending, failed, lastSend, active, newMessages, waitingReviews, livePosts, waitingComments] = await Promise.all([
       NewsletterSend.countDocuments({ status: { $in: ['pending', 'processing'] } }),
       NewsletterSend.countDocuments({ status: { $in: ['failed', 'bounced'] } }),
       NewsletterSend.findOne({ status: 'sent' }).sort({ sentAt: -1 }).select('sentAt').lean<{ sentAt?: Date }>(),
@@ -78,6 +79,7 @@ export default async function HealthPage() {
       ContactSubmission.countDocuments({ status: 'new' }),
       Review.countDocuments({ approved: false }),
       Post.find(livePostFilter()).select('title slug excerpt seoDescription coverImage category').lean<Array<{ title: string; slug: string; excerpt?: string; seoDescription?: string; coverImage?: string; category?: string }>>(),
+      Comment.countDocuments({ approved: false }),
     ]);
 
     // The scheduler runs every 10 minutes; a queue that hasn't moved in an hour is stuck.
@@ -88,6 +90,18 @@ export default async function HealthPage() {
       detail: `${pending.toLocaleString()} waiting · last email sent ${relative(lastSend?.sentAt)}${stale ? '. Nothing sent for over an hour: check the scheduler workflow in GitHub Actions.' : '.'}`,
       href: '/dashboard/newsletters',
     });
+    // Gmail allows roughly 500–2,000 messages a day, far below one issue to the whole list.
+    const viaGmail = /gmail|googlemail/i.test(process.env.EMAIL_HOST || '');
+    const quotaPaused = active.some((campaign) => /limit|quota|rate/i.test(campaign.pausedReason || ''));
+    if (viaGmail || quotaPaused) {
+      queue.push({
+        label: 'Sending capacity',
+        level: 'warn',
+        detail:
+          `${viaGmail ? 'Newsletters go out through Gmail, whose daily cap is far below your list size' : 'The email provider is hitting its sending limit'}, so each issue takes days. ` +
+          'A bulk email service fixes this without code changes: create a Resend or Amazon SES account, verify the sending domain, and set EMAIL_HOST, EMAIL_PORT, EMAIL_USER and EMAIL_PASSWORD in Vercel to its SMTP credentials (Resend: smtp.resend.com, port 587, user "resend", password = API key).',
+      });
+    }
     queue.push({
       label: 'Failed deliveries',
       level: failed > 0 ? 'warn' : 'ok',
@@ -108,6 +122,7 @@ export default async function HealthPage() {
     }
 
     content.push({ label: 'New messages', level: newMessages ? 'warn' : 'ok', detail: newMessages ? `${newMessages} unread in the inbox.` : 'Inbox is clear.', href: '/dashboard/inbox' });
+    content.push({ label: 'Comments waiting', level: waitingComments ? 'warn' : 'ok', detail: waitingComments ? `${waitingComments} waiting for approval.` : 'None waiting.', href: '/dashboard/comments' });
     content.push({ label: 'Reviews waiting', level: waitingReviews ? 'warn' : 'ok', detail: waitingReviews ? `${waitingReviews} waiting for approval.` : 'None waiting.', href: '/dashboard/reviews' });
     const seoGaps = livePosts.filter((post) => !(post.seoDescription || post.excerpt) || !post.category);
     content.push({
