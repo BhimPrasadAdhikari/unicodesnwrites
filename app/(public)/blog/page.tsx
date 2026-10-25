@@ -83,7 +83,8 @@ export default async function BlogPage({
   // ── Fetch all data ──────────────────────────────────────────────────────────
   const showSeries = !resolvedSearchParams.category && !searchTerm;
 
-  const [allPosts, seriesList, categories] = await Promise.all([
+  // One round trip for everything: the database can be far from the server.
+  const [allPosts, seriesList, categories, allSeriesIds] = await Promise.all([
     Post.find(query)
       .sort({ publishedAt: -1 })
       // The list never shows the body; leaving it out keeps this query small.
@@ -94,13 +95,12 @@ export default async function BlogPage({
       ? Series.find({ published: true }).sort({ createdAt: -1 }).lean()
       : Promise.resolve([] as ISeries[]),
     Post.distinct('category', livePostFilter()),
+    Series.find().select('_id').lean(),
   ]);
 
   // Build a Set of ALL series IDs (as strings) for reliable comparison
   // regardless of whether posts store seriesId as string or ObjectId
-  const allSeriesIdStrings = new Set(
-    (await Series.find().select('_id').lean()).map((s) => s._id.toString())
-  );
+  const allSeriesIdStrings = new Set(allSeriesIds.map((s) => s._id.toString()));
 
   // ── Partition posts: standalone vs series parts ────────────────────────────
   // A search or category filter shows every matching post, series parts included;
