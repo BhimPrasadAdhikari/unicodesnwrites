@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ArrowUpRight, Inbox, PenLine, Send, Star } from 'lucide-react';
+import { ArrowUpRight, Inbox, MessageSquare, PenLine, Send, Star } from 'lucide-react';
+import Comment from '@/lib/models/Comment';
 
 import { connectDB } from '@/lib/db/connection';
 import { Analytics } from '@/lib/models/Analytics';
@@ -86,7 +87,7 @@ async function renderPulse() {
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - (DAYS - 1) * DAY_MS);
 
-  const [views, subscribers, sales, topPages, newMessages, waitingReviews, drafts, scheduledPosts, liveIssues] = await Promise.all([
+  const [views, subscribers, sales, topPages, newMessages, waitingReviews, drafts, scheduledPosts, liveIssues, waitingComments] = await Promise.all([
     Analytics.aggregate<DailyRow>([
       { $match: { event: 'page_view', timestamp: { $gte: start } } },
       { $group: { _id: perDay('timestamp'), count: { $sum: 1 } } },
@@ -110,6 +111,7 @@ async function renderPulse() {
     Post.countDocuments({ published: false }),
     Post.countDocuments({ published: true, publishedAt: { $gt: now } }),
     Newsletter.countDocuments({ status: { $in: ['scheduled', 'sending', 'paused'] } }),
+    Comment.countDocuments({ approved: false }),
   ]);
 
   const slugs = topPages.map((row) => row._id.replace('/blog/', ''));
@@ -125,6 +127,7 @@ async function renderPulse() {
   const attention = [
     { label: 'New messages', value: newMessages, href: '/dashboard/inbox?status=new', icon: Inbox },
     { label: 'Reviews to approve', value: waitingReviews, href: '/dashboard/reviews', icon: Star },
+    { label: 'Comments to approve', value: waitingComments, href: '/dashboard/comments', icon: MessageSquare },
     { label: 'Drafts', value: drafts, href: '/dashboard/posts', icon: PenLine },
     { label: 'Scheduled posts', value: scheduledPosts, href: '/dashboard/posts', icon: PenLine },
     { label: 'Issues in flight', value: liveIssues, href: '/dashboard/newsletters', icon: Send },
@@ -132,14 +135,14 @@ async function renderPulse() {
 
   return (
     <div className="space-y-6">
-      <section aria-label="Needs your attention" className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3 lg:grid-cols-5">
+      <section aria-label="Needs your attention" className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3 lg:grid-cols-6">
         {attention.map(({ label, value, href, icon: Icon }) => (
           <Link key={label} href={href} className="flex items-center justify-between gap-3 bg-card p-4 transition-colors hover:bg-secondary/60">
             <span className="min-w-0">
               <span className="block font-serif text-2xl font-medium">{value}</span>
               <span className="block truncate text-xs text-muted-foreground">{label}</span>
             </span>
-            <Icon className={`h-4 w-4 shrink-0 ${value > 0 && (label === 'New messages' || label === 'Reviews to approve') ? 'text-primary' : 'text-muted-foreground'}`} aria-hidden="true" />
+            <Icon className={`h-4 w-4 shrink-0 ${value > 0 && (label === 'New messages' || label === 'Reviews to approve' || label === 'Comments to approve') ? 'text-primary' : 'text-muted-foreground'}`} aria-hidden="true" />
           </Link>
         ))}
       </section>

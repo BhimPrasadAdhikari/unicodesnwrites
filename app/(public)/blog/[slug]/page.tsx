@@ -13,6 +13,7 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import { formatDistanceToNow, format } from 'date-fns';
 import BlogPostEndCTA from '@/components/public/BlogPostEndCTA';
+import PostComments from '@/components/public/PostComments';
 import RelatedPosts from '@/components/public/RelatedPosts';
 import ArticleSummaryCard from '@/components/public/ArticleSummaryCard';
 import BlogTableOfContents from '@/components/public/BlogTableOfContents';
@@ -280,6 +281,8 @@ export default async function BlogPostPage({
             />
 
             <BlogReadingProgress postSlug={post.slug} readingTime={post.readingTime} />
+
+            <PostComments postId={post._id.toString()} postSlug={post.slug} />
 
             {/* Newsletter CTA */}
             <BlogPostEndCTA />
