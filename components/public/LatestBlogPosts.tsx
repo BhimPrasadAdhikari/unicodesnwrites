@@ -17,22 +17,22 @@ async function getLatestItems(): Promise<HomeListItem[]> {
   try {
     await connectDB()
     
-    // Fetch all recent published posts + series
-    const [allPosts, seriesList] = await Promise.all([
+    // Fetch all recent published posts + series in one round trip; bodies aren't shown here.
+    const [allPosts, seriesList, allSeriesIds] = await Promise.all([
       Post.find(livePostFilter())
         .sort({ publishedAt: -1 })
+        .select('-content -aiSummary')
         .populate("author", "name")
         .lean() as unknown as IPost[],
       Series.find({ published: true })
         .sort({ createdAt: -1 })
         .limit(3)
         .lean() as unknown as ISeries[],
+      Series.find().select('_id').lean(),
     ])
 
     // Build a Set of ALL series IDs (as strings) for reliable comparison
-    const allSeriesIdStrings = new Set(
-      (await Series.find().select('_id').lean()).map((s) => s._id.toString())
-    );
+    const allSeriesIdStrings = new Set(allSeriesIds.map((s) => s._id.toString()));
 
     // Partition: standalone vs series parts (using string comparison)
     const standalonePosts = allPosts.filter(

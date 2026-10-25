@@ -15,7 +15,11 @@ export const metadata: Metadata = {
 async function getProducts() {
   try {
     await connectDB();
-    const products = await Product.find({ published: true }).sort({ featured: -1, createdAt: -1 });
+    // Only what the cards show: full descriptions would ship to the browser for nothing.
+    const products = await Product.find({ published: true })
+      .sort({ featured: -1, createdAt: -1 })
+      .select('title slug shortDescription price currency category tags thumbnailImage productType licenseType featured')
+      .lean();
     return JSON.parse(JSON.stringify(products));
   } catch (error) {
     console.error('Failed to load public products', error);
