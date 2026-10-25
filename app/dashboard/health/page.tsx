@@ -72,7 +72,10 @@ export default async function HealthPage() {
   const content: Check[] = [];
   if (dbOk) {
     const [pending, failed, lastSend, active, newMessages, waitingReviews, livePosts, waitingComments] = await Promise.all([
-      NewsletterSend.countDocuments({ status: { $in: ['pending', 'processing'] } }),
+      // Only issues still going out: a cancelled issue's unsent recipients will never send.
+      Newsletter.distinct('_id', { status: { $in: ['sending', 'paused'] } }).then((ids) =>
+        NewsletterSend.countDocuments({ newsletter: { $in: ids }, status: { $in: ['pending', 'processing'] } }),
+      ),
       NewsletterSend.countDocuments({ status: { $in: ['failed', 'bounced'] } }),
       NewsletterSend.findOne({ status: 'sent' }).sort({ sentAt: -1 }).select('sentAt').lean<{ sentAt?: Date }>(),
       Newsletter.find({ status: { $in: ['sending', 'paused', 'scheduled'] } }).select('subject status pausedReason resumeAfter scheduledFor sentCount recipientCount').lean<Array<{ _id: unknown; subject: string; status: string; pausedReason?: string; resumeAfter?: Date; scheduledFor?: Date; sentCount?: number; recipientCount?: number }>>(),
@@ -105,7 +108,7 @@ export default async function HealthPage() {
     queue.push({
       label: 'Failed deliveries',
       level: failed > 0 ? 'warn' : 'ok',
-      detail: failed > 0 ? `${failed.toLocaleString()} recipients failed or bounced.` : 'None.',
+      detail: failed > 0 ? `${failed.toLocaleString()} recipients failed or bounced across all issues (open an issue's report for addresses and reasons).` : 'None.',
     });
     for (const campaign of active) {
       queue.push({
