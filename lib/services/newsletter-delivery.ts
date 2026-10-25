@@ -68,6 +68,26 @@ export function classifySendError(error: unknown): SendFailureKind {
 }
 
 /**
+ * A bounce saying the mailbox does not exist. Other 55x bounces (spam policy,
+ * full mailbox) can clear up, so only these stop future sends.
+ */
+export const MAILBOX_GONE_PATTERN = /5\.1\.1|5\.1\.10|user unknown|unknown user|no such user|does not exist|doesn't exist|address rejected|recipient not found|mailbox not found|mailbox unavailable|invalid recipient|nosuchuser/i;
+
+/** Failed or bounced sends whose reason says the mailbox does not exist. */
+export const mailboxGoneSendFilter = () => ({
+  status: { $in: ['failed', 'bounced'] as Array<'failed' | 'bounced'> },
+  failureReason: { $regex: MAILBOX_GONE_PATTERN.source, $options: 'i' },
+});
+
+/** Unsubscribes the address so later issues don't spend sending quota on it. */
+export async function suppressBouncedSubscriber(subscriberId: mongoose.Types.ObjectId) {
+  await Subscriber.updateOne(
+    { _id: subscriberId, status: 'confirmed' },
+    { $set: { status: 'unsubscribed', unsubscribedAt: new Date() }, $addToSet: { tags: 'bounced' } },
+  );
+}
+
+/**
  * Guards against emailing an article twice and against emailing an article
  * readers can't open yet. `at` is when the campaign will go out.
  */
@@ -442,6 +462,7 @@ export async function startOrContinueNewsletterDelivery(
             $unset: { leaseToken: 1, leaseExpiresAt: 1, nextAttemptAt: 1 },
           },
         );
+        if (MAILBOX_GONE_PATTERN.test(reason)) await suppressBouncedSubscriber(send.subscriber);
         continue;
       }
       if (send.attemptCount >= MAX_DELIVERY_ATTEMPTS) {
