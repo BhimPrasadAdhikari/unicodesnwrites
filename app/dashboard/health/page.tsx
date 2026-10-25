@@ -59,10 +59,17 @@ export default async function HealthPage() {
   const started = Date.now();
   try {
     await connectDB();
+    // Time the connection (slow only on a cold start) apart from one query's round trip.
+    const connectMs = Date.now() - started;
+    const pingStarted = Date.now();
     await mongoose.connection.db?.admin().ping();
     dbOk = true;
-    const latency = Date.now() - started;
-    checks.push({ label: 'Database', level: latency > 1500 ? 'warn' : 'ok', detail: `Connected · ${latency} ms round trip.` });
+    const latency = Date.now() - pingStarted;
+    checks.push({
+      label: 'Database',
+      level: latency > 300 ? 'warn' : 'ok',
+      detail: `Connected · ${latency} ms per query${connectMs > 50 ? ` · this server just started and took ${connectMs} ms to connect` : ''}.`,
+    });
   } catch (error) {
     console.error('Health page database check failed', error);
     checks.push({ label: 'Database', level: 'fail', detail: 'Could not connect. Everything that reads content is affected.' });
