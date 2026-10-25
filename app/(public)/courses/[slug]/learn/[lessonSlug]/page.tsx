@@ -22,7 +22,7 @@ export default async function CourseLessonPage({ params }: PageProps) {
   const { slug, lessonSlug } = await params;
   const session = await getServerSession(authOptions);
   const destination = `/courses/${slug}/learn/${lessonSlug}`;
-  if (!session?.user?.id || !session.user.sessionValid) redirect(`/login?from=${encodeURIComponent(destination)}`);
+  if (!session?.user?.id || !session.user.sessionValid) redirect(`/login?reauth=1&from=${encodeURIComponent(destination)}`);
   if (session.user.role !== 'admin' && !session.user.emailVerified) redirect(`/verify-email?from=${encodeURIComponent(`/courses/${slug}/learn/${lessonSlug}`)}`);
   const enrollment = await getEnrollment(session.user.id, slug);
   if (session.user.role !== 'admin' && !enrollment?.enrollment) redirect(`/courses/${slug}`);

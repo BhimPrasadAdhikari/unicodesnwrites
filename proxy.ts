@@ -10,7 +10,9 @@ export default withAuth(
     const isDashboard = req.nextUrl.pathname.startsWith('/dashboard');
 
     if (isAuthPage) {
-      if (isAuth) {
+      // reauth=1 comes from a server page that found the session revoked. The cookie can still
+      // claim it is valid, so sending the visitor back would loop; show the sign-in form instead.
+      if (isAuth && req.nextUrl.searchParams.get('reauth') !== '1') {
         // Already signed in: go where the sign-in link was taking you.
         const home = token?.role === 'admin' ? '/dashboard' : '/learn';
         return NextResponse.redirect(new URL(safeInternalPath(req.nextUrl.searchParams.get('from'), home), req.url));

@@ -73,6 +73,10 @@ export const authOptions: AuthOptions = {
       }
 
       if (!token.id) return token;
+      // Once revoked, a session stays revoked until the person signs in again. Refreshing it
+      // must never adopt the account's new tokenVersion, or a password change would not sign
+      // other devices out.
+      if (token.sessionValid === false) return token;
       try {
         await connectDB();
         const currentUser = await User.findById(token.id).select('role emailVerified tokenVersion').lean();
@@ -86,7 +90,6 @@ export const authOptions: AuthOptions = {
           emailVerified
         );
         token.emailVerified = emailVerified;
-        token.tokenVersion = currentTokenVersion;
       } catch {
         token.sessionValid = false;
       }

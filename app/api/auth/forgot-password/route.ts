@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
   }
 
   await connectDB();
-  const user = await User.findOne({ email: parsed.data.email, emailVerified: { $exists: true } }).select('_id email name').lean();
+  // Unverified accounts may reset too: the emailed link proves the address, and resetting verifies it.
+  const user = await User.findOne({ email: parsed.data.email }).select('_id email name').lean();
   if (user) {
     try {
       const token = await issuePasswordResetToken(user._id.toString());

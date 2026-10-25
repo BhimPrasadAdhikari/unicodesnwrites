@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function NotebookPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || !session.user.sessionValid) redirect('/login?from=%2Flearn%2Fnotebook');
+  if (!session?.user?.id || !session.user.sessionValid) redirect('/login?reauth=1&from=%2Flearn%2Fnotebook');
   if (session.user.role !== 'admin' && !session.user.emailVerified) redirect('/verify-email?from=%2Flearn%2Fnotebook');
   const entries = await listNotebookEntries(session.user.id);
 

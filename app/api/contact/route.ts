@@ -66,6 +66,8 @@ export async function POST(req: NextRequest) {
         </div>
       `;
 
+      // The message is already saved in the dashboard inbox; a failed notification must not
+      // tell the visitor to send it again.
       await sendEmail({
         to: adminEmail,
         subject: `Contact: ${subjectText}`,
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
         headers: {
           'Reply-To': email,
         },
-      });
+      }).catch((error) => console.error('Contact notification email failed', error instanceof Error ? error.message : error));
     }
 
     return NextResponse.json(
