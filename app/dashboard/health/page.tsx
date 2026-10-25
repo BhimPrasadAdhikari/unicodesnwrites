@@ -85,17 +85,28 @@ export default async function HealthPage() {
       Comment.countDocuments({ approved: false }),
     ]);
 
-    // The scheduler runs every 10 minutes; a queue that hasn't moved in an hour is stuck.
-    const stale = pending > 0 && (!lastSend?.sentAt || Date.now() - new Date(lastSend.sentAt).getTime() > 60 * 60 * 1000);
-    queue.push({
-      label: 'Delivery queue',
-      level: stale ? 'warn' : 'ok',
-      detail: `${pending.toLocaleString()} waiting · last email sent ${relative(lastSend?.sentAt)}${stale ? '. Nothing sent for over an hour: check the scheduler workflow in GitHub Actions.' : '.'}`,
-      href: '/dashboard/newsletters',
-    });
     // Gmail allows roughly 500–2,000 messages a day, far below one issue to the whole list.
     const viaGmail = /gmail|googlemail/i.test(process.env.EMAIL_HOST || '');
     const quotaPaused = active.some((campaign) => /limit|quota|rate/i.test(campaign.pausedReason || ''));
+
+    // The scheduler runs every 10 minutes; a queue that hasn't moved in an hour is stuck.
+    // With a daily cap, a quiet hour usually means the cap is used up, so only a quiet day points at the scheduler.
+    const quietFor = lastSend?.sentAt ? Date.now() - new Date(lastSend.sentAt).getTime() : Infinity;
+    const capped = viaGmail || quotaPaused;
+    const stale = pending > 0 && quietFor > 60 * 60 * 1000;
+    const stuck = stale && (!capped || quietFor > 26 * 60 * 60 * 1000);
+    queue.push({
+      label: 'Delivery queue',
+      level: stuck ? 'fail' : stale ? 'warn' : 'ok',
+      detail:
+        `${pending.toLocaleString()} waiting · last email sent ${relative(lastSend?.sentAt)}` +
+        (stuck
+          ? '. Nothing has gone out for too long: check the scheduler workflow in GitHub Actions.'
+          : stale
+            ? ". Most likely the provider's daily sending limit is used up; sending continues by itself once it resets."
+            : '.'),
+      href: '/dashboard/newsletters',
+    });
     if (viaGmail || quotaPaused) {
       queue.push({
         label: 'Sending capacity',
@@ -110,13 +121,18 @@ export default async function HealthPage() {
       level: failed > 0 ? 'warn' : 'ok',
       detail: failed > 0 ? `${failed.toLocaleString()} recipients failed or bounced across all issues (open an issue's report for addresses and reasons).` : 'None.',
     });
+    // Campaigns share one quota; a paused one past its resume time waits for the one going out.
+    const sendingSubject = active.find((campaign) => campaign.status === 'sending')?.subject;
     for (const campaign of active) {
+      const resumeDue = !campaign.resumeAfter || new Date(campaign.resumeAfter).getTime() <= Date.now();
+      const queued = campaign.status === 'paused' && resumeDue && sendingSubject;
       queue.push({
         label: `“${campaign.subject}”`,
-        level: campaign.status === 'paused' ? 'warn' : 'ok',
-        detail:
-          campaign.status === 'paused'
-            ? `Paused${campaign.pausedReason ? `: ${campaign.pausedReason}` : ''}${campaign.resumeAfter ? ` · resumes ${new Date(campaign.resumeAfter).toLocaleString()}` : ''}`
+        level: campaign.status === 'paused' && !queued ? 'warn' : 'ok',
+        detail: queued
+          ? `Queued: continues after “${sendingSubject}” finishes (issues share one sending quota). ${(campaign.sentCount ?? 0).toLocaleString()} of ${(campaign.recipientCount ?? 0).toLocaleString()} sent so far.`
+          : campaign.status === 'paused'
+            ? `Paused${campaign.pausedReason ? `: ${campaign.pausedReason}` : ''}${campaign.resumeAfter && !resumeDue ? ` · resumes ${new Date(campaign.resumeAfter).toLocaleString()}` : ' · resumes on the next scheduler run'}`
             : campaign.status === 'scheduled'
               ? `Scheduled for ${campaign.scheduledFor ? new Date(campaign.scheduledFor).toLocaleString() : 'later'}`
               : `Sending · ${(campaign.sentCount ?? 0).toLocaleString()} of ${(campaign.recipientCount ?? 0).toLocaleString()} sent`,
