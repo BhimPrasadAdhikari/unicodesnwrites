@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     } catch (err: any) {
       console.error(`Webhook signature verification failed: ${err.message}`);
       return NextResponse.json(
-        { error: `Webhook Error: ${err.message}` },
+        { error: 'Invalid signature' },
         { status: 400 }
       );
     }

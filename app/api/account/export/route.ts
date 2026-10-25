@@ -25,7 +25,7 @@ export async function GET() {
       CourseQuizAttempt.find({ user: user._id }).select('course lessonSlug answers results score passed correctCount total attemptedAt createdAt').populate('course', 'title slug').sort({ attemptedAt: -1 }).lean(),
       LearnerNotebookEntry.find({ user: user._id }).select('courseTitle courseSlug lessonTitle lessonSlug focus title explanation evidence checkYourself createdAt updatedAt').sort({ createdAt: -1 }).lean(),
       Purchase.find({ customerEmail: user.email }).select('purchaseId product amount currency status downloadCount maxDownloads purchasedAt refundedAt createdAt updatedAt').populate('product', 'title slug').sort({ purchasedAt: -1 }).lean(),
-      Review.find({ customerEmail: user.email }).select('product customerName rating comment verified approved createdAt updatedAt').populate('product', 'title slug').sort({ createdAt: -1 }).lean(),
+      Review.find({ customerEmail: user.email, emailConfirmed: { $ne: false } }).select('product customerName rating comment verified approved createdAt updatedAt').populate('product', 'title slug').sort({ createdAt: -1 }).lean(),
       Subscriber.findOne({ email: user.email }).select('email name status subscribedAt confirmedAt preferences createdAt updatedAt').lean(),
       Comment.find({ user: user._id }).select('post body approved createdAt updatedAt').populate('post', 'title slug').sort({ createdAt: -1 }).lean(),
     ]);

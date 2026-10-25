@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/connection';
 import Review from '@/lib/models/Review';
 import Purchase from '@/lib/models/Purchase';
+import Product from '@/lib/models/Product';
 import { reviewSchema } from '@/lib/utils/validation';
 import { consumeRateLimit, getClientAddress, normalizeEmail } from '@/lib/auth/security';
 import { getServerSession } from 'next-auth';
@@ -31,6 +32,9 @@ export async function POST(req: NextRequest) {
     }
 
     await dbConnect();
+    if (!(await Product.exists({ _id: productId, published: true }))) {
+      return NextResponse.json({ error: 'This product is not available for reviews.' }, { status: 404 });
+    }
 
     // "Verified purchase" needs proof of who is writing: a signed-in account whose
     // email bought the product. A typed-in email alone proves nothing.
@@ -49,6 +53,8 @@ export async function POST(req: NextRequest) {
       rating,
       comment,
       verified: isVerified,
+      // A typed address proves nothing, so it never ties the review to someone else's account data.
+      emailConfirmed: sessionEmail === normalizeEmail(email),
       approved: false, // Default to unapproved
     });
 

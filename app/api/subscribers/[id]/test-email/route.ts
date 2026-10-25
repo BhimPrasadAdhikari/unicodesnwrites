@@ -1,3 +1,4 @@
+import { isObjectId } from '@/lib/utils/object-id';
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/connection';
 import Subscriber from '@/lib/models/Subscriber';
@@ -13,6 +14,7 @@ export async function POST(
         await requireAdminSession();
         await dbConnect();
         const { id } = params;
+        if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid subscriber ID' }, { status: 400 });
         const subscriber = await Subscriber.findById(id);
         
         if (!subscriber) {
