@@ -39,7 +39,7 @@ function ResetPasswordCard() {
     {success ? <Button asChild className="h-12 w-full"><Link href="/login?changed=1">Continue to sign in</Link></Button> : <form onSubmit={submit} className="space-y-4">
       <label className="block space-y-2 text-sm font-medium">New password<Input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={12} maxLength={72} disabled={!token || loading} /></label>
       <label className="block space-y-2 text-sm font-medium">Confirm new password<Input type="password" autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required minLength={12} maxLength={72} disabled={!token || loading} /></label>
-      {error && <p role="alert" className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+      {error && <p role="alert" className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">{error} Links last 30 minutes. <Link href="/forgot-password" className="font-semibold underline underline-offset-2">Request a new link</Link></p>}
       <Button className="h-12 w-full" disabled={!token || loading}>{loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : 'Update password'}</Button>
     </form>}
   </AuthShell>;

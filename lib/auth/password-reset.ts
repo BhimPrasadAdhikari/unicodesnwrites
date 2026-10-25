@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
 import { connectDB } from '@/lib/db/connection';
+import EmailVerificationToken from '@/lib/models/EmailVerificationToken';
 import PasswordResetToken from '@/lib/models/PasswordResetToken';
 import { User } from '@/lib/models/User';
 import { hashOpaqueValue } from '@/lib/auth/security';
@@ -42,5 +43,10 @@ export async function resetPasswordWithToken(token: string, password: string) {
     $inc: { tokenVersion: 1 },
   }).lean();
   await PasswordResetToken.deleteMany({ userId: consumed.userId });
+  if (user && !user.emailVerified) {
+    // The reset link arrived in this inbox, which proves the address: finish verification too.
+    await User.updateOne({ _id: consumed.userId, emailVerified: { $exists: false } }, { $set: { emailVerified: new Date() } });
+    await EmailVerificationToken.deleteMany({ userId: consumed.userId });
+  }
   return Boolean(user);
 }

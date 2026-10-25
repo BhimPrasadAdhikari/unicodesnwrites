@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function MyLearningPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || !session.user.sessionValid)
-    redirect("/login?from=%2Flearn");
+    redirect("/login?reauth=1&from=%2Flearn");
   if (session.user.role !== "admin" && !session.user.emailVerified)
     redirect("/verify-email");
   const enrollments = await listLearnerEnrollments(session.user.id);

@@ -22,7 +22,7 @@ type PageProps = { params: Promise<{ slug: string }> };
 export default async function CourseCompletePage({ params }: PageProps) {
   const { slug } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || !session.user.sessionValid) redirect(`/login?from=${encodeURIComponent(`/courses/${slug}/complete`)}`);
+  if (!session?.user?.id || !session.user.sessionValid) redirect(`/login?reauth=1&from=${encodeURIComponent(`/courses/${slug}/complete`)}`);
 
   const course = await getPublishedCourseBySlug(slug);
   if (!course) notFound();

@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AccountPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || !session.user.sessionValid) redirect('/login?from=%2Faccount');
+  if (!session?.user?.id || !session.user.sessionValid) redirect('/login?reauth=1&from=%2Faccount');
 
   let user = null;
   let purchases: Array<{
@@ -47,7 +47,7 @@ export default async function AccountPage() {
     console.error('Failed to query user for account page:', error);
   }
 
-  if (!user) redirect('/login?from=%2Faccount');
+  if (!user) redirect('/login?reauth=1&from=%2Faccount');
 
   try {
     const now = new Date();
