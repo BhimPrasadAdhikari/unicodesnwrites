@@ -2,10 +2,13 @@ import { notFound } from 'next/navigation';
 import dbConnect from '@/lib/db/connection';
 import Newsletter from '@/lib/models/Newsletter';
 import NewsletterSend from '@/lib/models/NewsletterSend';
+import Subscriber from '@/lib/models/Subscriber';
 import Link from 'next/link';
-import { ArrowLeft, BarChart3, RefreshCw } from 'lucide-react';
+import { ArrowLeft, BarChart3, CircleAlert, RefreshCw } from 'lucide-react';
 import { isValidObjectId } from 'mongoose';
+import { AdminRowActions } from '@/components/cms/AdminRowActions';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
+import { mailboxGoneSendFilter } from '@/lib/services/newsletter-delivery';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 
 interface RecentSend {
@@ -62,6 +65,24 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
         .select('email status sentAt failureReason updatedAt')
         .lean() as unknown as RecentSend[];
 
+    // Failures grouped by reason (addresses vary inside SMTP replies, so group on the reason text).
+    const failureGroups = failed + bounced > 0
+        ? await NewsletterSend.aggregate<{ _id: string; count: number; emails: string[] }>([
+            { $match: { newsletter: newsletter._id, status: { $in: ['failed', 'bounced'] } } },
+            { $group: { _id: { $substrCP: [{ $ifNull: ['$failureReason', 'No reason recorded'] }, 0, 160] }, count: { $sum: 1 }, emails: { $push: '$email' } } },
+            { $sort: { count: -1 } },
+            { $limit: 20 },
+            { $project: { count: 1, emails: { $slice: ['$emails', 5] } } },
+        ])
+        : [];
+    // Still-subscribed readers whose mailbox doesn't exist (already unsubscribed ones drop out after clean-up).
+    const goneCount = failureGroups.length
+        ? await Subscriber.countDocuments({
+            _id: { $in: await NewsletterSend.distinct('subscriber', { ...mailboxGoneSendFilter(), newsletter: newsletter._id }) },
+            status: 'confirmed',
+        })
+        : 0;
+
     return (
         <div className="space-y-6">
             <Link href="/dashboard/newsletters" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to campaigns</Link>
@@ -89,6 +110,37 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
                     Opens are counted from a tracking image, so they are estimates: some mail apps block images and Apple Mail loads them for everyone. Clicks are exact. Issues sent before tracking was added show zero.
                 </p>
             </section>
+
+            {failureGroups.length > 0 && (
+                <section className="overflow-hidden rounded-xl border border-border bg-card/70">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+                        <div className="flex items-center gap-3"><CircleAlert className="h-4 w-4 text-destructive" /><h3 className="font-semibold">Why sends failed</h3></div>
+                        {goneCount > 0 && (
+                            <AdminRowActions
+                                actions={[{
+                                    label: `Unsubscribe ${goneCount.toLocaleString()} ${goneCount === 1 ? 'address that doesn’t' : 'addresses that don’t'} exist`,
+                                    url: '/api/admin/subscribers/suppress-bounced',
+                                    method: 'POST',
+                                    body: { newsletterId: params.id },
+                                    confirm: 'Confirm unsubscribe',
+                                    successMessage: (data) => `${Number(data.unsubscribed || 0).toLocaleString()} unsubscribed and tagged “bounced”.`,
+                                }]}
+                            />
+                        )}
+                    </div>
+                    <ul className="divide-y divide-border/70">
+                        {failureGroups.map((group) => (
+                            <li key={group._id} className="px-5 py-4 text-sm">
+                                <p className="flex gap-3"><span className="w-14 shrink-0 font-semibold tabular-nums">{group.count.toLocaleString()}</span><span className="min-w-0 break-words text-muted-foreground">{group._id}</span></p>
+                                <p className="mt-1 pl-[4.25rem] text-xs text-muted-foreground/80">{group.emails.join(', ')}{group.count > group.emails.length ? ', …' : ''}</p>
+                            </li>
+                        ))}
+                    </ul>
+                    <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
+                        Addresses whose mailbox doesn’t exist are unsubscribed automatically from now on. Quota and connection errors are not the reader’s fault: use Retry failures to send to them again.
+                    </p>
+                </section>
+            )}
 
              <section className="overflow-hidden rounded-xl border border-border bg-card/70">
                 <div className="flex items-center gap-3 border-b border-border px-5 py-4"><BarChart3 className="h-4 w-4 text-muted-foreground" /><h3 className="font-semibold">Recent activity</h3></div>

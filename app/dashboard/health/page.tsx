@@ -71,7 +71,7 @@ export default async function HealthPage() {
   const queue: Check[] = [];
   const content: Check[] = [];
   if (dbOk) {
-    const [pending, failed, lastSend, active, newMessages, waitingReviews, livePosts, waitingComments] = await Promise.all([
+    const [pending, failed, lastSend, active, newMessages, waitingReviews, livePosts, waitingComments, worstIssue] = await Promise.all([
       // Only issues still going out: a cancelled issue's unsent recipients will never send.
       Newsletter.distinct('_id', { status: { $in: ['sending', 'paused'] } }).then((ids) =>
         NewsletterSend.countDocuments({ newsletter: { $in: ids }, status: { $in: ['pending', 'processing'] } }),
@@ -83,6 +83,7 @@ export default async function HealthPage() {
       Review.countDocuments({ approved: false }),
       Post.find(livePostFilter()).select('title slug excerpt seoDescription coverImage category').lean<Array<{ title: string; slug: string; excerpt?: string; seoDescription?: string; coverImage?: string; category?: string }>>(),
       Comment.countDocuments({ approved: false }),
+      Newsletter.findOne({ failedCount: { $gt: 0 } }).sort({ sentAt: -1 }).select('_id').lean<{ _id: unknown }>(),
     ]);
 
     // Gmail allows roughly 500–2,000 messages a day, far below one issue to the whole list.
@@ -119,7 +120,8 @@ export default async function HealthPage() {
     queue.push({
       label: 'Failed deliveries',
       level: failed > 0 ? 'warn' : 'ok',
-      detail: failed > 0 ? `${failed.toLocaleString()} recipients failed or bounced across all issues (open an issue's report for addresses and reasons).` : 'None.',
+      detail: failed > 0 ? `${failed.toLocaleString()} recipients failed or bounced across all issues. Each issue's report groups them by reason and can unsubscribe addresses that don't exist.` : 'None.',
+      href: failed > 0 && worstIssue ? `/dashboard/newsletters/${String(worstIssue._id)}/report` : undefined,
     });
     // Campaigns share one quota; a paused one past its resume time waits for the one going out.
     const sendingSubject = active.find((campaign) => campaign.status === 'sending')?.subject;
