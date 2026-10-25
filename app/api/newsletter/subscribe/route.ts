@@ -31,41 +31,30 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
 
-    // Check if subscriber exists
+    // Every outcome gets the same reply, so the form can't be used to check who is subscribed.
+    const reply = () =>
+      NextResponse.json({ message: 'Thanks! Check your inbox for a link to confirm your subscription.' }, { status: 200 });
+
     const existingSubscriber = await Subscriber.findOne({ email });
 
+    if (existingSubscriber?.status === 'confirmed') {
+      return reply(); // already on the list: nothing to send
+    }
+
     if (existingSubscriber) {
-      if (existingSubscriber.status === 'confirmed') {
-        return NextResponse.json(
-          { message: "You're already subscribed!" },
-          { status: 200 }
-        );
-      } else if (existingSubscriber.status === 'unsubscribed') {
-        // Resubscribing goes through double opt-in again, so a third party
-        // can't silently re-add someone who left.
+      // Pending: send the link again. Unsubscribed: resubscribing goes through double opt-in
+      // again, so a third party can't silently re-add someone who left.
+      if (existingSubscriber.status === 'unsubscribed') {
         existingSubscriber.status = 'pending';
         existingSubscriber.source = source || existingSubscriber.source;
         existingSubscriber.unsubscribedAt = undefined;
-        const token = existingSubscriber.generateConfirmationToken();
-        await existingSubscriber.save();
-        await sendSubscriberConfirmation(existingSubscriber, token);
-        return NextResponse.json(
-          { message: 'Welcome back! Please check your email to confirm your subscription.' },
-          { status: 200 }
-        );
-      } else if (existingSubscriber.status === 'pending') {
-        // Resend confirmation
-        const token = existingSubscriber.generateConfirmationToken();
-        await existingSubscriber.save();
-        await sendSubscriberConfirmation(existingSubscriber, token);
-        return NextResponse.json(
-          { message: "Confirmation email sent again. Please check your inbox." },
-          { status: 200 }
-        );
       }
+      const token = existingSubscriber.generateConfirmationToken();
+      await existingSubscriber.save();
+      await sendSubscriberConfirmation(existingSubscriber, token);
+      return reply();
     }
 
-    // New subscriber
     const newSubscriber = new Subscriber({
       email,
       name,
@@ -77,14 +66,11 @@ export async function POST(req: NextRequest) {
     await newSubscriber.save();
 
     await sendSubscriberConfirmation(newSubscriber, token);
-    
+
     // Track server-side event
     await trackNewsletterSignup(email);
 
-    return NextResponse.json(
-      { message: "Thanks for signing up! Please check your email to confirm." },
-      { status: 201 }
-    );
+    return reply();
 
   } catch (error) {
     if (error instanceof SyntaxError) {
