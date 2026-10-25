@@ -91,7 +91,7 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
             <section className="rounded-xl border border-border bg-card/70 p-5 sm:p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div><p className="text-eyebrow text-primary">Campaign</p><h2 className="mt-2 text-xl font-semibold">{newsletter.subject}</h2></div>
-                    <div className="flex flex-wrap items-center gap-2">{failed > 0 && <Link href={`/dashboard/newsletters/${params.id}/send`} className="inline-flex items-center gap-2 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive"><RefreshCw className="h-3.5 w-3.5" /> Retry failures</Link>}<span className={`w-fit rounded-md border px-3 py-1 text-xs font-semibold capitalize ${newsletter.status === 'sent' ? 'border-success/20 bg-success/10 text-success' : 'border-warning/20 bg-warning/10 text-warning'}`}>{newsletter.status}</span></div>
+                    <div className="flex flex-wrap items-center gap-2">{failed > 0 && newsletter.status !== 'cancelled' && <Link href={`/dashboard/newsletters/${params.id}/send`} className="inline-flex items-center gap-2 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive"><RefreshCw className="h-3.5 w-3.5" /> Retry failures</Link>}<span className={`w-fit rounded-md border px-3 py-1 text-xs font-semibold capitalize ${newsletter.status === 'sent' ? 'border-success/20 bg-success/10 text-success' : 'border-warning/20 bg-warning/10 text-warning'}`}>{newsletter.status}</span></div>
                 </div>
                 <div className="mt-2 text-sm text-muted-foreground">
                     <span>Sent on {newsletter.sentAt ? new Date(newsletter.sentAt).toLocaleDateString() : '-'}</span>
@@ -137,7 +137,10 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
                         ))}
                     </ul>
                     <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
-                        Addresses whose mailbox doesn’t exist are unsubscribed automatically from now on. Quota and connection errors are not the reader’s fault: use Retry failures to send to them again.
+                        Addresses whose mailbox doesn’t exist are unsubscribed automatically from now on. Quota and connection errors are not the reader’s fault:{' '}
+                        {newsletter.status === 'cancelled'
+                            ? 'this issue was stopped, so it cannot be retried. To reach these readers, include its posts in your next issue.'
+                            : 'use Retry failures to send to them again.'}
                     </p>
                 </section>
             )}
