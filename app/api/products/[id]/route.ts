@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 import Purchase from '@/lib/models/Purchase';
 import { productSchema } from '@/lib/utils/validation';
+import { onlySentFields } from '@/lib/utils/validations/patch';
 import { archiveStripeProduct, archiveStripePrice, createStripePrice } from '@/lib/services/stripe';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 
@@ -58,14 +59,17 @@ export async function PATCH(req: NextRequest, { params }: RouteProps) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const updateData: Record<string, unknown> = { ...validationResult.data };
+    const sent = onlySentFields(validationResult.data, body);
+    const updateData: Record<string, unknown> = { ...sent };
 
-    const hasPriceUpdate = typeof validationResult.data.price === 'number';
-    const hasCurrencyUpdate = typeof validationResult.data.currency === 'string';
+    // Only a real change of price or currency needs a new Stripe price; the edit form sends the
+    // price on every save, and replacing the price each time would churn Stripe for nothing.
+    const hasPriceUpdate = typeof sent.price === 'number' && sent.price !== existingProduct.price;
+    const hasCurrencyUpdate = typeof sent.currency === 'string' && sent.currency !== String(existingProduct.currency || '').toUpperCase();
 
     if ((hasPriceUpdate || hasCurrencyUpdate) && existingProduct.stripeProductId) {
-      const nextPrice = hasPriceUpdate ? validationResult.data.price : existingProduct.price;
-      const nextCurrency = hasCurrencyUpdate ? validationResult.data.currency : existingProduct.currency;
+      const nextPrice = hasPriceUpdate ? sent.price : existingProduct.price;
+      const nextCurrency = hasCurrencyUpdate ? sent.currency : existingProduct.currency;
 
       const stripePrice = await createStripePrice(
         Math.round(Number(nextPrice)),

@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db/connection';
 import Newsletter from '@/lib/models/Newsletter';
 import NewsletterSend from '@/lib/models/NewsletterSend';
 import { updateNewsletterSchema } from '@/lib/utils/validations/newsletter';
+import { onlySentFields } from '@/lib/utils/validations/patch';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 import newsletterHtmlSanitizer from '@/lib/utils/newsletter-html-sanitizer';
 import { htmlToPlainText } from '@/lib/services/newsletter-content';
@@ -63,7 +64,7 @@ export async function PATCH(
             );
         }
 
-        const updateData: Record<string, unknown> = { ...result.data };
+        const updateData: Record<string, unknown> = onlySentFields(result.data, body);
 
         if (typeof result.data.content === 'string') {
             updateData.content = sanitizeNewsletterHtml(result.data.content);

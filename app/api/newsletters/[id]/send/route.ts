@@ -1,3 +1,4 @@
+import { isObjectId } from '@/lib/utils/object-id';
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/connection';
 import Newsletter from '@/lib/models/Newsletter';
@@ -21,6 +22,7 @@ export async function POST(
         await requireAdminSession();
         await dbConnect();
 
+        if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid newsletter ID' }, { status: 400 });
         const newsletter = await Newsletter.findById(params.id);
         if (!newsletter) {
             return NextResponse.json({ error: 'Newsletter not found' }, { status: 404 });

@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     } catch (stripeError) {
       console.error('Stripe error:', stripeError);
       return NextResponse.json(
-        { error: 'Failed to create product in Stripe: ' + (stripeError instanceof Error ? stripeError.message : 'Unknown error') },
+        { error: 'Stripe could not create this product. Check the price and currency, then try again.' },
         { status: 500 }
       );
     }

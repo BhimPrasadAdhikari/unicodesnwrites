@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db/connection';
 import { Project } from '@/lib/models/Project';
-import { projectSchema } from '@/lib/utils/validations/project';
+import { projectBaseSchema } from '@/lib/utils/validations/project';
+import { onlySentFields } from '@/lib/utils/validations/patch';
 import { AdminAccessError, getOptionalAdminSession, requireAdminSession } from '@/lib/auth/admin';
 
 // Helper to get project by ID or Slug
@@ -56,14 +57,28 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json().catch(() => null);
 
     // Validate update
-    const validation = projectSchema.partial().safeParse(body);
+    const validation = projectBaseSchema.partial().safeParse(body);
     if (!validation.success) {
       return NextResponse.json({ error: validation.error.flatten() }, { status: 400 });
+    }
+    const update = onlySentFields(validation.data, body);
+
+    const existing = await Project.findById(id).select('startDate endDate').lean<{ startDate?: string; endDate?: string }>();
+    if (!existing) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+    const startDate = 'startDate' in update ? update.startDate : existing.startDate;
+    const endDate = 'endDate' in update ? update.endDate : existing.endDate;
+    if (startDate && endDate && endDate < startDate) {
+      return NextResponse.json({ error: { fieldErrors: { endDate: ['End date must be on or after the start date'] } } }, { status: 400 });
+    }
+    if (update.slug && (await Project.exists({ slug: update.slug, _id: { $ne: id } }))) {
+      return NextResponse.json({ error: { fieldErrors: { slug: ['Another project already uses this slug'] } } }, { status: 409 });
     }
 
     const updatedProject = await Project.findByIdAndUpdate(
       id,
-      { ...validation.data },
+      { $set: update },
       { new: true, runValidators: true }
     );
 
