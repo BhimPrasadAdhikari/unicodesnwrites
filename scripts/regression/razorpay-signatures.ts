@@ -57,7 +57,7 @@ async function main() {
   assert.equal(parse({ price: 0 }).success, true, 'free products stay allowed');
   assert.equal(parse({ price: 50 }).success, false, 'below ₹1 is rejected');
   assert.equal(parse({ price: 499.5 }).success, false, 'fractional paise rejected');
-  assert.equal(parse({ price: 49900, currency: 'USD' }).success, false, 'only INR');
+  assert.equal(parse({ price: 49900, currency: 'USD' }).data?.currency, 'INR', 'legacy currency is coerced to INR');
 
   console.log('razorpay regression: all checks passed');
 }

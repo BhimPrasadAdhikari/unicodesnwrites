@@ -23,7 +23,8 @@ export const productSchema = z.object({
   longDescription: z.string().trim().min(10, 'Long description is required').max(50_000).transform(cleanMultiline),
   price: z.number().int('Price must be a whole number of paise').min(0, 'Price must be positive').max(10_000_000)
     .refine((value) => value === 0 || value >= 100, 'Paid products must cost at least ₹1 (100 paise)'),
-  currency: z.literal('INR').default('INR'),
+  // INR only. Coerced rather than rejected so legacy USD products can be re-priced in the editor.
+  currency: z.unknown().transform((): 'INR' => 'INR'),
   productType: z.enum(['E-book', 'Course', 'Template', 'Code', 'Assets']),
   category: z.string().trim().min(1, 'Category is required').max(80).transform(cleanSingleLine),
   tags: z.array(z.string().trim().min(1).max(50).transform(cleanSingleLine)).max(20),
@@ -58,7 +59,8 @@ export const reviewSchema = z.object({
 export const purchaseSchema = z.object({
   productId: objectIdSchema,
   amount: z.number().int().min(0).max(10_000_000),
-  currency: z.literal('INR').default('INR'),
+  // INR only. Coerced rather than rejected so legacy USD products can be re-priced in the editor.
+  currency: z.unknown().transform((): 'INR' => 'INR'),
 });
 
 export const checkoutSchema = z.object({
