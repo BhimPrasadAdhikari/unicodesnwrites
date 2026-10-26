@@ -55,6 +55,11 @@ export function classifySendError(error: unknown): SendFailureKind {
   if (err.message === 'EMAIL_NOT_CONFIGURED' || err.message === 'EMAIL_SKIPPED' || err.code === 'EAUTH' || err.code === 'ENOAUTH' || err.responseCode === 535) {
     return 'provider';
   }
+  // Amazon SES refuses everything while the sender's domain is unverified or the account is paused:
+  // the provider's fault, so pause the queue rather than burn every reader's retries.
+  if (/not verified|sending paused|account is (?:paused|suspended)/i.test(text)) {
+    return 'provider';
+  }
   if (err.responseCode === 421 || err.responseCode === 454 || /5\.4\.5|quota|rate limit|too many/i.test(text)) {
     return 'rate-limit';
   }
