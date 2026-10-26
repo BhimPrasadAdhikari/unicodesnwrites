@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DollarSign, ShoppingBag, Users, Eye, TrendingUp, TrendingDown, BookOpen } from 'lucide-react';
+import { IndianRupee, ShoppingBag, Users, Eye, TrendingUp, TrendingDown, BookOpen } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 
 interface DashboardStats {
@@ -87,10 +87,10 @@ export default function OverviewMetricsCards() {
   const metricCards = [
     {
       title: 'Total Revenue',
-      value: stats.revenue?.formatted ?? '$0.00',
+      value: stats.revenue?.formatted ?? '₹0',
       subtitle: 'From digital products & sales',
       change: stats.revenue?.change ?? null,
-      icon: DollarSign,
+      icon: IndianRupee,
       color: 'emerald',
       bgGlow: 'bg-success/10 text-success border-success/20',
       badgeBg: 'bg-success/10 text-success',

@@ -1,8 +1,9 @@
-import Link from 'next/link';
 import { Metadata } from 'next';
 import PrivacyTools from '@/components/public/PrivacyTools';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
+import { BusinessDetails, LegalNav } from '@/components/public/LegalNav';
+import { businessConfig } from '@/lib/config/business';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -25,7 +26,7 @@ const dataUsage = [
 
 const serviceProviders = [
   'Vercel provides hosting and privacy-conscious traffic analytics.',
-  'Stripe processes product payments; payment card details never pass through this application.',
+  'Razorpay processes product payments for Lagnever, the business that operates this site; card, UPI and bank details are entered on Razorpay and never pass through this application.',
   'The configured email provider delivers newsletter, contact, and purchase messages.',
 ];
 
@@ -38,12 +39,9 @@ export default function PrivacyPage() {
       <Section className="pb-10 pt-10 md:pt-14">
         <Container>
           <div className="mx-auto max-w-3xl">
-            <nav aria-label="Legal" className="mb-8 flex gap-1 border-b border-border">
-              <Link href="/privacy" aria-current={'page'} className="-mb-px inline-flex h-11 items-center border-b-2 px-3.5 text-[15px] border-primary font-semibold text-foreground">Privacy</Link>
-              <Link href="/terms" aria-current={undefined} className="-mb-px inline-flex h-11 items-center border-b-2 px-3.5 text-[15px] border-transparent font-medium text-muted-foreground hover:text-foreground">Terms</Link>
-            </nav>
+            <LegalNav current="/privacy" />
             <h1 className="text-title text-foreground">Privacy Policy</h1>
-            <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">Last updated July 18, 2026</p>
+            <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">Last updated October 25, 2026</p>
             <div className="mt-8 rounded-xl border border-foreground bg-card px-5 py-4">
               <p className="text-eyebrow text-muted-foreground">In short</p>
               <p className="mt-2 font-serif text-[19px] leading-[1.55] text-foreground">Transparent tracking, no hidden scripts, and full control over your data. We believe privacy is a fundamental right.</p>
@@ -134,12 +132,13 @@ export default function PrivacyPage() {
               <p className="text-muted-foreground leading-relaxed pl-8">
                 If you have any concerns about your privacy, please send an email to{' '}
                 <a
-                  href="mailto:contact@unicodesnwrites.tech"
+                  href={`mailto:${businessConfig.supportEmail}`}
                   className="font-medium text-primary hover:underline"
                 >
-                  contact@unicodesnwrites.tech
+                  {businessConfig.supportEmail}
                 </a>
               </p>
+              <div className="pl-8"><BusinessDetails {...businessConfig} website={businessConfig.parentWebsite} /></div>
             </div>
           </div>
         </Container>

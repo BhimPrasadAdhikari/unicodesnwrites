@@ -8,6 +8,8 @@ import { SocialLink } from '@/components/public/SocialLink';
 import { Glyph } from '@/components/ui/Glyph';
 import { Container, Section } from '@/components/ui/Section';
 import { siteConfig } from '@/lib/config/site.config';
+import { businessConfig } from '@/lib/config/business';
+import { BusinessDetails } from '@/components/public/LegalNav';
 
 export const metadata: Metadata = {
   title: 'Contact',
@@ -58,6 +60,14 @@ export default function ContactPage() {
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.detail}</p>
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-8 border-t border-border pt-6">
+                <p className="text-eyebrow text-muted-foreground">Orders &amp; payments</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  unicodesnwrites is a Lagnever product. Purchases are billed by {businessConfig.legalName}; include your order ID when writing about a payment. See the <Link href="/refund-policy" className="underline underline-offset-2">refund</Link> and <Link href="/shipping-policy" className="underline underline-offset-2">delivery</Link> policies.
+                </p>
+                <BusinessDetails {...businessConfig} website={businessConfig.parentWebsite} />
               </div>
 
               <div className="mt-8 border-t border-border pt-6">

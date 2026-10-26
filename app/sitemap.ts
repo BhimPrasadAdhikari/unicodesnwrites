@@ -25,6 +25,8 @@ const staticRoutes: MetadataRoute.Sitemap = [
   ['/contact', 'yearly', 0.5],
   ['/privacy', 'yearly', 0.3],
   ['/terms', 'yearly', 0.3],
+  ['/refund-policy', 'yearly', 0.3],
+  ['/shipping-policy', 'yearly', 0.3],
 ].map(([path, changeFrequency, priority]) => ({
   url: `${baseUrl}${path}`,
   changeFrequency: changeFrequency as MetadataRoute.Sitemap[number]['changeFrequency'],

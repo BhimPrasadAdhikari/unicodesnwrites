@@ -52,7 +52,7 @@ export default async function AccountPage() {
   try {
     const now = new Date();
     const [rawPurchases, downloadablePurchaseIds, eCount, nCount] = await Promise.all([
-      Purchase.find({ customerEmail: user.email })
+      Purchase.find({ customerEmail: user.email, status: { $in: ['completed', 'refunded'] } })
         .collation({ locale: 'en', strength: 2 })
         .populate({ path: 'product', model: Product, select: 'title slug' })
         .sort({ purchasedAt: -1 })
@@ -89,7 +89,7 @@ export default async function AccountPage() {
         title: product?.title || 'Unavailable product',
         slug: product?.slug || null,
         amount: typeof purchase.amount === 'number' ? purchase.amount : 0,
-        currency: purchase.currency || 'USD',
+        currency: purchase.currency || 'INR',
         status: purchase.status || 'completed',
         purchasedAt: purchasedAtStr,
         downloadsRemaining,

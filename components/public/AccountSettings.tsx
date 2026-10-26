@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { formatCurrency } from '@/lib/utils/currency';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -438,10 +439,7 @@ export function AccountSettings({
                         </span>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {new Intl.NumberFormat(undefined, {
-                          style: 'currency',
-                          currency: purchase.currency.toUpperCase(),
-                        }).format(purchase.amount / 100)}{' '}
+                        {formatCurrency(purchase.amount, purchase.currency)}{' '}
                         · {new Date(purchase.purchasedAt).toLocaleDateString()} · Order {purchase.purchaseId.slice(0, 8)}
                       </p>
                     </div>

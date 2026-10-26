@@ -89,7 +89,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     offers: {
       '@type': 'Offer',
       price: 0,
-      priceCurrency: 'USD',
+      priceCurrency: 'INR',
       availability: 'https://schema.org/InStock',
       url: courseUrl,
     },

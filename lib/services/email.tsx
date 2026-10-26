@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer9';
+import { businessConfig } from '@/lib/config/business';
 import { render } from '@react-email/render';
 import { IPurchase } from '@/lib/models/Purchase';
 import { IProduct } from '@/lib/models/Product';
@@ -176,7 +177,7 @@ export const sendNewsletterToSubscriber = async (
       content={newsletter.content} 
       previewText={newsletter.previewText} 
       unsubscribeUrl={unsubscribeUrl} 
-      postalAddress={process.env.NEWSLETTER_POSTAL_ADDRESS}
+      postalAddress={businessConfig.mailingAddress}
     />
   );
   const html = sendId ? addTracking(rendered, sendId) : rendered;
@@ -227,7 +228,7 @@ export const sendTestNewsletter = async (
             content={newsletter.content}
             previewText={newsletter.previewText}
             unsubscribeUrl={`${APP_URL}/newsletter`} // Real subscribers get a signed per-address link
-            postalAddress={process.env.NEWSLETTER_POSTAL_ADDRESS}
+            postalAddress={businessConfig.mailingAddress}
         />
     );
 

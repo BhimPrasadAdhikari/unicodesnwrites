@@ -23,10 +23,10 @@ export type ProductListItem = {
 
 const priceRanges = [
   { id: 'all', label: 'Any price', min: null, max: null },
-  { id: 'under-50', label: 'Under $50', min: 0, max: 5000 },
-  { id: '50-150', label: '$50–$150', min: 5000, max: 15000 },
-  { id: '150-300', label: '$150–$300', min: 15000, max: 30000 },
-  { id: '300-plus', label: '$300+', min: 30000, max: null },
+  { id: 'under-500', label: 'Under ₹500', min: 0, max: 49999 },
+  { id: '500-1500', label: '₹500–₹1,500', min: 50000, max: 150000 },
+  { id: '1500-5000', label: '₹1,500–₹5,000', min: 150001, max: 500000 },
+  { id: '5000-plus', label: '₹5,000+', min: 500001, max: null },
 ];
 
 const sortOptions = [

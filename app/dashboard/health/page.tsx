@@ -34,11 +34,11 @@ function configChecks(): Check[] {
   return [
     group('Sign-in', ['NEXTAUTH_SECRET', 'NEXTAUTH_URL'], 'fail', 'Sessions cannot be issued.'),
     group('Email (SMTP)', ['EMAIL_HOST', 'EMAIL_USER', 'EMAIL_PASSWORD', 'EMAIL_FROM'], 'fail', 'Verification, receipts and newsletters will not send.'),
-    group('Payments', ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'], 'fail', 'Checkout or purchase recording will fail.'),
+    group('Payments (Razorpay)', ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET'], 'fail', 'Checkout or purchase recording will fail.'),
     group('File storage', ['BLOB_READ_WRITE_TOKEN'], 'fail', 'Uploads will fail.'),
     group('Newsletter scheduler', ['CRON_SECRET'], 'warn', 'Scheduled issues will not go out.'),
     group('Unsubscribe links', ['NEWSLETTER_UNSUBSCRIBE_SECRET'], 'warn', 'A key derived from NEXTAUTH_SECRET is used instead.'),
-    group('Newsletter footer address', ['NEWSLETTER_POSTAL_ADDRESS'], 'warn', 'Bulk email law (CAN-SPAM) expects a postal address.'),
+    group('Newsletter footer address', ['NEWSLETTER_POSTAL_ADDRESS'], 'warn', 'The default business address from lib/config/business.ts is used.'),
     group('AI features', ['GROQ_API_KEY'], 'warn', 'Summaries and AI notes are off.'),
     group('Public URL', ['NEXT_PUBLIC_APP_URL'], 'warn', 'Links in emails may point to the wrong host.'),
   ];

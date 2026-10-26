@@ -5,7 +5,7 @@
 - GitHub account with repository access
 - Vercel account (connected to GitHub)
 - MongoDB Atlas account
-- Stripe account (live mode)
+- Razorpay account (Lagnever's merchant account, live mode activated)
 - SendGrid account (or email provider)
 - Domain registrar access
 
@@ -26,9 +26,11 @@ EMAIL_PORT=587
 EMAIL_USER=apikey
 EMAIL_PASSWORD=SG.xxx
 EMAIL_FROM=noreply@unicodesnwrites.tech
-STRIPE_SECRET_KEY=sk_live_xxx
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
-STRIPE_WEBHOOK_SECRET=whsec_live_xxx
+RAZORPAY_KEY_ID=rzp_live_xxx
+RAZORPAY_KEY_SECRET=xxx
+RAZORPAY_WEBHOOK_SECRET=xxx
+# Optional overrides; defaults are Lagnever's published details (lib/config/business.ts)
+NEWSLETTER_POSTAL_ADDRESS=Rajouri, Jammu & Kashmir, India
 BLOB_READ_WRITE_TOKEN=vercel_blob_xxx
 SENTRY_DSN=https://xxx@sentry.io/xxx
 ```
@@ -50,12 +52,17 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 3. Create API key
 4. Add to Vercel env vars (EMAIL_USER=apikey, EMAIL_PASSWORD=SG...)
 
-### 3. Stripe Configuration
+### 3. Razorpay Configuration
 
-1. Switch to live mode
-2. Recreate products
-3. Configure production webhook (`https://unicodesnwrites.tech/api/webhooks/stripe`)
-4. Add keys to Vercel env vars
+All prices are in INR, stored in paise (₹499 = `49900`). See
+`docs/payments/razorpay-setup.md` for the full dashboard checklist.
+
+1. Add `https://unicodesnwrites.tech` under Account & Settings → Business website details and wait for approval
+2. Generate live API keys and add `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` to Vercel
+3. Add a live webhook: `https://unicodesnwrites.tech/api/webhooks/razorpay` with events
+   `payment.authorized`, `payment.captured`, `payment.failed`, `order.paid`, `refund.processed`,
+   `refund.failed`, `payment.dispute.created`; put its secret in `RAZORPAY_WEBHOOK_SECRET`
+4. Run `npx tsx scripts/migrate-stripe-to-razorpay.ts` (dry run) against the database, then with `--apply`
 
 ### 4. Vercel Deployment
 

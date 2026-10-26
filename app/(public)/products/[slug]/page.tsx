@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/config/auth';
 import Review from '@/lib/models/Review';
 import { siteConfig } from '@/lib/config/site.config';
+import { businessConfig } from '@/lib/config/business';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -59,7 +60,7 @@ async function getRatingSummary(productId: string) {
 export default async function ProductPage(props: { params: Promise<{ slug: string }>; searchParams: Promise<{ checkout?: string }> }) {
   const params = await props.params;
   const { checkout } = await props.searchParams;
-  // Prefill Stripe with the signed-in email so the purchase shows up under /account.
+  // Prefill Razorpay checkout with the signed-in email so the purchase shows up under /account.
   const session = await getServerSession(authOptions);
   const buyerEmail = session?.user?.sessionValid ? session.user.email ?? undefined : undefined;
   const product = await getProduct(params.slug);
@@ -170,11 +171,11 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
                       Checkout cancelled. You weren&apos;t charged; pick up again whenever you like.
                     </p>
                   ) : null}
-                  <CheckoutButton productId={product._id} priceId={product.stripePriceId} email={buyerEmail} />
+                  <CheckoutButton productId={product._id} available={product.currency === 'INR' && product.price >= 100} email={buyerEmail} />
                 </div>
 
                 <p className="mt-4 text-[13px] text-muted-foreground">
-                  Secure checkout through Stripe. Download access arrives after payment confirmation.
+                  Prices in Indian rupees (₹), inclusive of applicable taxes. Pay securely with UPI, cards, netbanking or wallets through Razorpay; the download link arrives by email once payment is confirmed. All sales are final; see the <Link href="/refund-policy" className="underline underline-offset-2 hover:text-foreground">refund policy</Link>. Sold by {businessConfig.legalName}.
                 </p>
               </div>
 
