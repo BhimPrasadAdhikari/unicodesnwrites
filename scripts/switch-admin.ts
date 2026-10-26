@@ -10,6 +10,7 @@
  * projects, courses, course revisions, newsletters and comments move to it, and only then is the
  * old account deleted with its tokens and learner records.
  */
+import dns from 'dns';
 import readline from 'readline';
 import bcrypt from 'bcryptjs';
 import mongoose, { type Model } from 'mongoose';
@@ -114,7 +115,15 @@ async function main() {
   if (OLD === NEW) fail('--old and --new are the same address.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(NEW)) fail(`"${NEW}" is not an email address.`);
 
-  await mongoose.connect(URI, { serverSelectionTimeoutMS: 15000 });
+  try {
+    await mongoose.connect(URI, { serverSelectionTimeoutMS: 15000 });
+  } catch (error) {
+    // Some Windows networks refuse the SRV lookup a mongodb+srv:// address needs; ask public DNS instead.
+    if (!/querySrv|ENOTFOUND|ECONNREFUSED/.test(String(error))) throw error;
+    console.log('Your network refused the database address lookup; retrying with public DNS (1.1.1.1, 8.8.8.8).');
+    dns.setServers(['1.1.1.1', '8.8.8.8']);
+    await mongoose.connect(URI, { serverSelectionTimeoutMS: 15000 });
+  }
   const db = mongoose.connection.db?.databaseName;
   console.log(`\nConnected to database "${db}".`);
 
