@@ -16,7 +16,7 @@ async function getMetrics() {
     {
       $group: {
         _id: null,
-        totalRevenue: { $sum: '$amount' }, // stored in cents
+        totalRevenue: { $sum: '$amount' }, // stored in paise
         totalSales: { $sum: 1 },
       }
     }

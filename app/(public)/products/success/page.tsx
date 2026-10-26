@@ -9,30 +9,29 @@ import { formatCurrency } from '@/lib/utils/currency';
 import { Section, Container } from '@/components/ui/Section';
 import { Button } from '@/components/ui/Button';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
+import { isRazorpayOrderId } from '@/lib/services/razorpay';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-const isValidStripeSessionId = (value: string) => /^cs_(?:test|live)_[A-Za-z0-9]+$/.test(value) && value.length <= 255;
-
-async function getPurchase(sessionId: string) {
-  if (!isValidStripeSessionId(sessionId)) return null;
+async function getPurchase(orderId: string) {
+  if (!isRazorpayOrderId(orderId)) return null;
   await connectDB();
   // Ensure Product model is registered for populate
   if (Product) {} 
-  const purchase = await Purchase.findOne({ stripeSessionId: sessionId }).populate('product');
+  const purchase = await Purchase.findOne({ razorpayOrderId: orderId, status: 'completed' }).populate('product');
   if (!purchase) return null;
   return JSON.parse(JSON.stringify(purchase));
 }
 
 export default async function SuccessPage(props: {
-  searchParams: Promise<{ session_id?: string }>;
+  searchParams: Promise<{ order_id?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const sessionId = searchParams.session_id;
+  const orderId = searchParams.order_id;
 
-  if (!sessionId || !isValidStripeSessionId(sessionId)) {
+  if (!orderId || !isRazorpayOrderId(orderId)) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
@@ -43,23 +42,18 @@ export default async function SuccessPage(props: {
     );
   }
 
-  let purchase = await getPurchase(sessionId);
+  let purchase = await getPurchase(orderId);
 
   if (!purchase) {
-    // FALLBACK: If purchase not found in DB, check Stripe directly
-    // This handles cases where webhook is failed or delayed
+    // FALLBACK: ask Razorpay directly in case the checkout callback and the
+    // webhook are both delayed or lost.
     try {
-      const { stripe } = await import('@/lib/services/stripe');
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-      if (session.payment_status === 'paid') {
-        const { createPurchaseFromSession } = await import('@/lib/services/purchase');
-        await createPurchaseFromSession(session);
-        // Re-fetch to ensure product is populated
-        purchase = await getPurchase(sessionId);
+      const { reconcileRazorpayOrder } = await import('@/lib/services/purchase');
+      if (await reconcileRazorpayOrder(orderId)) {
+        purchase = await getPurchase(orderId);
       }
     } catch (error) {
-       console.error('Error fetching/creating purchase from Stripe:', error);
+      console.error('Error reconciling Razorpay order:', error instanceof Error ? error.message : error);
     }
   }
 

@@ -132,8 +132,8 @@ async function main() {
   const productBase = {
     shortDescription: 'A release-safety product fixture.',
     longDescription: 'A product fixture used to prove public and private data boundaries.',
-    price: 1900,
-    currency: 'USD',
+    price: 149900,
+    currency: 'INR',
     productType: 'Template' as const,
     category: 'AIML',
     tags: ['release-safety'],
@@ -208,7 +208,7 @@ async function main() {
     if (publicProducts.length !== 1 || publicProducts[0]?.slug !== 'published-release-product') {
       throw new Error('Public products did not enforce published-only visibility.');
     }
-    for (const privateField of ['fileUrl', 'fileName', 'stripeProductId', 'stripePriceId', 'author']) {
+    for (const privateField of ['fileUrl', 'fileName', 'author']) {
       if (privateField in publicProducts[0]) throw new Error(`Public product exposed ${privateField}.`);
     }
     const sitemapResponse = await fetch(`${BASE_URL}/sitemap.xml`, { signal: AbortSignal.timeout(120_000) });
@@ -356,8 +356,8 @@ async function main() {
 
     await Purchase.create({
       purchaseId: 'launch-purchase-1', product: publishedProduct._id, customerEmail: learner.email, customerName: learner.name,
-      amount: publishedProduct.price, currency: publishedProduct.currency, stripeSessionId: 'cs_launch_purchase_1',
-      stripePaymentIntentId: 'pi_launch_purchase_1', status: 'completed', downloadToken: 'launch-download-token',
+      amount: publishedProduct.price, currency: publishedProduct.currency, razorpayOrderId: 'order_launchPurchase1',
+      razorpayPaymentId: 'pay_launchPurchase1', status: 'completed', downloadToken: 'launch-download-token',
       downloadTokenExpiry: new Date(Date.now() + 60 * 60 * 1000), downloadCount: 0, maxDownloads: 5, emailSent: true, purchasedAt: new Date(),
     });
     await page.goto(`${BASE_URL}/account`);

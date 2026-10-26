@@ -5,10 +5,12 @@ export interface IPurchase extends Document {
   product: mongoose.Types.ObjectId;
   customerEmail: string;
   customerName?: string;
-  amount: number; // in cents
+  amount: number; // in paise
   currency: string;
-  stripeSessionId: string;
-  stripePaymentIntentId?: string;
+  razorpayOrderId: string;
+  razorpayPaymentId?: string;
+  paymentMethod?: string;
+  failureReason?: string;
   status: 'pending' | 'completed' | 'failed' | 'refunded';
   downloadToken: string;
   downloadTokenExpiry: Date;
@@ -25,12 +27,14 @@ const PurchaseSchema: Schema = new Schema(
   {
     purchaseId: { type: String, required: true, unique: true },
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-    customerEmail: { type: String, required: true },
+    customerEmail: { type: String, default: '' },
     customerName: { type: String },
     amount: { type: Number, required: true },
-    currency: { type: String, default: 'USD' },
-    stripeSessionId: { type: String, required: true, unique: true },
-    stripePaymentIntentId: { type: String, unique: true, sparse: true },
+    currency: { type: String, default: 'INR' },
+    razorpayOrderId: { type: String, required: true, unique: true },
+    razorpayPaymentId: { type: String, unique: true, sparse: true },
+    paymentMethod: { type: String },
+    failureReason: { type: String },
     status: {
       type: String,
       enum: ['pending', 'completed', 'failed', 'refunded'],

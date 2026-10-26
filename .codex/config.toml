@@ -19,7 +19,7 @@ exclude = [
   "*PASSWORD*",
   "DATABASE_URL",
   "MONGODB_URI",
-  "STRIPE_*",
+  "RAZORPAY_*",
   "MAILGUN_*",
   "NEXTAUTH_SECRET",
   "AUTH_SECRET"

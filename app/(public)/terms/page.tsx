@@ -1,7 +1,8 @@
-import Link from 'next/link';
 import { Metadata } from 'next';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
+import { BusinessDetails, LegalNav } from '@/components/public/LegalNav';
+import { businessConfig } from '@/lib/config/business';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -10,6 +11,10 @@ export const metadata: Metadata = {
 };
 
 const sections = [
+  {
+    title: 'Who We Are',
+    content: `unicodesnwrites (${businessConfig.website.replace('https://', '')}) is a publication and digital product store operated by ${businessConfig.legalName}, the business behind ${businessConfig.parentBrand} (lagnever.ai). Purchases, invoices and payment support are handled by ${businessConfig.legalName}, ${businessConfig.postalAddress}.`,
+  },
   {
     title: 'Acceptance of Terms',
     content: 'By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement.',
@@ -21,11 +26,15 @@ const sections = [
   },
   {
     title: 'Digital Products',
-    content: 'When purchasing digital products (templates, tools) from this site:',
+    content: 'When purchasing digital products (templates, tools, course material) from this site:',
     list: [
+      'All prices are listed in Indian rupees (INR, ₹) and include applicable taxes unless stated otherwise.',
+      `Payments are processed securely by ${businessConfig.paymentProvider} (UPI, cards, netbanking and wallets). We never see or store your card or bank details.`,
       'You are granted a non-exclusive, non-transferable license to use the product.',
       'You may not redistribute or resell the product itself.',
-      'Refunds are handled on a case-by-case basis due to the digital nature of the products.',
+      'Products are delivered digitally by email and on-screen download right after payment; nothing is shipped physically. See the Delivery Policy.',
+      'All payments are final and non-refundable, as on every Lagnever product, except for confirmed duplicate charges, undeliverable orders, or where the law requires a refund. See the Refund & Cancellation Policy.',
+      'Buyers under the age of majority must have a parent or guardian approve any payment.',
     ],
   },
   {
@@ -34,7 +43,11 @@ const sections = [
   },
   {
     title: 'Limitation of Liability',
-    content: 'The information provided on this website is for educational and informational purposes only. We are not liable for any actions taken based on the information on this website. Please verify code before running it in production environments.',
+    content: `The information provided on this website is for educational and informational purposes only. We are not liable for any actions taken based on the information on this website. To the maximum extent permitted by law, the total liability of ${businessConfig.legalName} is limited to the amount you paid for the product giving rise to the claim. Please verify code before running it in production environments.`,
+  },
+  {
+    title: 'Governing Law',
+    content: `These terms are governed by the laws of India. Any disputes are subject to the jurisdiction of ${businessConfig.jurisdiction}.`,
   },
   {
     title: 'Changes to Terms',
@@ -51,12 +64,9 @@ export default function TermsPage() {
       <Section className="pb-10 pt-10 md:pt-14">
         <Container>
           <div className="mx-auto max-w-3xl">
-            <nav aria-label="Legal" className="mb-8 flex gap-1 border-b border-border">
-              <Link href="/privacy" aria-current={undefined} className="-mb-px inline-flex h-11 items-center border-b-2 px-3.5 text-[15px] border-transparent font-medium text-muted-foreground hover:text-foreground">Privacy</Link>
-              <Link href="/terms" aria-current={'page'} className="-mb-px inline-flex h-11 items-center border-b-2 px-3.5 text-[15px] border-primary font-semibold text-foreground">Terms</Link>
-            </nav>
+            <LegalNav current="/terms" />
             <h1 className="text-title text-foreground">Terms of Service</h1>
-            <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">Last updated July 18, 2026</p>
+            <p className="mt-3 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">Last updated October 25, 2026</p>
             <div className="mt-8 rounded-xl border border-foreground bg-card px-5 py-4">
               <p className="text-eyebrow text-muted-foreground">In short</p>
               <p className="mt-2 font-serif text-[19px] leading-[1.55] text-foreground">The rules of the road for using this website. Please read these terms carefully before using our services.</p>
@@ -102,17 +112,18 @@ export default function TermsPage() {
             {/* Contact Section */}
             <div>
               <h2 className="mb-4 font-serif text-[26px] font-medium leading-tight tracking-[-0.01em] text-foreground">
-                  7. Questions?
+                  {sections.length + 1}. Questions?
                 </h2>
               <p className="font-serif text-[18px] leading-[1.65] text-foreground sm:text-[19px]">
                 If you have any questions about these Terms, please contact us at{' '}
                 <a
-                  href="mailto:contact@unicodesnwrites.tech"
+                  href={`mailto:${businessConfig.supportEmail}`}
                   className="underline decoration-primary decoration-2 underline-offset-4 hover:text-primary"
                 >
-                  contact@unicodesnwrites.tech
+                  {businessConfig.supportEmail}
                 </a>
               </p>
+              <BusinessDetails {...businessConfig} website={businessConfig.parentWebsite} />
             </div>
           </div>
         </Container>

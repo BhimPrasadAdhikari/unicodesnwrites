@@ -1,11 +1,13 @@
-export const formatCurrency = (amountInCents: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
+// Prices are stored in paise (₹1 = 100 paise) and sold in INR only.
+export const formatCurrency = (amountInPaise: number, currency: string = 'INR'): string => {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-  }).format(amountInCents / 100);
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: amountInPaise % 100 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(amountInPaise / 100);
 };
 
-export const formatPrice = (amountInCents: number): string => {
-  return (amountInCents / 100).toFixed(2);
+export const formatPrice = (amountInPaise: number): string => {
+  return (amountInPaise / 100).toFixed(2);
 };

@@ -8,7 +8,7 @@ An independent product publication for visual essays, interactive AI explainers,
 - 🧪 Interactive concept labs embedded inside articles
 - 🧭 Responsive, progress-aware article table of contents
 - 🧱 Dedicated project showcase and case-study routes
-- 🛍️ Owner-managed digital product shelf (Stripe integration)
+- 🛍️ Owner-managed digital product shelf (Razorpay checkout, prices in INR)
 - 📧 Newsletter system (double opt-in)
 - 👤 Separate personal portfolio for bio, résumé, photos, and experience
 - 📊 Custom analytics dashboard
@@ -24,7 +24,7 @@ An independent product publication for visual essays, interactive AI explainers,
 - **Styling:** Tailwind CSS
 - **Database:** MongoDB (Mongoose ODM)
 - **Authentication:** NextAuth.js
-- **Payments:** Stripe
+- **Payments:** Razorpay (operated under Lagnever)
 - **Email:** Nodemailer + SendGrid
 - **File Storage:** Vercel Blob
 - **Hosting:** Vercel

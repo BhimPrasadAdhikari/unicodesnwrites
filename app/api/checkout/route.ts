@@ -3,6 +3,7 @@ import {
   createCheckoutForProduct,
   ProductPurchaseError,
 } from '@/lib/services/purchase';
+import { RazorpayApiError, RazorpayConfigError } from '@/lib/services/razorpay';
 import { checkoutSchema } from '@/lib/utils/validation';
 import { consumeRateLimit, getClientAddress, normalizeEmail } from '@/lib/auth/security';
 
@@ -28,15 +29,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many checkout attempts. Please try again later.' }, { status: 429 });
     }
 
-    const session = await createCheckoutForProduct({
+    const checkout = await createCheckoutForProduct({
       productId: validationResult.data.productId,
       customerEmail: email || undefined,
     });
 
-    return NextResponse.json(session);
+    return NextResponse.json(checkout);
   } catch (error) {
     if (error instanceof ProductPurchaseError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof RazorpayConfigError || error instanceof RazorpayApiError) {
+      console.error('Razorpay checkout error:', error.message);
+      return NextResponse.json({ error: 'Payments are temporarily unavailable. Please try again shortly.' }, { status: 503 });
     }
 
     console.error('Checkout error:', error);

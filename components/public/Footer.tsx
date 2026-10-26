@@ -5,6 +5,7 @@ import { Glyph } from '@/components/ui/Glyph';
 import { Lockup } from '@/components/ui/Logo';
 import { Container } from '@/components/ui/Section';
 import { siteConfig } from '@/lib/config/site.config';
+import { businessConfig } from '@/lib/config/business';
 
 const readLinks = [
   { href: '/blog', label: 'Writing' },
@@ -25,6 +26,8 @@ const elsewhereLinks = [
   { href: '/feed.xml', label: 'RSS feed' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/terms', label: 'Terms' },
+  { href: '/refund-policy', label: 'Refunds' },
+  { href: '/shipping-policy', label: 'Delivery' },
 ];
 
 function Column({ title, links }: { title: string; links: { href: string; label: string }[] }) {
@@ -67,7 +70,11 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-mono text-xs text-muted-foreground">© {new Date().getFullYear()} unicodesnwrites · Set in Newsreader, Inter and JetBrains Mono.</p>
+          <div className="space-y-1 font-mono text-xs text-muted-foreground">
+            <p>© {new Date().getFullYear()} unicodesnwrites · A <a href={businessConfig.parentWebsite} className="underline underline-offset-2 hover:text-foreground">Lagnever</a> product, operated by {businessConfig.legalName}.</p>
+            <p>{businessConfig.postalAddress} · <a href={`mailto:${businessConfig.supportEmail}`} className="underline underline-offset-2 hover:text-foreground">{businessConfig.supportEmail}</a></p>
+            <p>Prices in INR (₹) · Payments secured by {businessConfig.paymentProvider}.</p>
+          </div>
           <div className="flex items-center gap-2">
             <a href={siteConfig.social.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="touch-target rounded-md text-muted-foreground hover:text-foreground"><Github className="h-4 w-4" /></a>
             <a href={siteConfig.social.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="touch-target rounded-md text-muted-foreground hover:text-foreground"><Linkedin className="h-4 w-4" /></a>

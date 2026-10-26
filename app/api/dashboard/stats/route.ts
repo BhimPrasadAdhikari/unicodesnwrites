@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { formatCurrency } from '@/lib/utils/currency';
 import { requireAdminResponse } from '@/lib/auth/admin';
 import { connectDB } from '@/lib/db/connection';
 import Purchase from '@/lib/models/Purchase';
@@ -84,7 +85,7 @@ export async function GET() {
       windowDays: WINDOW_DAYS,
       revenue: {
         valueCents: totalRevenueCents,
-        formatted: `$${(totalRevenueCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        formatted: formatCurrency(totalRevenueCents),
         recent: currentPurchases.total,
         change: percentageChange(currentPurchases.total, previousPurchases.total),
       },
