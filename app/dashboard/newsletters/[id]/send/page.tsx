@@ -339,7 +339,9 @@ export default function SendNewsletterPage() {
     ? subscriberCount
     : selectedTags.length ? (taggedCount?.key === selectionKey ? taggedCount.count : null) : 0;
   const audience = hasStarted && newsletter.recipientCount ? newsletter.recipientCount : selectionCount ?? 0;
-  const emptyTaggedAudience = savedTags.length > 0 && !audienceDirty && selectionCount === 0;
+  // "Only subscribers tagged…" with nothing ticked would otherwise read 0 but send to everyone.
+  const emptyTaggedAudience = (savedTags.length > 0 && !audienceDirty && selectionCount === 0)
+    || (canEditAudience && audienceMode === 'tagged' && !selectedTags.length);
   const canSchedule = !isSendingState && !isSent && !isCancelled;
   // Tags to pick from: everything in use except "bounced", plus any saved tag nobody carries any more.
   const tagChoices = [

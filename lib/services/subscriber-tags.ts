@@ -1,9 +1,8 @@
 import Subscriber from '@/lib/models/Subscriber';
-import { BOUNCED_TAG } from '@/lib/utils/validations/subscriber';
 
 export interface SubscriberTagCount {
   tag: string;
-  /** Confirmed and not bounced: the people a campaign aimed at this tag would reach. */
+  /** Confirmed: the people a campaign aimed at this tag would reach. */
   confirmed: number;
   /** Everyone carrying the tag, whatever their status. */
   total: number;
@@ -11,14 +10,15 @@ export interface SubscriberTagCount {
 
 /**
  * Who a campaign goes to: confirmed subscribers, narrowed to those carrying any of
- * `audienceTags` when some are set. Bounced addresses are left out either way.
+ * `audienceTags` when some are set. Bounce clean-up already unsubscribes a dead
+ * address, so the "bounced" tag isn't filtered here: readers who bounced once and
+ * later re-confirmed still carry it and must keep receiving mail.
  */
 export function campaignAudienceFilter(audienceTags?: readonly string[] | null) {
   const tags = (audienceTags || []).filter(Boolean);
-  return {
-    status: 'confirmed' as const,
-    tags: tags.length ? { $in: [...tags], $nin: [BOUNCED_TAG] } : { $ne: BOUNCED_TAG },
-  };
+  return tags.length
+    ? { status: 'confirmed' as const, tags: { $in: [...tags] } }
+    : { status: 'confirmed' as const };
 }
 
 export function countCampaignAudience(audienceTags?: readonly string[] | null) {
@@ -32,7 +32,7 @@ export async function countSubscriberTags(): Promise<SubscriberTagCount[]> {
     {
       $project: {
         tags: 1,
-        reachable: { $and: [{ $eq: ['$status', 'confirmed'] }, { $not: [{ $in: [BOUNCED_TAG, '$tags'] }] }] },
+        reachable: { $eq: ['$status', 'confirmed'] },
       },
     },
     { $unwind: '$tags' },

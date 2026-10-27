@@ -115,6 +115,9 @@ export async function findCommittedCampaignsForPosts(
   const campaigns = await Newsletter.find({
     posts: { $in: postIds },
     status: { $in: COMMITTED_CAMPAIGN_STATUSES },
+    // Only campaigns to everyone count: an article sent to one tagged segment can
+    // still go to the whole list later.
+    $or: [{ audienceTags: { $exists: false } }, { audienceTags: { $size: 0 } }],
     ...(options?.excludeNewsletterId ? { _id: { $ne: options.excludeNewsletterId } } : {}),
   })
     .select('posts subject status')

@@ -136,8 +136,7 @@ const countByStatus = (rows: Array<{ _id: string; count: number }>, status: stri
   rows.find((row) => row._id === status)?.count || 0;
 
 // Confirmed subscribers, narrowed to the campaign's audience tags when it has any. Bounce
-// clean-up already unsubscribes a dead address; the filter also skips a "bounced" tag an
-// admin set by hand.
+// clean-up already unsubscribes a dead address.
 const initializeDeliveryQueue = async (newsletterId: mongoose.Types.ObjectId, audienceTags?: string[]) => {
   const subscribers = await Subscriber.find(campaignAudienceFilter(audienceTags)).select('_id email').lean();
   for (let index = 0; index < subscribers.length; index += UPSERT_CHUNK_SIZE) {

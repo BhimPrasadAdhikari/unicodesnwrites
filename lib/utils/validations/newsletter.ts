@@ -37,7 +37,7 @@ export const createNewsletterSchema = z.object({
 export const updateNewsletterSchema = createNewsletterSchema.partial().extend({
   status: z.enum(['draft', 'scheduled']).optional(),
   audienceTags: subscriberTagListSchema
-    .refine((tags) => !tags.includes(BOUNCED_TAG), 'Bounced subscribers are never emailed.')
+    .refine((tags) => !tags.includes(BOUNCED_TAG), '"bounced" marks dead addresses and can’t be used as an audience.')
     .optional(),
 });
 

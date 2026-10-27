@@ -132,13 +132,20 @@ export async function PATCH(
             await NewsletterSend.deleteMany({ newsletter: existing._id });
         }
         
-        const newsletter = await Newsletter.findByIdAndUpdate(
-            params.id,
+        // An audience change only lands while nothing has been queued yet.
+        const newsletter = await Newsletter.findOneAndUpdate(
+            updateData.audienceTags !== undefined
+                ? { _id: params.id, status: { $in: ['draft', 'scheduled'] } }
+                : { _id: params.id },
             { $set: updateData },
             { new: true }
         );
         
-        if (!newsletter) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        if (!newsletter) {
+            return updateData.audienceTags !== undefined
+                ? NextResponse.json({ error: 'This campaign has started sending, so its audience can no longer change.' }, { status: 409 })
+                : NextResponse.json({ error: 'Not found' }, { status: 404 });
+        }
         if (updateData.audienceTags !== undefined) {
             await recordAdminAction(session, {
                 action: 'update-audience',
