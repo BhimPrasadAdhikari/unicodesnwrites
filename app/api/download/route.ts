@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         const response = await fetch(fileUrl, { redirect: 'error' });
         if (!response.ok) {
             console.error(`Failed to fetch product file from approved storage: ${response.status}`);
-            return NextResponse.json({ error: 'File not found on storage' }, { status: 404 });
+            return NextResponse.redirect(new URL('/products/download?status=error', req.url), 303);
         }
 
         await consumeAuthorizedProductDownload(purchase, product, context);
@@ -59,7 +59,8 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    return NextResponse.json({ error: 'File not found or invalid storage path' }, { status: 404 });
+    console.error('Product file is not on approved storage:', product._id);
+    return NextResponse.redirect(new URL('/products/download?status=error', req.url), 303);
 
   } catch (error) {
     if (error instanceof ProductPurchaseError) {
@@ -73,9 +74,6 @@ export async function GET(req: NextRequest) {
     }
 
     console.error('Download error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.redirect(new URL('/products/download?status=error', req.url), 303);
   }
 }

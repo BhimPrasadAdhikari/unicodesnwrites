@@ -57,7 +57,8 @@ export async function DELETE(request: NextRequest) {
 
     const redactedEmail = `deleted-${crypto.createHash('sha256').update(user._id.toString()).digest('hex').slice(0, 20)}@redacted.invalid`;
     await Promise.all([
-      Purchase.updateMany({ customerEmail: user.email }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted customer' } }),
+      // Older purchases kept the email's original case.
+      Purchase.updateMany({ customerEmail: user.email }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted customer' } }, { collation: { locale: 'en', strength: 2 } }),
       Review.updateMany({ customerEmail: user.email, emailConfirmed: { $ne: false } }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted learner' } }),
       CourseEnrollment.deleteMany({ user: user._id }),
       LearnerLessonState.deleteMany({ user: user._id }),

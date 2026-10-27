@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { generateGroundedAiNote } from '@/lib/services/ai-notes';
 import { isGroqConfigured } from '@/lib/services/groq';
-import { consumeAiNotesQuota } from '@/lib/services/ai-notes-quota';
+import { consumeAiNotesQuota, releaseAiNotesQuota } from '@/lib/services/ai-notes-quota';
 import { getPublishedLessonWorkspace } from '@/lib/services/course-platform';
 import { LearnerAccessError, requireCourseAccess } from '@/lib/auth/learner';
 import { saveAiNotebookEntry } from '@/lib/services/learner-persistence';
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ ...note, savedToNotebook: false });
     }
   } catch (error) {
+    await releaseAiNotesQuota(quota);
     const unavailable = error instanceof Error && error.message === 'GROQ_NOT_CONFIGURED';
     return NextResponse.json(
       { error: unavailable ? 'AI notes are not configured yet. The grounded study guide remains available.' : 'AI notes are temporarily unavailable.' },

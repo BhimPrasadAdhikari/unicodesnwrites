@@ -278,8 +278,8 @@ export function CourseLessonWorkspace({
           }),
         },
       );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Unable to grade quiz");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Unable to grade quiz. Try again.");
       setQuizResult(data);
       setQuizAttemptCount((count) => count + 1);
       if (data.passed && !isComplete) await markComplete({ advance: false });

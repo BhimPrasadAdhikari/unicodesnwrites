@@ -11,10 +11,33 @@ const messages: Record<string, { title: string; body: string }> = {
   limit: { title: 'This link has been used up.', body: 'Each link allows a few downloads. Get a fresh one below.' },
   unavailable: { title: 'This purchase can’t be downloaded.', body: 'It may have been refunded, or it belongs to a different account. If that seems wrong, get in touch.' },
   invalid: { title: 'That download link isn’t valid.', body: 'It may have been replaced by a newer link. Get a fresh one below.' },
+  error: { title: 'The file couldn’t be fetched just now.', body: 'Your link hasn’t been used up. Try again in a minute, or get a fresh link below.' },
 };
 
-export default async function DownloadStatusPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const { status } = await searchParams;
+export default async function DownloadStatusPage({ searchParams }: { searchParams: Promise<{ status?: string; token?: string }> }) {
+  const { status, token } = await searchParams;
+
+  // Emailed links land here first; the download only starts (and counts) when the buyer clicks.
+  if (token && !status) {
+    return (
+      <Container className="max-w-xl py-16 sm:py-24">
+        <p className="text-eyebrow text-primary">Downloads</p>
+        <h1 className="mt-3 font-serif text-[clamp(2rem,5vw,2.75rem)] font-medium leading-[1.1] tracking-[-0.02em]">Your file is ready.</h1>
+        <p className="mt-4 text-[17px] leading-[1.6] text-muted-foreground">Each link allows a few downloads, so save the file somewhere you’ll find it again.</p>
+        <a
+          href={`/api/download?token=${encodeURIComponent(token)}`}
+          rel="nofollow"
+          className="mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          Download now
+        </a>
+        <p className="mt-6 text-sm text-muted-foreground">
+          Signed in? Your <Link href="/account" className="underline decoration-primary decoration-2 underline-offset-4">account page</Link> always has a working download button.
+        </p>
+      </Container>
+    );
+  }
+
   const message = messages[status || ''] ?? messages.invalid;
 
   return (

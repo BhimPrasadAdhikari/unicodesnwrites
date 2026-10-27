@@ -25,20 +25,21 @@ export async function enrollInCourse(userId: string, courseSlug: string) {
   ).lean();
 }
 
-export async function updateCourseProgress(userId: string, courseSlug: string, lessonSlug: string, completed: boolean) {
+export async function updateCourseProgress(userId: string, courseSlug: string, lessonSlug: string, completed: boolean, options: { autoEnroll?: boolean } = {}) {
   const initial = await getEnrollment(userId, courseSlug);
   if (!initial.course) return { kind: 'missing' as const };
+  // Check the lesson before any write, so a bad slug can't create an enrollment.
+  if (!initial.lessonSlugs.includes(lessonSlug)) return { kind: 'invalid-lesson' as const };
 
   let enrollmentId: string;
   if (initial.enrollment) {
     enrollmentId = String(initial.enrollment._id);
   } else {
+    if (options.autoEnroll === false) return { kind: 'not-enrolled' as const };
     const created = await enrollInCourse(userId, courseSlug);
     if (!created) return { kind: 'not-enrolled' as const };
     enrollmentId = String(created._id);
   }
-
-  if (!initial.lessonSlugs.includes(lessonSlug)) return { kind: 'invalid-lesson' as const };
 
   const update = completed ? { $addToSet: { completedLessonSlugs: lessonSlug } } : { $pull: { completedLessonSlugs: lessonSlug } };
   await CourseEnrollment.updateOne({ _id: enrollmentId }, { ...update, $set: { lastAccessedAt: new Date(), lastLessonSlug: lessonSlug } });
