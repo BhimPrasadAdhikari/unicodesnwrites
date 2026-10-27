@@ -4,6 +4,7 @@ import Subscriber from '@/lib/models/Subscriber';
 import SuppressedEmail, { hashSuppressedEmail } from '@/lib/models/SuppressedEmail';
 import { parseCSV } from '@/lib/utils/csv';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { recordAdminAction } from '@/lib/services/admin-audit';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const MAX_ROWS = 50_000;
@@ -12,7 +13,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
     try {
-        await requireAdminSession();
+        const session = await requireAdminSession();
 
         const formData = await req.formData();
         const file = formData.get('file');
@@ -78,6 +79,7 @@ export async function POST(req: NextRequest) {
             }
         }
 
+await recordAdminAction(session, { action: 'import', targetType: 'subscribers', summary: `added ${added}, duplicates ${duplicates}, invalid ${invalid}, suppressed ${suppressed}` });
         return NextResponse.json({ added, duplicates, invalid, suppressed });
 
     } catch (error) {

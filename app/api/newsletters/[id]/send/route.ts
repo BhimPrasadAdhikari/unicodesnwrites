@@ -7,6 +7,7 @@ import {
     startOrContinueNewsletterDelivery,
 } from '@/lib/services/newsletter-delivery';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { recordAdminAction } from '@/lib/services/admin-audit';
 
 // Same headroom as the scheduler: budget + one in-flight send stays under maxDuration.
 const SEND_TIME_BUDGET_MS = 35_000;
@@ -19,7 +20,7 @@ export async function POST(
 ) {
     const params = await props.params;
     try {
-        await requireAdminSession();
+        const session = await requireAdminSession();
         await dbConnect();
 
         if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid newsletter ID' }, { status: 400 });
@@ -63,6 +64,7 @@ export async function POST(
             deadline: Date.now() + SEND_TIME_BUDGET_MS,
         });
 
+await recordAdminAction(session, { action: retryFailed ? 'retry-send' : 'send', targetType: 'newsletters', targetId: params.id, summary: `${newsletter.subject} · processed ${result.processedCount}, pending ${result.pendingCount}` });
         const responseStatus = result.pendingCount > 0 ? 202 : 200;
         const pendingMessage = result.status === 'paused'
             ? 'Sending paused by the email provider. The scheduler resumes it automatically.'
