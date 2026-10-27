@@ -30,8 +30,10 @@ export const createNewsletterSchema = z.object({
   scheduledFor: z.string().datetime().optional().nullable(), // ISO date string coming from frontend
 });
 
+// Editing can only move an issue between draft and scheduled. Sending, sent and failed are set
+// by the delivery code; letting a PATCH set them would skip its checks or lock the issue.
 export const updateNewsletterSchema = createNewsletterSchema.partial().extend({
-  status: newsletterStatusSchema.optional(),
+  status: z.enum(['draft', 'scheduled']).optional(),
 });
 
 export const sendNewsletterSchema = z.object({

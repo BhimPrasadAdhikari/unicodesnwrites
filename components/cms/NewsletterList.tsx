@@ -66,7 +66,8 @@ function StopCampaignButton({ label, onConfirm, onError }: { label: string; onCo
     );
 }
 
-function DeliveryProgress({ newsletter }: { newsletter: Newsletter }) {
+/** `sendingAhead`: subject of a campaign still sending, which this paused one waits behind. */
+function DeliveryProgress({ newsletter, sendingAhead, now }: { newsletter: Newsletter; sendingAhead?: string; now: number }) {
     const total = newsletter.recipientCount || 0;
     const sent = newsletter.sentCount || 0;
     const failed = newsletter.failedCount || 0;
@@ -85,16 +86,32 @@ function DeliveryProgress({ newsletter }: { newsletter: Newsletter }) {
                 {failed > 0 && <span className="text-destructive">{failed.toLocaleString()} failed · </span>}
                 {pending > 0 && <span>{pending.toLocaleString()} {newsletter.status === 'cancelled' ? 'not sent' : 'pending'}</span>}
             </div>
-            {newsletter.status === 'paused' && (
-                <div className="mt-1 max-w-56 truncate text-2xs text-warning" title={newsletter.pausedReason}>
-                    Paused{newsletter.resumeAfter ? `, resumes ${format(new Date(newsletter.resumeAfter), 'MMM d HH:mm')}` : ''}: {newsletter.pausedReason || 'provider refused mail'}
-                </div>
-            )}
+            {newsletter.status === 'paused' && (() => {
+                const resumeAt = newsletter.resumeAfter ? new Date(newsletter.resumeAfter) : null;
+                // Past its resume time it is only waiting for its turn: campaigns share one
+                // sending quota, so the scheduler finishes the older one first.
+                if ((!resumeAt || resumeAt.getTime() <= now) && sendingAhead) {
+                    return (
+                        <div className="mt-1 max-w-56 truncate text-2xs text-muted-foreground" title={`Waiting for “${sendingAhead}” to finish; campaigns share one sending quota.`}>
+                            Queued: continues after “{sendingAhead}” finishes
+                        </div>
+                    );
+                }
+                return (
+                    <div className="mt-1 max-w-56 truncate text-2xs text-warning" title={newsletter.pausedReason}>
+                        Paused{resumeAt && resumeAt.getTime() > now ? `, resumes ${format(resumeAt, 'MMM d HH:mm')}` : ', resumes on the next scheduler run'}: {newsletter.pausedReason || 'provider refused mail'}
+                    </div>
+                );
+            })()}
         </div>
     );
 }
 
 export default function NewsletterList({ newsletters }: { newsletters: Newsletter[] }) {
+    // The campaign currently going out; paused ones past their resume time queue behind it.
+    const sendingSubject = newsletters.find((item) => item.status === 'sending')?.subject;
+    // Read the clock once per mount, not during every render.
+    const [now] = useState(() => Date.now());
     const router = useRouter();
     const [feedback, setFeedback] = useState('');
 
@@ -174,7 +191,7 @@ export default function NewsletterList({ newsletters }: { newsletters: Newslette
                                     </TableCell>
                                     <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                                         {DELIVERED_STATUSES.includes(newsletter.status)
-                                            ? <DeliveryProgress newsletter={newsletter} />
+                                            ? <DeliveryProgress newsletter={newsletter} sendingAhead={sendingSubject} now={now} />
                                             : '-'}
                                     </TableCell>
                                     <TableCell className="whitespace-nowrap text-right text-sm font-medium">
@@ -206,7 +223,9 @@ export default function NewsletterList({ newsletters }: { newsletters: Newslette
                                             )}
                                             {IN_FLIGHT_STATUSES.includes(newsletter.status)
                                                 ? <StopCampaignButton label={newsletter.subject} onConfirm={() => handleStop(newsletter._id)} onError={setFeedback} />
-                                                : <ConfirmDeleteButton compact label={newsletter.subject} onConfirm={() => handleDelete(newsletter._id)} onError={setFeedback} />}
+                                                : newsletter.status === 'sent'
+                                                    ? null
+                                                    : <ConfirmDeleteButton compact label={newsletter.subject} onConfirm={() => handleDelete(newsletter._id)} onError={setFeedback} />}
                                         </div>
                                     </TableCell>
                                 </TableRow>

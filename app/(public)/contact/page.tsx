@@ -8,9 +8,12 @@ import { SocialLink } from '@/components/public/SocialLink';
 import { Glyph } from '@/components/ui/Glyph';
 import { Container, Section } from '@/components/ui/Section';
 import { siteConfig } from '@/lib/config/site.config';
+import { businessConfig } from '@/lib/config/business';
+import { BusinessDetails } from '@/components/public/LegalNav';
 
 export const metadata: Metadata = {
-  title: 'Contact | unicodesnwrites',
+  title: 'Contact',
+  alternates: { canonical: '/contact' },
   description: 'Send feedback, a collaboration idea, or a product support question to unicodesnwrites.',
 };
 
@@ -60,10 +63,18 @@ export default function ContactPage() {
               </div>
 
               <div className="mt-8 border-t border-border pt-6">
+                <p className="text-eyebrow text-muted-foreground">Orders &amp; payments</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  unicodesnwrites is a Lagnever product. Purchases are billed by {businessConfig.legalName}; include your order ID when writing about a payment. See the <Link href="/refund-policy" className="underline underline-offset-2">refund</Link> and <Link href="/shipping-policy" className="underline underline-offset-2">delivery</Link> policies.
+                </p>
+                <BusinessDetails {...businessConfig} website={businessConfig.parentWebsite} />
+              </div>
+
+              <div className="mt-8 border-t border-border pt-6">
                 <p className="text-sm leading-6 text-muted-foreground">
                   Looking for biography, résumé, experience, or personal links? Those details now live in the dedicated portfolio.
                 </p>
-                <Link href="/portfolio" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium underline decoration-primary decoration-2 underline-offset-4 hover:text-primary">About me <ArrowUpRight className="h-4 w-4" /></Link>
+                <Link href="/about" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium underline decoration-primary decoration-2 underline-offset-4 hover:text-primary">About me <ArrowUpRight className="h-4 w-4" /></Link>
               </div>
 
               <div className="mt-7 flex items-center gap-4">

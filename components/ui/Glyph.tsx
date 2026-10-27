@@ -52,7 +52,7 @@ export function Glyph({ kind, size = 24, className, strokeWidth, title }: GlyphP
 /** Map the site's categories, post types and product types onto a glyph */
 export function glyphFor(input?: string | null): GlyphKind {
   const v = (input || "").toLowerCase()
-  if (/(paper|research|theory|dissect|math|foundation)/.test(v)) return "papers"
+  if (/(paper|research|theory|dissect|math|foundation|deep learning)/.test(v)) return "papers"
   if (/(agent|mcp|llm|tool[- ]?call|protocol|react)/.test(v)) return "agents"
   if (/(course|lesson|learn)/.test(v)) return "courses"
   if (/(product|template|kit|book|e-?book|code|tool)/.test(v)) return "tools"

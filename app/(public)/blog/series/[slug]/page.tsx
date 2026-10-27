@@ -25,8 +25,9 @@ export async function generateMetadata({
   if (!series) return { title: 'Series Not Found' };
 
   return {
-    title: `${series.title} | Series | unicodesnwrites`,
+    title: `${series.title} · Series`,
     description: series.description ?? `A multi-part series: ${series.title}`,
+    alternates: { canonical: `/blog/series/${series.slug}` },
     openGraph: {
       title: series.title,
       description: series.description,

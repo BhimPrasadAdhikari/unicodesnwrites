@@ -49,6 +49,7 @@ export default function EventsMetricsCard() {
     async function fetchEvents() {
       try {
         const res = await fetch('/api/analytics/events?range=7days&limit=5');
+        if (!res.ok) throw new Error('Events request failed');
         const json = await res.json();
         
         if (json.events) {

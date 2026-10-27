@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { cleanMultiline, cleanSingleLine } from '@/lib/utils/sanitize';
 import { assetUrlSchema, optionalAssetUrlSchema, optionalHttpUrlSchema } from '@/lib/utils/validations/common';
 
-export const projectSchema = z.object({
+// The plain object, for partial updates: zod 4 refuses .partial() on a refined schema.
+export const projectBaseSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(100, 'Title is too long').transform(cleanSingleLine),
   slug: z.string().trim().min(1, 'Slug is required').max(120).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens'),
   shortDescription: z.string().trim().min(10, 'Short description must be at least 10 characters').max(200, 'Short description must be under 200 characters').transform(cleanSingleLine),
@@ -32,7 +33,9 @@ export const projectSchema = z.object({
   
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
-}).refine((data) => !data.startDate || !data.endDate || data.endDate >= data.startDate, {
+});
+
+export const projectSchema = projectBaseSchema.refine((data) => !data.startDate || !data.endDate || data.endDate >= data.startDate, {
   path: ['endDate'],
   message: 'End date must be on or after the start date',
 });

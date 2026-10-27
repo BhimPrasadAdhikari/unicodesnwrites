@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 import { productSchema } from '@/lib/utils/validation';
-import { createStripeProduct, createStripePrice } from '@/lib/services/stripe';
 import { AdminAccessError, getOptionalAdminSession, requireAdminSession } from '@/lib/auth/admin';
 
 const publicProductFields = [
@@ -54,39 +53,10 @@ export async function POST(req: NextRequest) {
 
     const data = validationResult.data;
 
-    // Create Stripe Product
-    let stripeProduct;
-    let stripePrice;
-
-    try {
-      stripeProduct = await createStripeProduct({
-        title: data.title,
-        description: data.shortDescription,
-        images: data.thumbnailImage ? [data.thumbnailImage] : [],
-        metadata: {
-          category: data.category,
-        },
-      });
-
-      stripePrice = await createStripePrice(
-        Math.round(Number(data.price)),
-        data.currency.toLowerCase(),
-        stripeProduct.id
-      );
-    } catch (stripeError) {
-      console.error('Stripe error:', stripeError);
-      return NextResponse.json(
-        { error: 'Failed to create product in Stripe: ' + (stripeError instanceof Error ? stripeError.message : 'Unknown error') },
-        { status: 500 }
-      );
-    }
-
     await dbConnect();
 
     const product = await Product.create({
       ...data,
-      stripeProductId: stripeProduct.id,
-      stripePriceId: stripePrice.id,
       author: session.user.id,
     });
 

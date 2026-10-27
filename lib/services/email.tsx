@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer9';
+import { businessConfig } from '@/lib/config/business';
 import { render } from '@react-email/render';
 import { IPurchase } from '@/lib/models/Purchase';
 import { IProduct } from '@/lib/models/Product';
@@ -10,6 +11,7 @@ import WelcomeEmail from '@/lib/email-templates/welcome';
 import NewsletterEmail from '@/lib/email-templates/newsletter';
 import UnsubscribeConfirmationEmail from '@/lib/email-templates/unsubscribe-confirm';
 import { generateUnsubscribeToken } from '@/lib/utils/email-tokens';
+import { addTracking } from '@/lib/services/newsletter-tracking';
 
 const transporter = nodemailer.createTransport({
   pool: true, // reuse SMTP connections across a newsletter batch
@@ -17,6 +19,11 @@ const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
   port: Number(process.env.EMAIL_PORT) || 587,
   secure: false, // true for 465, false for other ports
+  // Fail fast instead of hanging a serverless request on a slow SMTP server
+  // (nodemailer's defaults are 2 minutes to connect and 10 minutes idle).
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 15_000,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
@@ -155,22 +162,25 @@ export const sendWelcomeEmail = async (subscriber: ISubscriber) => {
 
 export const sendNewsletterToSubscriber = async (
   newsletter: INewsletter,
-  subscriber: ISubscriber
+  subscriber: ISubscriber,
+  /** The NewsletterSend id; when given, links and an open pixel are tracked per recipient */
+  sendId?: string
 ) => {
   const unsubscribeQuery = `email=${encodeURIComponent(subscriber.email)}&token=${generateUnsubscribeToken(subscriber.email)}`;
   const unsubscribeUrl = `${APP_URL}/newsletter/unsubscribe?${unsubscribeQuery}`;
   // RFC 8058 one-click unsubscribe: mail clients POST directly to this endpoint.
   const oneClickUnsubscribeUrl = `${APP_URL}/api/newsletter/unsubscribe?${unsubscribeQuery}`;
   
-  const html = await render(
+  const rendered = await render(
     <NewsletterEmail 
       subject={newsletter.subject} 
       content={newsletter.content} 
       previewText={newsletter.previewText} 
       unsubscribeUrl={unsubscribeUrl} 
-      postalAddress={process.env.NEWSLETTER_POSTAL_ADDRESS}
+      postalAddress={businessConfig.mailingAddress}
     />
   );
+  const html = sendId ? addTracking(rendered, sendId) : rendered;
   
   const headers = {
     'List-Unsubscribe': `<${oneClickUnsubscribeUrl}>`,
@@ -218,7 +228,7 @@ export const sendTestNewsletter = async (
             content={newsletter.content}
             previewText={newsletter.previewText}
             unsubscribeUrl={`${APP_URL}/newsletter`} // Real subscribers get a signed per-address link
-            postalAddress={process.env.NEWSLETTER_POSTAL_ADDRESS}
+            postalAddress={businessConfig.mailingAddress}
         />
     );
 

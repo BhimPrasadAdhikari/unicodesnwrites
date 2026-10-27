@@ -1,7 +1,7 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowUpRight, CircleDollarSign, ReceiptText } from 'lucide-react';
+import { ArrowUpRight, IndianRupee, ReceiptText } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/currency';
 
 interface MonthlyRevenue {
@@ -30,7 +30,7 @@ export default function SalesAnalytics({ metrics }: SalesAnalyticsProps) {
       label: 'Completed revenue',
       value: formatCurrency(metrics.totalRevenue),
       detail: 'Across all completed orders',
-      icon: CircleDollarSign,
+      icon: IndianRupee,
     },
     {
       label: 'Completed sales',
@@ -93,7 +93,7 @@ export default function SalesAnalytics({ metrics }: SalesAnalyticsProps) {
           </div>
         ) : (
           <div className="flex min-h-72 flex-col items-center justify-center px-6 text-center">
-            <CircleDollarSign className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
+            <IndianRupee className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
             <h3 className="mt-4 font-semibold">No completed revenue yet</h3>
             <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">Completed purchases will appear here automatically. The latest reporting month is {latestMonth?.name || 'not available'}.</p>
           </div>

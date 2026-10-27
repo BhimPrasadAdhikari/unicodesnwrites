@@ -17,6 +17,7 @@ type ContactFormData = z.output<typeof contactSchema>;
 
 export default function ContactForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorText, setErrorText] = useState('');
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ContactFormInput, unknown, ContactFormData>({
     resolver: zodResolver(contactSchema),
   });
@@ -54,7 +55,8 @@ export default function ContactForm() {
       });
       trackProductEvent('contact_submit_success');
       reset();
-    } catch {
+    } catch (error) {
+      setErrorText(error instanceof Error && error.message !== 'Failed to send' ? error.message : '');
       setStatus('error');
       trackEvent('contact_form_submit', {
         location: 'contact-page',
@@ -168,7 +170,7 @@ export default function ContactForm() {
       </Button>
       
       {status === 'error' && (
-        <p role="alert" className="text-center text-sm text-destructive">Something went wrong. Please check your details and try again.</p>
+        <p role="alert" className="text-center text-sm text-destructive">{errorText || 'Your message could not be sent. Check your connection and try again.'}</p>
       )}
     </form>
   );

@@ -10,7 +10,8 @@ import crypto from 'crypto';
 const DEFAULT_BATCH_SIZE = 100;
 const MAX_NEWSLETTERS_PER_RUN = 25;
 // Keep working through batches until this much of the function's time is used.
-const RUN_TIME_BUDGET_MS = 45_000;
+// Worst case: budget + one in-flight send (socketTimeout 15s) + the summary write stays under maxDuration.
+const RUN_TIME_BUDGET_MS = 35_000;
 
 export const maxDuration = 60;
 
@@ -112,6 +113,7 @@ async function runScheduler(request: NextRequest) {
           batchSize,
           allowScheduledStart: true,
           now,
+          deadline: startedAt + RUN_TIME_BUDGET_MS,
         });
         processedCount += result.processedCount;
       } while (

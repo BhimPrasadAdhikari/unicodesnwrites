@@ -11,6 +11,8 @@ export default async function BlogPostsPage() {
 
   const posts = await Post.find()
     .sort({ createdAt: -1 })
+    // The table never shows bodies; they made this page slow as posts grew.
+    .select('-content')
     .populate('author', 'name email')
     .lean();
     

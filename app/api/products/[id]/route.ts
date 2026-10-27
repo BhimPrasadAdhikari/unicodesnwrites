@@ -3,7 +3,7 @@ import dbConnect from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 import Purchase from '@/lib/models/Purchase';
 import { productSchema } from '@/lib/utils/validation';
-import { archiveStripeProduct, archiveStripePrice, createStripePrice } from '@/lib/services/stripe';
+import { onlySentFields } from '@/lib/utils/validations/patch';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 
 interface RouteProps {
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: RouteProps) {
     await dbConnect();
     const { id } = await params;
     if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).select('+fileUrl');
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -58,39 +58,8 @@ export async function PATCH(req: NextRequest, { params }: RouteProps) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // zod 4 still fills defaults (currency 'USD') inside .partial(), so keep only the fields the request sent.
-    const sentKeys = new Set(Object.keys(body ?? {}));
-    const updateData: Record<string, unknown> = Object.fromEntries(
-      Object.entries(validationResult.data).filter(([key]) => sentKeys.has(key))
-    );
-
-    const hasPriceUpdate = typeof updateData.price === 'number';
-    const hasCurrencyUpdate = typeof updateData.currency === 'string';
-
-    if ((hasPriceUpdate || hasCurrencyUpdate) && existingProduct.stripeProductId) {
-      const nextPrice = hasPriceUpdate ? updateData.price : existingProduct.price;
-      const nextCurrency = hasCurrencyUpdate ? updateData.currency : existingProduct.currency;
-
-      const stripePrice = await createStripePrice(
-        Math.round(Number(nextPrice)),
-        String(nextCurrency).toLowerCase(),
-        existingProduct.stripeProductId
-      );
-
-      updateData.stripePriceId = stripePrice.id;
-
-      if (existingProduct.stripePriceId) {
-        try {
-          await archiveStripePrice(existingProduct.stripePriceId);
-        } catch (stripeError) {
-          console.error('Stripe price archive error:', stripeError);
-          return NextResponse.json(
-            { error: 'Failed to archive previous Stripe price' },
-            { status: 500 }
-          );
-        }
-      }
-    }
+    const sent = onlySentFields(validationResult.data, body);
+    const updateData: Record<string, unknown> = { ...sent };
 
     const product = await Product.findByIdAndUpdate(
       id,
@@ -131,18 +100,6 @@ export async function DELETE(req: NextRequest, { params }: RouteProps) {
         { error: 'Products with completed purchases cannot be deleted. Unpublish the product instead.' },
         { status: 409 }
       );
-    }
-
-    if (product.stripeProductId) {
-      try {
-        await archiveStripeProduct(product.stripeProductId);
-      } catch (stripeError) {
-        console.error('Stripe archive error:', stripeError);
-        return NextResponse.json(
-          { error: 'Failed to archive product in Stripe' },
-          { status: 500 }
-        );
-      }
     }
 
     await product.deleteOne();

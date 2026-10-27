@@ -1,3 +1,4 @@
+import { isObjectId } from '@/lib/utils/object-id';
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/connection';
 import Newsletter from '@/lib/models/Newsletter';
@@ -6,6 +7,11 @@ import {
     startOrContinueNewsletterDelivery,
 } from '@/lib/services/newsletter-delivery';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+
+// Same headroom as the scheduler: budget + one in-flight send stays under maxDuration.
+const SEND_TIME_BUDGET_MS = 35_000;
+
+export const maxDuration = 60;
 
 export async function POST(
     req: NextRequest,
@@ -16,6 +22,7 @@ export async function POST(
         await requireAdminSession();
         await dbConnect();
 
+        if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid newsletter ID' }, { status: 400 });
         const newsletter = await Newsletter.findById(params.id);
         if (!newsletter) {
             return NextResponse.json({ error: 'Newsletter not found' }, { status: 404 });
@@ -52,6 +59,8 @@ export async function POST(
             retryFailed,
             // An admin clicking send is an explicit request to try again now.
             resumePaused: true,
+            // Leave headroom under the function limit; the rest stays queued for the next click or cron run.
+            deadline: Date.now() + SEND_TIME_BUDGET_MS,
         });
 
         const responseStatus = result.pendingCount > 0 ? 202 : 200;

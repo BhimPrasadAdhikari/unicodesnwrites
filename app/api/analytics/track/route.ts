@@ -79,7 +79,10 @@ export async function POST(request: NextRequest) {
         if (value.resetAt < now) rateLimitMap.delete(key);
       }
     }
-    const limitData = rateLimitMap.get(sessionId) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
+    // Keyed on the IP as well: the session id comes from the client and can be rotated freely.
+    const forwarded = request.headers.get('x-vercel-forwarded-for') || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const rateKey = `${forwarded.split(',')[0].trim()}`;
+    const limitData = rateLimitMap.get(rateKey) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
     
     if (now > limitData.resetAt) {
       limitData.count = 0;
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
     
     limitData.count++;
-    rateLimitMap.set(sessionId, limitData);
+    rateLimitMap.set(rateKey, limitData);
     
     // Get IP address and hash it for privacy
     const headersList = await headers();

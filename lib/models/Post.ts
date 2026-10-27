@@ -22,6 +22,8 @@ export interface IPost {
   /** Series linkage — optional, backward-compatible */
   seriesId?: mongoose.Types.ObjectId;
   seriesPart?: number;
+  aiSummary?: { tldr: string; keyTakeaways: string[]; targetAudience: string };
+  aiSummaryAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +47,9 @@ const PostSchema = new Schema<IPost>({
   /** Optional series linkage */
   seriesId: { type: Schema.Types.ObjectId, ref: 'Series' },
   seriesPart: { type: Number },
+  // Cached AI summary; `aiSummaryAt` is the post's updatedAt it was made from.
+  aiSummary: { type: Schema.Types.Mixed, select: false },
+  aiSummaryAt: { type: Date, select: false },
 }, {
   timestamps: true
 });

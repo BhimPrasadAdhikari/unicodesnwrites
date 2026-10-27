@@ -1,3 +1,4 @@
+import { isObjectId } from '@/lib/utils/object-id';
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db/connection';
 import { Project } from '@/lib/models/Project';
@@ -10,6 +11,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     await connectDB();
     const { id } = await params;
+    if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
 
     const project = await Project.findById(id);
 

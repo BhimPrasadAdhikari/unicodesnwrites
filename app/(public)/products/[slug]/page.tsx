@@ -1,4 +1,12 @@
 import Link from 'next/link';
+import { cache } from 'react';
+import type { Metadata } from 'next';
+import { Types } from 'mongoose';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/config/auth';
+import Review from '@/lib/models/Review';
+import { siteConfig } from '@/lib/config/site.config';
+import { businessConfig } from '@/lib/config/business';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { notFound } from 'next/navigation';
 import {connectDB} from '@/lib/db/connection';
@@ -15,24 +23,79 @@ import { Section, Container } from '@/components/ui/Section';
 
 export const dynamic = 'force-dynamic';
 
-async function getProduct(slug: string) {
+// Shared by generateMetadata and the page within one request.
+const getProduct = cache(async (slug: string) => {
   if (slug.length > 120 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
   await connectDB();
   const product = await Product.findOne({ slug, published: true });
   if (!product) return null;
   return JSON.parse(JSON.stringify(product));
+});
+
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await props.params;
+  const product = await getProduct(slug);
+  if (!product) return { title: 'Product not found', robots: { index: false } };
+  return {
+    title: product.title,
+    description: product.shortDescription,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      title: product.title,
+      description: product.shortDescription,
+      images: product.thumbnailImage ? [product.thumbnailImage] : undefined,
+    },
+  };
 }
 
-export default async function ProductPage(props: { params: Promise<{ slug: string }> }) {
+async function getRatingSummary(productId: string) {
+  const [row] = await Review.aggregate<{ count: number; average: number }>([
+    { $match: { product: new Types.ObjectId(productId), approved: true } },
+    { $group: { _id: null, count: { $sum: 1 }, average: { $avg: '$rating' } } },
+  ]);
+  return row && row.count > 0 ? row : null;
+}
+
+export default async function ProductPage(props: { params: Promise<{ slug: string }>; searchParams: Promise<{ checkout?: string }> }) {
   const params = await props.params;
+  const { checkout } = await props.searchParams;
+  // Prefill Razorpay checkout with the signed-in email so the purchase shows up under /account.
+  const session = await getServerSession(authOptions);
+  const buyerEmail = session?.user?.sessionValid ? session.user.email ?? undefined : undefined;
   const product = await getProduct(params.slug);
 
   if (!product) {
     notFound();
   }
 
+  const rating = await getRatingSummary(String(product._id)).catch(() => null);
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.shortDescription,
+    image: product.thumbnailImage || undefined,
+    sku: String(product._id),
+    category: product.category,
+    brand: { '@type': 'Brand', name: siteConfig.name },
+    offers: {
+      '@type': 'Offer',
+      price: (product.price / 100).toFixed(2),
+      priceCurrency: (product.currency || 'USD').toUpperCase(),
+      availability: 'https://schema.org/InStock',
+      url: `https://${siteConfig.domain}/products/${product.slug}`,
+    },
+    ...(rating
+      ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: rating.average.toFixed(1), reviewCount: rating.count } }
+      : {}),
+  };
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c') }}
+      />
       <AnalyticsTracker 
         event="product_view" 
         metadata={{ 
@@ -82,11 +145,16 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
                 <p className="mb-5 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">SECURE PAYMENT · PROTECTED DOWNLOAD · EMAIL DELIVERY</p>
 
                 <div>
-                  <CheckoutButton productId={product._id} priceId={product.stripePriceId} />
+                  {checkout === 'cancelled' ? (
+                    <p role="status" className="mb-3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
+                      Checkout cancelled. You weren&apos;t charged; pick up again whenever you like.
+                    </p>
+                  ) : null}
+                  <CheckoutButton productId={product._id} available={product.currency === 'INR' && product.price >= 100} email={buyerEmail} />
                 </div>
 
                 <p className="mt-4 text-[13px] text-muted-foreground">
-                  Secure checkout through Stripe. Download access arrives after payment confirmation.
+                  Prices in Indian rupees (₹), inclusive of applicable taxes. Pay securely with UPI, cards, netbanking or wallets through Razorpay; the download link arrives by email once payment is confirmed. All sales are final; see the <Link href="/refund-policy" className="underline underline-offset-2 hover:text-foreground">refund policy</Link>. Sold by {businessConfig.legalName}.
                 </p>
               </div>
 

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatCurrency } from '@/lib/utils/currency';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray, type FieldErrors, type FieldPath } from 'react-hook-form';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema } from '@/lib/utils/validation';
 import { z } from 'zod';
@@ -52,7 +54,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
     setValue,
     watch,
     trigger,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: initialData || {
@@ -61,7 +63,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
       shortDescription: '',
       longDescription: '',
       price: 0,
-      currency: 'USD',
+      currency: 'INR',
       productType: 'E-book',
       category: 'Web Development',
       tags: [],
@@ -80,6 +82,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
       featured: false,
     },
   });
+  useUnsavedChangesWarning(isDirty, loading);
 
   // Create a minimal form object for the hook
   const formMethods = {
@@ -492,7 +495,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
           <div className="space-y-8">
             <div className="grid grid-cols-2 gap-6">
                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Price (Cents)</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Price (paise, ₹1 = 100)</label>
                   <input
                     type="number"
                     {...register('price', { valueAsNumber: true })}
@@ -500,7 +503,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
                     className="w-full bg-transparent border-none focus:ring-0 p-0 text-lg"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Value: ${(watch('price') / 100).toFixed(2)}
+                    Value: {formatCurrency(watch('price') || 0)}{watch('price') === 0 ? ' (free, not sold through checkout)' : ''}
                   </p>
                   {errors.price && <p className="text-destructive text-sm mt-1">{errors.price.message}</p>}
                </div>

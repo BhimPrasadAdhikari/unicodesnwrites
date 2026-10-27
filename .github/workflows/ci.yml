@@ -50,7 +50,3 @@ jobs:
           NEXT_PUBLIC_APP_URL: "http://localhost:3000"
           NEXTAUTH_URL: "http://localhost:3000"
           NEXTAUTH_SECRET: "test_secret_for_ci_build_process_only"
-          # Mock Stripe keys to pass build time checks
-          STRIPE_SECRET_KEY: "sk_test_mock_key_for_build"
-          STRIPE_WEBHOOK_SECRET: "whsec_mock_secret_for_build"
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_mock_key_for_build"

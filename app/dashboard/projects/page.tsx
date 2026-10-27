@@ -15,7 +15,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const query: any = {};
   
   if (q) {
-    query.title = { $regex: q, $options: 'i' };
+    query.title = { $regex: q.slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
   }
 
   const projects = await Project.find(query)

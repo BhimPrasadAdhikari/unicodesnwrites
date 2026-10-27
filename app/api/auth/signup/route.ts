@@ -32,19 +32,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: genericMessage }, { status: 202 });
     }
 
-    const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+    // A pending account keeps its first password: letting a repeat sign-up replace it would let
+    // anyone lock the real owner out of verifying. The owner gets a fresh link instead, and can
+    // set a new password through "Forgot password", which proves they hold the inbox.
     if (!user) {
       user = await User.create({
         name: parsed.data.name,
         email: parsed.data.email,
-        password: passwordHash,
+        password: await bcrypt.hash(parsed.data.password, 12),
         role: 'learner',
       });
-    } else {
-      user.name = parsed.data.name;
-      user.password = passwordHash;
-      user.tokenVersion += 1;
-      await user.save();
     }
 
     const token = await issueEmailVerificationToken(user._id.toString());

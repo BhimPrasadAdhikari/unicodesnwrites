@@ -10,6 +10,7 @@ import EmailVerificationToken from '@/lib/models/EmailVerificationToken';
 import PasswordResetToken from '@/lib/models/PasswordResetToken';
 import Purchase from '@/lib/models/Purchase';
 import Review from '@/lib/models/Review';
+import Comment from '@/lib/models/Comment';
 import Subscriber from '@/lib/models/Subscriber';
 import { User } from '@/lib/models/User';
 import { accountDeleteSchema, accountProfileSchema } from '@/lib/utils/validations/auth';
@@ -57,11 +58,12 @@ export async function DELETE(request: NextRequest) {
     const redactedEmail = `deleted-${crypto.createHash('sha256').update(user._id.toString()).digest('hex').slice(0, 20)}@redacted.invalid`;
     await Promise.all([
       Purchase.updateMany({ customerEmail: user.email }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted customer' } }),
-      Review.updateMany({ customerEmail: user.email }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted learner' } }),
+      Review.updateMany({ customerEmail: user.email, emailConfirmed: { $ne: false } }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted learner' } }),
       CourseEnrollment.deleteMany({ user: user._id }),
       LearnerLessonState.deleteMany({ user: user._id }),
       CourseQuizAttempt.deleteMany({ user: user._id }),
       LearnerNotebookEntry.deleteMany({ user: user._id }),
+      Comment.deleteMany({ user: user._id }),
       EmailVerificationToken.deleteMany({ userId: user._id }),
       PasswordResetToken.deleteMany({ userId: user._id }),
       Subscriber.deleteMany({ email: user.email }),

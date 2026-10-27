@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
+import { safeInternalPath } from '@/lib/utils/safe-path';
 
 function LoginForm() {
   const router = useRouter();
@@ -20,7 +21,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
   const requested = searchParams.get('from');
-  const returnTo = requested?.startsWith('/') && !requested.startsWith('//') && !requested.includes('\\') ? requested : null;
+  const returnTo = safeInternalPath(requested, null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); setLoading(true); setError('');

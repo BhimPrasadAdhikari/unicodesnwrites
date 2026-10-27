@@ -1,11 +1,18 @@
-import Stripe from 'stripe';
 import dbConnect from '@/lib/db/connection';
 import Purchase, { IPurchase } from '@/lib/models/Purchase';
 import Product, { IProduct } from '@/lib/models/Product';
 import { Analytics } from '@/lib/models/Analytics';
 import { generateDownloadToken, getExpiryDate } from '@/lib/utils/download-token';
 import { sendPurchaseConfirmation } from '@/lib/services/email';
-import { createCheckoutSession } from '@/lib/services/stripe';
+import {
+  captureRazorpayPayment,
+  createRazorpayOrder,
+  fetchRazorpayOrderPayments,
+  fetchRazorpayPayment,
+  getRazorpayKeyId,
+  RazorpayPayment,
+  verifyPaymentSignature,
+} from '@/lib/services/razorpay';
 import { v4 as uuidv4 } from 'uuid';
 import { hashPrivateIdentifier } from '@/lib/auth/security';
 
@@ -22,12 +29,21 @@ export class ProductPurchaseError extends Error {
 export interface CheckoutForProductInput {
   productId: string;
   customerEmail?: string;
-  appUrl?: string;
 }
 
 export interface CheckoutForProductResult {
-  sessionId: string;
-  url: string | null;
+  keyId: string;
+  orderId: string;
+  amount: number;
+  currency: string;
+  productTitle: string;
+  prefillEmail?: string;
+}
+
+export interface VerifyCheckoutInput {
+  orderId: string;
+  paymentId: string;
+  signature: string;
 }
 
 export interface DownloadRequestContext {
@@ -40,10 +56,12 @@ export interface AuthorizedProductDownload {
   product: IProduct;
 }
 
+// Razorpay rejects orders below ₹1.
+const MIN_ORDER_PAISE = 100;
+
 export async function createCheckoutForProduct({
   productId,
   customerEmail,
-  appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
 }: CheckoutForProductInput): Promise<CheckoutForProductResult> {
   await dbConnect();
 
@@ -52,83 +70,122 @@ export async function createCheckoutForProduct({
     throw new ProductPurchaseError('Product not found', 404);
   }
 
-  if (!product.stripePriceId) {
+  if (product.currency !== 'INR' || product.price < MIN_ORDER_PAISE) {
     throw new ProductPurchaseError('Product not configured for payments', 400);
   }
 
   const purchaseId = uuidv4();
-  const session = await createCheckoutSession({
-    priceId: product.stripePriceId,
-    successUrl: `${appUrl}/products/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${appUrl}/products/${product.slug}`,
-    customerEmail,
-    metadata: {
+  const order = await createRazorpayOrder({
+    amount: product.price,
+    currency: 'INR',
+    receipt: purchaseId,
+    notes: {
       productId: product._id.toString(),
       purchaseId,
     },
   });
 
+  await Purchase.create({
+    purchaseId,
+    product: product._id,
+    customerEmail: customerEmail || '',
+    amount: order.amount,
+    currency: order.currency,
+    razorpayOrderId: order.id,
+    status: 'pending',
+  });
+
   return {
-    sessionId: session.id,
-    url: session.url,
+    keyId: getRazorpayKeyId(),
+    orderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    productTitle: product.title,
+    prefillEmail: customerEmail,
   };
 }
 
-export async function createPurchaseFromSession(session: Stripe.Checkout.Session) {
-  return completeCheckoutSession(session);
+/** Called by the checkout handler: trust the payment only after the signature and API agree. */
+export async function verifyCheckoutPayment({ orderId, paymentId, signature }: VerifyCheckoutInput) {
+  if (!verifyPaymentSignature(orderId, paymentId, signature)) {
+    throw new ProductPurchaseError('Payment signature mismatch', 400);
+  }
+
+  const payment = await fetchRazorpayPayment(paymentId);
+  if (payment.order_id !== orderId) {
+    throw new ProductPurchaseError('Payment does not belong to this order', 400);
+  }
+
+  return completeRazorpayPayment(payment);
 }
 
-export async function completeCheckoutSession(session: Stripe.Checkout.Session) {
-  const productId = session.metadata?.productId;
-  const purchaseId = session.metadata?.purchaseId;
+/**
+ * Marks the order's purchase paid and delivers the download. Safe to call from
+ * the checkout handler, the webhook and the success-page fallback at once.
+ */
+export async function completeRazorpayPayment(payment: RazorpayPayment) {
+  await dbConnect();
 
-  if (!productId || !purchaseId) {
-    throw new ProductPurchaseError('Missing metadata in Stripe session', 400);
+  if (!payment.order_id) {
+    throw new ProductPurchaseError('Payment has no order', 400);
   }
 
-  // Check if purchase already exists (Idempotency)
-  const existingPurchase = await Purchase.findOne({ stripeSessionId: session.id });
-  if (existingPurchase) {
-    return existingPurchase;
+  const purchase = await Purchase.findOne({ razorpayOrderId: payment.order_id });
+  if (!purchase) {
+    throw new ProductPurchaseError('Purchase not found for order', 404);
   }
 
-  // Create Purchase Record
-  const downloadToken = generateDownloadToken();
+  if (purchase.status === 'completed' || purchase.status === 'refunded') {
+    return purchase;
+  }
+
+  if (payment.amount !== purchase.amount || payment.currency !== purchase.currency) {
+    throw new ProductPurchaseError('Payment amount does not match the order', 400);
+  }
+
+  let settled = payment;
+  if (settled.status === 'authorized') {
+    settled = await captureRazorpayPayment(payment.id, payment.amount, payment.currency);
+  }
+  if (settled.status !== 'captured') {
+    throw new ProductPurchaseError(`Payment is ${settled.status}, not captured`, 409);
+  }
+
   const expiryDate = getExpiryDate(Number(process.env.DOWNLOAD_TOKEN_EXPIRY_HOURS) || 24);
-
-  const purchase = await Purchase.create({
-    purchaseId: purchaseId,
-    product: productId,
-    customerEmail: session.customer_details?.email || '',
-    customerName: session.customer_details?.name || '',
-    amount: session.amount_total || 0,
-    currency: session.currency || 'usd',
-    stripeSessionId: session.id,
-    stripePaymentIntentId: (session.payment_intent as string) || '',
-    status: 'completed',
-    downloadToken: downloadToken,
-    downloadTokenExpiry: expiryDate,
-    downloadCount: 0,
-    metadata: (session.metadata || {}) as any,
-  } as any);
-
-  // Update Product Stats
-  const product = await Product.findByIdAndUpdate(
-    productId,
+  const completed = await Purchase.findOneAndUpdate(
+    { _id: purchase._id, status: { $in: ['pending', 'failed'] } },
     {
-      $inc: {
-        totalSales: 1,
-        totalRevenue: session.amount_total || 0,
+      $set: {
+        status: 'completed',
+        razorpayPaymentId: settled.id,
+        // Stored lowercased so /account (which matches on the signed-in email) finds it.
+        customerEmail: (settled.email || purchase.customerEmail || '').trim().toLowerCase(),
+        paymentMethod: settled.method,
+        downloadToken: generateDownloadToken(),
+        downloadTokenExpiry: expiryDate,
+        downloadCount: 0,
+        purchasedAt: new Date(),
       },
+      $unset: { failureReason: '' },
     },
     { new: true }
   );
 
-  // Send Email (Async)
-  if (product && purchase) {
+  // Another caller completed it first.
+  if (!completed) {
+    return (await Purchase.findById(purchase._id)) ?? purchase;
+  }
+
+  const product = await Product.findByIdAndUpdate(
+    completed.product,
+    { $inc: { totalSales: 1, totalRevenue: completed.amount } },
+    { new: true }
+  );
+
+  if (product && completed.customerEmail) {
     try {
-      await sendPurchaseConfirmation(purchase, product);
-      await Purchase.findByIdAndUpdate(purchase._id, {
+      await sendPurchaseConfirmation(completed, product);
+      await Purchase.findByIdAndUpdate(completed._id, {
         emailSent: true,
         emailSentAt: new Date(),
       });
@@ -138,14 +195,34 @@ export async function completeCheckoutSession(session: Stripe.Checkout.Session) 
     }
   }
 
-  return purchase;
+  return completed;
 }
 
-export async function markPurchaseRefundedByPaymentIntent(paymentIntentId: string) {
+/** Success-page fallback when neither the handler nor the webhook has landed yet. */
+export async function reconcileRazorpayOrder(orderId: string) {
+  const { items } = await fetchRazorpayOrderPayments(orderId);
+  const paid = items.find((payment) => payment.status === 'captured' || payment.status === 'authorized');
+  return paid ? completeRazorpayPayment(paid) : null;
+}
+
+export async function markRazorpayPaymentFailed(payment: RazorpayPayment) {
+  if (!payment.order_id) return null;
   await dbConnect();
 
+  return Purchase.findOneAndUpdate(
+    { razorpayOrderId: payment.order_id, status: 'pending' },
+    { status: 'failed', failureReason: payment.error_description || payment.error_code || 'Payment failed' },
+    { new: true }
+  );
+}
+
+export async function markPurchaseRefundedByPayment(paymentId: string) {
+  await dbConnect();
+
+  // Only a completed purchase moves to refunded, so a replayed webhook can't
+  // subtract from the product totals twice.
   const purchase = await Purchase.findOneAndUpdate(
-    { stripePaymentIntentId: paymentIntentId },
+    { razorpayPaymentId: paymentId, status: 'completed' },
     {
       status: 'refunded',
       refundedAt: new Date(),
@@ -154,8 +231,15 @@ export async function markPurchaseRefundedByPaymentIntent(paymentIntentId: strin
   );
 
   if (!purchase) {
+    const existing = await Purchase.findOne({ razorpayPaymentId: paymentId });
+    if (existing) return existing;
     throw new ProductPurchaseError('Purchase not found for refund', 404);
   }
+
+  await Product.updateOne(
+    { _id: purchase.product },
+    { $inc: { totalSales: -1, totalRevenue: -(purchase.amount || 0) } }
+  );
 
   return purchase;
 }
@@ -172,6 +256,7 @@ export async function authorizeProductDownload(
   const purchase = await Purchase.findOne({ downloadToken: token }).populate({
     path: 'product',
     model: Product,
+    select: '+fileUrl',
   });
 
   if (!purchase) {
@@ -223,6 +308,52 @@ export async function consumeAuthorizedProductDownload(
 
   await recordProductDownload(claimedPurchase, product, context);
   return claimedPurchase;
+}
+
+/**
+ * A fresh download link for a completed purchase: new token, new expiry and the
+ * download allowance restored. Callers must already have proved ownership.
+ */
+export async function reissueDownloadToken(purchaseId: string) {
+  await dbConnect();
+  const purchase = await Purchase.findOneAndUpdate(
+    { _id: purchaseId, status: 'completed' },
+    {
+      downloadToken: generateDownloadToken(),
+      downloadTokenExpiry: getExpiryDate(Number(process.env.DOWNLOAD_TOKEN_EXPIRY_HOURS) || 24),
+      downloadCount: 0,
+    },
+    { new: true }
+  );
+  if (!purchase) {
+    throw new ProductPurchaseError('Purchase not found', 404);
+  }
+  return purchase;
+}
+
+/** Emails a fresh link for every completed purchase made with this address. Returns how many were sent. */
+export async function emailFreshDownloadLinks(email: string) {
+  await dbConnect();
+  const purchases = await Purchase.find({ customerEmail: email, status: 'completed' })
+    .collation({ locale: 'en', strength: 2 })
+    .sort({ purchasedAt: -1 })
+    .limit(20)
+    .select('_id product')
+    .lean();
+
+  let sent = 0;
+  for (const item of purchases) {
+    const product = await Product.findById(item.product);
+    if (!product) continue;
+    const purchase = await reissueDownloadToken(String(item._id));
+    try {
+      await sendPurchaseConfirmation(purchase, product);
+      sent += 1;
+    } catch (error) {
+      console.error('Failed to email a fresh download link', error);
+    }
+  }
+  return sent;
 }
 
 export async function resendPurchaseConfirmationEmail(purchaseId: string) {

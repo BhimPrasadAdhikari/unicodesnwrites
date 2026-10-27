@@ -18,25 +18,10 @@ export async function GET(req: NextRequest) {
   try {
     await dbConnect();
 
-    // Note: We need to hash the token to find it because we store the hash
-    // BUT our model method isTokenValid takes the raw token and hashes it for comparison.
-    // However, to FIND the user, we can't use the raw token if we only stored the hash.
-    // Wait, the model schema says: confirmationToken: string. 
-    // And generateConfirmationToken stores the HASH. 
-    // So we need to query by... waiting.
-    
-    // Efficient way: We don't query by token because multiple users could theoretically have same hash collision (unlikely) 
-    // or we just query by the hashed token.
-    // Let's check the model:
-    /*
-    this.confirmationToken = crypto.createHash('sha256').update(token).digest('hex');
-    */
-    // So distinct subscribers will have distinct tokens.
-    // We should hash the incoming token and search for that.
-    
+    // Only the token's hash is stored, so look the subscriber up by hashing the link's token.
     const crypto = await import('crypto');
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-    
+
     const subscriber = await Subscriber.findOne({ confirmationToken: hashedToken });
 
     if (!subscriber) {
@@ -46,9 +31,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // The used token is kept (its expiry is cleared), so a second click on the same link lands
+    // here instead of failing.
     if (subscriber.status === 'confirmed') {
        return NextResponse.json(
-        { message: 'Already confirmed' },
+        { message: 'You are already subscribed. New issues will arrive in your inbox.', source: subscriber.source },
         { status: 200 }
       );
     }
@@ -60,11 +47,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    subscriber.status = 'confirmed';
-    subscriber.confirmedAt = new Date();
-    subscriber.confirmationToken = undefined; // Clear token after use
-    subscriber.confirmationTokenExpiry = undefined;
-    await subscriber.save();
+    // Conditional update: two clicks at once confirm (and send the welcome email) only once.
+    const confirmed = await Subscriber.findOneAndUpdate(
+      { _id: subscriber._id, status: 'pending', confirmationToken: hashedToken },
+      { $set: { status: 'confirmed', confirmedAt: new Date() }, $unset: { confirmationTokenExpiry: 1 } },
+      { new: true },
+    );
+    if (!confirmed) {
+      return NextResponse.json({ message: 'You are already subscribed. New issues will arrive in your inbox.', source: subscriber.source }, { status: 200 });
+    }
 
     try {
       await Analytics.create({

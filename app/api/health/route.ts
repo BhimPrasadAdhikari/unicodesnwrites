@@ -10,10 +10,10 @@ export async function GET() {
       timestamp: new Date().toISOString() 
     });
   } catch (error) {
+    console.error('Health check failed:', error);
     return NextResponse.json({ 
       status: 'error', 
       database: 'disconnected',
-      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }

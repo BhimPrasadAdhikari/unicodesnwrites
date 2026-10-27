@@ -30,8 +30,9 @@ export function CopyCodeButton({ code }: { code: string }) {
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
-      className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-md bg-foreground/10 text-muted-foreground backdrop-blur-sm transition-all hover:bg-foreground/20 hover:text-foreground"
+      className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-md bg-foreground/10 text-muted-foreground backdrop-blur-sm transition-all hover:bg-foreground/20 hover:text-foreground"
       aria-label={copied ? "Copied" : "Copy code"}
       title={copied ? "Copied!" : "Copy to clipboard"}
     >

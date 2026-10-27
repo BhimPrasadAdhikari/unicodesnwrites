@@ -55,6 +55,11 @@ export function classifySendError(error: unknown): SendFailureKind {
   if (err.message === 'EMAIL_NOT_CONFIGURED' || err.message === 'EMAIL_SKIPPED' || err.code === 'EAUTH' || err.code === 'ENOAUTH' || err.responseCode === 535) {
     return 'provider';
   }
+  // Amazon SES refuses everything while the sender's domain is unverified or the account is paused:
+  // the provider's fault, so pause the queue rather than burn every reader's retries.
+  if (/not verified|sending paused|account is (?:paused|suspended)/i.test(text)) {
+    return 'provider';
+  }
   if (err.responseCode === 421 || err.responseCode === 454 || /5\.4\.5|quota|rate limit|too many/i.test(text)) {
     return 'rate-limit';
   }
@@ -65,6 +70,26 @@ export function classifySendError(error: unknown): SendFailureKind {
     return 'recipient';
   }
   return 'transient';
+}
+
+/**
+ * A bounce saying the mailbox does not exist. Other 55x bounces (spam policy,
+ * full mailbox) can clear up, so only these stop future sends.
+ */
+export const MAILBOX_GONE_PATTERN = /5\.1\.1|5\.1\.10|user unknown|unknown user|no such user|does not exist|doesn't exist|address rejected|recipient not found|mailbox not found|mailbox unavailable|invalid recipient|nosuchuser/i;
+
+/** Failed or bounced sends whose reason says the mailbox does not exist. */
+export const mailboxGoneSendFilter = () => ({
+  status: { $in: ['failed', 'bounced'] as Array<'failed' | 'bounced'> },
+  failureReason: { $regex: MAILBOX_GONE_PATTERN.source, $options: 'i' },
+});
+
+/** Unsubscribes the address so later issues don't spend sending quota on it. */
+export async function suppressBouncedSubscriber(subscriberId: mongoose.Types.ObjectId) {
+  await Subscriber.updateOne(
+    { _id: subscriberId, status: 'confirmed' },
+    { $set: { status: 'unsubscribed', unsubscribedAt: new Date() }, $addToSet: { tags: 'bounced' } },
+  );
 }
 
 /**
@@ -231,6 +256,8 @@ export async function startOrContinueNewsletterDelivery(
     /** Resume a paused campaign before its `resumeAfter` (an admin clicked send). */
     resumePaused?: boolean;
     now?: Date;
+    /** Epoch ms: stop claiming new recipients after this, so the request ends before the platform kills it. */
+    deadline?: number;
   },
 ): Promise<NewsletterDeliveryResult> {
   await dbConnect();
@@ -385,6 +412,8 @@ export async function startOrContinueNewsletterDelivery(
   let providerError: string | undefined;
   let resumeAfter: Date | undefined;
   for (let index = 0; index < batchSize; index += 1) {
+    // Unclaimed recipients stay pending for the next run.
+    if (options?.deadline && Date.now() >= options.deadline) break;
     if (index > 0 && index % CANCELLATION_CHECK_INTERVAL === 0) {
       const current = await Newsletter.findById(newsletterObjectId).select('status').lean();
       if (current?.status !== 'sending') break; // stopped by an admin mid-batch
@@ -399,7 +428,7 @@ export async function startOrContinueNewsletterDelivery(
         await markPermanentFailure(send._id, leaseToken, 'Subscriber is no longer confirmed');
         continue;
       }
-      await sendNewsletterToSubscriber(newsletter, subscriber);
+      await sendNewsletterToSubscriber(newsletter, subscriber, String(send._id));
       await NewsletterSend.updateOne(
         { _id: send._id, status: 'processing', leaseToken },
         {
@@ -438,6 +467,7 @@ export async function startOrContinueNewsletterDelivery(
             $unset: { leaseToken: 1, leaseExpiresAt: 1, nextAttemptAt: 1 },
           },
         );
+        if (MAILBOX_GONE_PATTERN.test(reason)) await suppressBouncedSubscriber(send.subscriber);
         continue;
       }
       if (send.attemptCount >= MAX_DELIVERY_ATTEMPTS) {

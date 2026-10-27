@@ -10,7 +10,8 @@ import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
 
 export const metadata: Metadata = {
-    title: 'Newsletter | unicodesnwrites',
+    title: 'Newsletter',
+    alternates: { canonical: '/newsletter' },
     description: 'A thoughtful dispatch about applied AI, machine learning, and building useful products.',
 };
 

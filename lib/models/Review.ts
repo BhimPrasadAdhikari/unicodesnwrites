@@ -7,6 +7,8 @@ export interface IReview extends Document {
   rating: number; // 1-5
   comment: string;
   verified: boolean; // Purchased the product
+  /** false when the email was typed by an anonymous visitor rather than taken from a signed-in account */
+  emailConfirmed?: boolean;
   approved: boolean; // Admin moderation
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +22,7 @@ const ReviewSchema: Schema = new Schema(
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String, required: true, maxlength: 500 },
     verified: { type: Boolean, default: false },
+    emailConfirmed: { type: Boolean },
     approved: { type: Boolean, default: false },
   },
   {

@@ -1,6 +1,14 @@
 import crypto from 'crypto';
 
-const SECRET = process.env.NEWSLETTER_UNSUBSCRIBE_SECRET || 'fallback-secret-for-dev-only-do-not-use-in-prod';
+// The development fallback is public (this repo is), so production never uses it:
+// without a dedicated secret it derives one from NEXTAUTH_SECRET instead.
+const SECRET =
+  process.env.NEWSLETTER_UNSUBSCRIBE_SECRET ||
+  (process.env.NEXTAUTH_SECRET
+    ? crypto.createHash('sha256').update(`unsubscribe:${process.env.NEXTAUTH_SECRET}`).digest('hex')
+    : process.env.NODE_ENV === 'production'
+      ? crypto.randomBytes(32).toString('hex')
+      : 'fallback-secret-for-dev-only-do-not-use-in-prod');
 
 /**
  * Generates a secure token for one-click unsubscribe links

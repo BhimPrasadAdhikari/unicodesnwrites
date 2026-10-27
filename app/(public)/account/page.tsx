@@ -13,6 +13,7 @@ import { User } from '@/lib/models/User';
 
 export const metadata = {
   title: 'Account and Profile settings',
+  robots: { index: false, follow: false },
   description:
     'Manage your learner profile, view your learning statistics, protect your sign-in, retrieve products, and control your personal data.',
 };
@@ -20,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AccountPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || !session.user.sessionValid) redirect('/login?from=%2Faccount');
+  if (!session?.user?.id || !session.user.sessionValid) redirect('/login?reauth=1&from=%2Faccount');
 
   let user = null;
   let purchases: Array<{
@@ -34,6 +35,7 @@ export default async function AccountPage() {
     purchasedAt: string;
     downloadsRemaining: number;
     downloadUrl: string | null;
+    downloadable: boolean;
   }> = [];
   let enrolledCount = 0;
   let notebookCount = 0;
@@ -45,12 +47,13 @@ export default async function AccountPage() {
     console.error('Failed to query user for account page:', error);
   }
 
-  if (!user) redirect('/login?from=%2Faccount');
+  if (!user) redirect('/login?reauth=1&from=%2Faccount');
 
   try {
     const now = new Date();
     const [rawPurchases, downloadablePurchaseIds, eCount, nCount] = await Promise.all([
-      Purchase.find({ customerEmail: user.email })
+      Purchase.find({ customerEmail: user.email, status: { $in: ['completed', 'refunded'] } })
+        .collation({ locale: 'en', strength: 2 })
         .populate({ path: 'product', model: Product, select: 'title slug' })
         .sort({ purchasedAt: -1 })
         .limit(100)
@@ -60,7 +63,7 @@ export default async function AccountPage() {
         status: 'completed',
         downloadToken: { $exists: true, $ne: '' },
         downloadTokenExpiry: { $gt: now },
-      }).distinct('_id'),
+      }).collation({ locale: 'en', strength: 2 }).distinct('_id'),
       CourseEnrollment.countDocuments({ user: user._id }),
       LearnerNotebookEntry.countDocuments({ user: user._id }),
     ]);
@@ -86,11 +89,13 @@ export default async function AccountPage() {
         title: product?.title || 'Unavailable product',
         slug: product?.slug || null,
         amount: typeof purchase.amount === 'number' ? purchase.amount : 0,
-        currency: purchase.currency || 'USD',
+        currency: purchase.currency || 'INR',
         status: purchase.status || 'completed',
         purchasedAt: purchasedAtStr,
         downloadsRemaining,
-        downloadUrl: downloadable ? `/api/download?token=${encodeURIComponent(purchase.downloadToken)}` : null,
+        // The account route reuses a valid token or issues a fresh one, so owners are never locked out.
+        downloadUrl: purchase.status === 'completed' ? `/api/account/purchases/${purchase._id.toString()}/download` : null,
+        downloadable,
       };
     });
   } catch (error) {

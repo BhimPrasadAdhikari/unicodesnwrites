@@ -68,7 +68,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
     console.error('Failed to restore course version:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to restore version' },
+      { error: 'Failed to restore version' },
       { status: 500 },
     );
   }

@@ -12,7 +12,7 @@ export const metadata = {
 export default async function NewSeriesPage() {
   const session = await getServerSession(authOptions);
   if (!session || session.user?.role !== 'admin') {
-    redirect('/login');
+    redirect('/login?reauth=1');
   }
 
   return (

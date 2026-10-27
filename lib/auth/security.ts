@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 import { connectDB } from '@/lib/db/connection';
 import RateLimitBucket from '@/lib/models/RateLimitBucket';
+import { safeInternalPath as safeSamePath } from '@/lib/utils/safe-path';
 
 const privateIdentifierKey = process.env.NEXTAUTH_SECRET || crypto.randomBytes(32).toString('hex');
 
@@ -26,8 +27,7 @@ export function getClientAddress(request: Pick<NextRequest, 'headers'> | { heade
 }
 
 export function safeInternalPath(value: string | null | undefined, fallback = '/learn') {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) return fallback;
-  return value;
+  return safeSamePath(value, fallback);
 }
 
 export async function consumeRateLimit(input: {
@@ -40,7 +40,7 @@ export async function consumeRateLimit(input: {
   const now = new Date();
   const key = `${input.scope}:${hashPrivateIdentifier(input.identifier)}`;
   await RateLimitBucket.deleteOne({ key, expiresAt: { $lte: now } });
-  const bucket = await RateLimitBucket.findOneAndUpdate(
+  const increment = () => RateLimitBucket.findOneAndUpdate(
     { key },
     {
       $inc: { count: 1 },
@@ -48,6 +48,15 @@ export async function consumeRateLimit(input: {
     },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   ).lean();
+  let bucket;
+  try {
+    bucket = await increment();
+  } catch (error) {
+    // Two first requests can both try to insert the bucket; the loser retries as an update.
+    if ((error as { code?: number }).code !== 11000) throw error;
+    bucket = await increment();
+  }
+  if (!bucket) return { allowed: true, remaining: input.limit };
 
   return { allowed: bucket.count <= input.limit, remaining: Math.max(0, input.limit - bucket.count) };
 }

@@ -33,13 +33,13 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: `
       default-src 'self';
-      script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'production' ? '' : "'unsafe-eval'"} https://js.stripe.com https://vercel.live;
+      script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === 'production' ? '' : "'unsafe-eval'"} https://checkout.razorpay.com https://*.razorpay.com https://vercel.live;
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
       font-src 'self' data:;
       media-src 'self' blob: https://*.public.blob.vercel-storage.com;
-      connect-src 'self' https://api.stripe.com https://*.sentry.io https://vitals.vercel-insights.com https://vercel.com/api/blob/;
-      frame-src https://js.stripe.com https://checkout.stripe.com https://www.youtube.com https://www.youtube-nocookie.com;
+      connect-src 'self' https://*.razorpay.com https://*.sentry.io https://vitals.vercel-insights.com https://vercel.com/api/blob/;
+      frame-src https://*.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com;
     `.replace(/\s{2,}/g, ' ').trim()
   }
 ];
@@ -102,6 +102,8 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: true,
       },
+      { source: '/portfolio', destination: '/about', permanent: true },
+      { source: '/portfolio/:slug', destination: '/projects/:slug', permanent: true },
     ];
   },
 };

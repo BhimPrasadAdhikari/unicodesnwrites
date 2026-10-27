@@ -63,7 +63,13 @@ export async function GET(req: NextRequest) {
 
   } catch (error) {
     if (error instanceof ProductPurchaseError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      // People reach this URL from an email or a button, so explain the problem on a page.
+      const reason =
+        error.statusCode === 410 ? 'expired'
+        : error.statusCode === 403 && /limit/i.test(error.message) ? 'limit'
+        : error.statusCode === 403 ? 'unavailable'
+        : 'invalid';
+      return NextResponse.redirect(new URL(`/products/download?status=${reason}`, req.url), 303);
     }
 
     console.error('Download error:', error);

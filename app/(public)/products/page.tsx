@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {connectDB} from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 import { Section, Container } from '@/components/ui/Section';
@@ -5,10 +6,20 @@ import ProductsFilterGrid from '@/components/public/ProductsFilterGrid';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata: Metadata = {
+  title: 'Tools, kits and books',
+  description: 'Starter kits, AI applications, digital books and tools from the notebook, ready to own and run.',
+  alternates: { canonical: '/products' },
+};
+
 async function getProducts() {
   try {
     await connectDB();
-    const products = await Product.find({ published: true }).sort({ featured: -1, createdAt: -1 });
+    // Only what the cards show: full descriptions would ship to the browser for nothing.
+    const products = await Product.find({ published: true })
+      .sort({ featured: -1, createdAt: -1 })
+      .select('title slug shortDescription price currency category tags thumbnailImage productType licenseType featured')
+      .lean();
     return JSON.parse(JSON.stringify(products));
   } catch (error) {
     console.error('Failed to load public products', error);

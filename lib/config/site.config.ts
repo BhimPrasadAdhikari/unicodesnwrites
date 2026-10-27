@@ -1,6 +1,7 @@
 export const siteConfig = {
   name: "unicodesnwrites",
-  domain: "unicodesnwrites.tech",
+  // The host the site is served from (the bare domain redirects here); used for canonical URLs.
+  domain: "www.unicodesnwrites.tech",
   description: "AI paper dissections, autonomous agent workflows, machine learning project blogs, hands-on courses, and purchasable tools.",
   tagline: "AI research, real ML builds, and purchasable tools.",
   author: {

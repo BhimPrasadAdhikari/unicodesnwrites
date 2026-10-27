@@ -5,7 +5,7 @@ export interface IProduct extends Document {
   slug: string;
   shortDescription: string;
   longDescription: string;
-  price: number; // in cents
+  price: number; // in paise
   currency: string;
   productType: 'E-book' | 'Course' | 'Template' | 'Code' | 'Assets';
   category: string;
@@ -25,8 +25,6 @@ export interface IProduct extends Document {
   requirements?: string;
   licenseType: 'Personal' | 'Commercial' | 'Extended';
   version: string;
-  stripeProductId?: string;
-  stripePriceId?: string;
   published: boolean;
   featured: boolean;
   totalSales: number;
@@ -44,7 +42,7 @@ const ProductSchema: Schema = new Schema(
     shortDescription: { type: String, required: true, maxlength: 200 },
     longDescription: { type: String, required: true },
     price: { type: Number, required: true, min: 0 },
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, default: 'INR', enum: ['INR'] },
     productType: {
       type: String,
       enum: ['E-book', 'Course', 'Template', 'Code', 'Assets'],
@@ -54,7 +52,9 @@ const ProductSchema: Schema = new Schema(
     tags: [{ type: String }],
     thumbnailImage: { type: String, required: true },
     galleryImages: [{ type: String }],
-    fileUrl: { type: String, required: true },
+    // The storage URL of the paid file. Never sent to readers: queries that need it
+    // (downloads, the admin editor) ask for it with .select('+fileUrl').
+    fileUrl: { type: String, required: true, select: false },
     fileName: { type: String, required: true },
     fileSize: { type: Number, required: true },
     fileSizeDisplay: { type: String, required: true },
@@ -73,8 +73,6 @@ const ProductSchema: Schema = new Schema(
       default: 'Personal',
     },
     version: { type: String, default: '1.0' },
-    stripeProductId: { type: String, unique: true, sparse: true },
-    stripePriceId: { type: String, unique: true, sparse: true },
     published: { type: Boolean, default: false },
     featured: { type: Boolean, default: false },
     totalSales: { type: Number, default: 0 },

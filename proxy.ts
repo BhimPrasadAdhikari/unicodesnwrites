@@ -1,16 +1,21 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { safeInternalPath } from '@/lib/utils/safe-path';
 
 export default withAuth(
-  function middleware(req) {
+  function proxy(req) {
     const token = req.nextauth.token;
     const isAuth = !!token && token.sessionValid !== false;
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') || req.nextUrl.pathname.startsWith('/signup');
     const isDashboard = req.nextUrl.pathname.startsWith('/dashboard');
 
     if (isAuthPage) {
-      if (isAuth) {
-        return NextResponse.redirect(new URL(token?.role === 'admin' ? '/dashboard' : '/learn', req.url));
+      // reauth=1 comes from a server page that found the session revoked. The cookie can still
+      // claim it is valid, so sending the visitor back would loop; show the sign-in form instead.
+      if (isAuth && req.nextUrl.searchParams.get('reauth') !== '1') {
+        // Already signed in: go where the sign-in link was taking you.
+        const home = token?.role === 'admin' ? '/dashboard' : '/learn';
+        return NextResponse.redirect(new URL(safeInternalPath(req.nextUrl.searchParams.get('from'), home), req.url));
       }
       return null;
     }

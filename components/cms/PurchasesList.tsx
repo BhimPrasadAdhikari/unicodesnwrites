@@ -47,7 +47,7 @@ export default function PurchasesList({ purchases }: PurchasesListProps) {
   const completed = purchases.filter((purchase) => purchase.status === 'completed');
   const refunded = purchases.filter((purchase) => purchase.status === 'refunded').length;
   const revenue = completed.reduce((total, purchase) => total + purchase.amount, 0);
-  const primaryCurrency = completed[0]?.currency || 'USD';
+  const primaryCurrency = completed[0]?.currency || 'INR';
 
   const handleResendEmail = async (id: string) => {
     setResending(id);
