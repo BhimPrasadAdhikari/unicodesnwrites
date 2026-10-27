@@ -109,7 +109,7 @@ export async function DELETE(req: NextRequest, { params }: RouteProps) {
 
     await product.deleteOne();
 
-await recordAdminAction(session, { action: 'delete', targetType: 'products', targetId: id, summary: product.title });
+    await recordAdminAction(session, { action: 'delete', targetType: 'products', targetId: id, summary: product.title });
     return NextResponse.json({ message: 'Product deleted' });
   } catch (error) {
     if (error instanceof AdminAccessError) {

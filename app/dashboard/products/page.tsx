@@ -10,7 +10,10 @@ export const dynamic = 'force-dynamic';
 
 async function getProducts() {
   await dbConnect();
-  const products = await Product.find({}).sort({ createdAt: -1 });
+  const products = await Product.find({})
+    .sort({ createdAt: -1 })
+    .select('title slug price currency productType category thumbnailImage published totalSales totalRevenue')
+    .lean();
   return JSON.parse(JSON.stringify(products));
 }
 

@@ -107,7 +107,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
         CourseRevision.deleteMany({ course: course._id }),
       ]);
     }
-if (course) await recordAdminAction(session, { action: 'delete', targetType: 'courses', targetId: id, summary: course.title });
+    if (course) await recordAdminAction(session, { action: 'delete', targetType: 'courses', targetId: id, summary: course.title });
     return course
       ? NextResponse.json({ message: 'Course deleted' })
       : NextResponse.json({ error: 'Course not found' }, { status: 404 });
