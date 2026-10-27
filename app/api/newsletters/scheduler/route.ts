@@ -7,7 +7,7 @@ import {
 } from '@/lib/services/newsletter-delivery';
 import crypto from 'crypto';
 
-const DEFAULT_BATCH_SIZE = 100;
+const DEFAULT_BATCH_SIZE = 500;
 const MAX_NEWSLETTERS_PER_RUN = 25;
 // Keep working through batches until this much of the function's time is used.
 // Worst case: budget + one in-flight send (socketTimeout 15s) + the summary write stays under maxDuration.

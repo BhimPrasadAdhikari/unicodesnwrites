@@ -5,7 +5,7 @@ import dbConnect from '@/lib/db/connection';
 import Newsletter, { IN_FLIGHT_STATUSES, type NewsletterStatus } from '@/lib/models/Newsletter';
 import NewsletterSend from '@/lib/models/NewsletterSend';
 import Subscriber from '@/lib/models/Subscriber';
-import { sendNewsletterToSubscriber } from '@/lib/services/email';
+import { EMAIL_MAX_CONNECTIONS, sendNewsletterToSubscriber } from '@/lib/services/email';
 import { findCommittedCampaignsForPosts, loadPostsForNewsletter } from '@/lib/services/newsletter-content';
 import { isPostLive } from '@/lib/utils/post-visibility';
 
@@ -16,6 +16,8 @@ const PROVIDER_BACKOFF_MS = 60 * 60 * 1000;
 const PROVIDER_ERROR_BACKOFF_MS = 5 * 60 * 1000;
 const CANCELLATION_CHECK_INTERVAL = 20;
 const INITIALIZATION_WAIT_MS = 10_000;
+// Sends in flight at once. The transport's rate limit, not this, caps messages per second.
+const SEND_CONCURRENCY = Math.min(Math.max(EMAIL_MAX_CONNECTIONS, 1), 20);
 
 export interface NewsletterDeliveryResult {
   newsletterId: string;
@@ -411,22 +413,16 @@ export async function startOrContinueNewsletterDelivery(
   let processedCount = 0;
   let providerError: string | undefined;
   let resumeAfter: Date | undefined;
-  for (let index = 0; index < batchSize; index += 1) {
-    // Unclaimed recipients stay pending for the next run.
-    if (options?.deadline && Date.now() >= options.deadline) break;
-    if (index > 0 && index % CANCELLATION_CHECK_INTERVAL === 0) {
-      const current = await Newsletter.findById(newsletterObjectId).select('status').lean();
-      if (current?.status !== 'sending') break; // stopped by an admin mid-batch
-    }
-    const claimed = await claimNextDelivery(newsletterObjectId, new Date());
-    if (!claimed) break;
-    processedCount += 1;
+  let stopped = false;
+  let claimsSinceStatusCheck = 0;
+
+  const deliverClaimed = async (claimed: NonNullable<Awaited<ReturnType<typeof claimNextDelivery>>>) => {
     const { send, leaseToken } = claimed;
     try {
       const subscriber = await Subscriber.findById(send.subscriber);
       if (!subscriber || subscriber.status !== 'confirmed') {
         await markPermanentFailure(send._id, leaseToken, 'Subscriber is no longer confirmed');
-        continue;
+        return;
       }
       await sendNewsletterToSubscriber(newsletter, subscriber, String(send._id));
       await NewsletterSend.updateOne(
@@ -441,6 +437,7 @@ export async function startOrContinueNewsletterDelivery(
       const kind = classifySendError(error);
       if (kind === 'provider' || kind === 'rate-limit') {
         // Not this recipient's fault: give the attempt back, pause the queue and stop the batch.
+        stopped = true;
         providerError = kind === 'rate-limit'
           ? `Email provider is rate limiting or over quota: ${reason}`
           : `Email provider rejected the send: ${reason}`;
@@ -457,7 +454,7 @@ export async function startOrContinueNewsletterDelivery(
             $unset: { leaseToken: 1, leaseExpiresAt: 1 },
           },
         );
-        break;
+        return;
       }
       if (kind === 'recipient') {
         await NewsletterSend.updateOne(
@@ -468,7 +465,7 @@ export async function startOrContinueNewsletterDelivery(
           },
         );
         if (MAILBOX_GONE_PATTERN.test(reason)) await suppressBouncedSubscriber(send.subscriber);
-        continue;
+        return;
       }
       if (send.attemptCount >= MAX_DELIVERY_ATTEMPTS) {
         await markPermanentFailure(send._id, leaseToken, reason);
@@ -487,7 +484,27 @@ export async function startOrContinueNewsletterDelivery(
         );
       }
     }
-  }
+  };
+
+  // Several workers send at once; the SMTP pool's rate limit keeps the total under
+  // the provider's per-second cap. Each claim is leased, so workers never share a recipient.
+  const worker = async () => {
+    while (!stopped && processedCount < batchSize) {
+      // Unclaimed recipients stay pending for the next run.
+      if (options?.deadline && Date.now() >= options.deadline) break;
+      claimsSinceStatusCheck += 1;
+      if (claimsSinceStatusCheck >= CANCELLATION_CHECK_INTERVAL) {
+        claimsSinceStatusCheck = 0;
+        const current = await Newsletter.findById(newsletterObjectId).select('status').lean();
+        if (current?.status !== 'sending') { stopped = true; break; } // stopped by an admin mid-batch
+      }
+      processedCount += 1; // reserve the slot before awaiting, so workers can't overshoot batchSize
+      const claimed = await claimNextDelivery(newsletterObjectId, new Date());
+      if (!claimed) { processedCount -= 1; break; }
+      await deliverClaimed(claimed);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(SEND_CONCURRENCY, batchSize) }, worker));
 
   const summary = await summarizeDelivery(newsletterObjectId);
   const computedStatus: NewsletterStatus = summary.pendingCount > 0
