@@ -7,6 +7,7 @@ import NewsletterSend from '@/lib/models/NewsletterSend';
 import Subscriber from '@/lib/models/Subscriber';
 import { EMAIL_MAX_CONNECTIONS, EMAIL_SEND_RATE, sendNewsletterToSubscriber } from '@/lib/services/email';
 import { findCommittedCampaignsForPosts, loadPostsForNewsletter } from '@/lib/services/newsletter-content';
+import { campaignAudienceFilter, countCampaignAudience } from '@/lib/services/subscriber-tags';
 import { isPostLive } from '@/lib/utils/post-visibility';
 
 const UPSERT_CHUNK_SIZE = 500;
@@ -134,8 +135,11 @@ export async function assertCampaignPostsSendable(
 const countByStatus = (rows: Array<{ _id: string; count: number }>, status: string) =>
   rows.find((row) => row._id === status)?.count || 0;
 
-const initializeDeliveryQueue = async (newsletterId: mongoose.Types.ObjectId) => {
-  const subscribers = await Subscriber.find({ status: 'confirmed' }).select('_id email').lean();
+// Confirmed subscribers, narrowed to the campaign's audience tags when it has any. Bounce
+// clean-up already unsubscribes a dead address; the filter also skips a "bounced" tag an
+// admin set by hand.
+const initializeDeliveryQueue = async (newsletterId: mongoose.Types.ObjectId, audienceTags?: string[]) => {
+  const subscribers = await Subscriber.find(campaignAudienceFilter(audienceTags)).select('_id email').lean();
   for (let index = 0; index < subscribers.length; index += UPSERT_CHUNK_SIZE) {
     const chunk = subscribers.slice(index, index + UPSERT_CHUNK_SIZE);
     if (!chunk.length) continue;
@@ -331,6 +335,10 @@ export async function startOrContinueNewsletterDelivery(
 
   if (newsletter.status === 'draft' || newsletter.status === 'scheduled') {
     await assertCampaignPostsSendable(newsletter, now);
+    // A tagged audience nobody is in would "send" to no one and still mark its articles as emailed.
+    if (newsletter.audienceTags?.length && !(await countCampaignAudience(newsletter.audienceTags))) {
+      throw new NewsletterDeliveryError('No confirmed subscribers have the tags this campaign is limited to.', 409);
+    }
     // One campaign at a time: they all draw on the same provider quota.
     const blocking = await findOtherInFlightCampaign(newsletterObjectId);
     if (blocking) {
@@ -389,7 +397,7 @@ export async function startOrContinueNewsletterDelivery(
     ).lean();
 
     if (claimedInitialization?.deliveryInitializationToken === initializationToken) {
-      const recipientCount = await initializeDeliveryQueue(newsletterObjectId);
+      const recipientCount = await initializeDeliveryQueue(newsletterObjectId, newsletter.audienceTags);
       await Newsletter.updateOne(
         { _id: newsletterObjectId, status: 'sending', deliveryInitializationToken: initializationToken },
         {

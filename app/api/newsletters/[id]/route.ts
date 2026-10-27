@@ -9,6 +9,7 @@ import newsletterHtmlSanitizer from '@/lib/utils/newsletter-html-sanitizer';
 import { htmlToPlainText } from '@/lib/services/newsletter-content';
 import { assertCampaignPostsSendable, NewsletterDeliveryError } from '@/lib/services/newsletter-delivery';
 import { recordAdminAction } from '@/lib/services/admin-audit';
+import { formatAudience } from '@/lib/utils/validations/subscriber';
 
 const { sanitizeNewsletterHtml } = newsletterHtmlSanitizer;
 
@@ -41,7 +42,7 @@ export async function PATCH(
 ) {
     const params = await props.params;
     try {
-        await requireAdminSession();
+        const session = await requireAdminSession();
         if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid newsletter ID' }, { status: 400 });
         await dbConnect();
         const body = await req.json().catch(() => null);
@@ -66,6 +67,12 @@ export async function PATCH(
         }
 
         const updateData: Record<string, unknown> = onlySentFields(result.data, body);
+
+        // The recipient list is built from the audience when delivery starts, so it is
+        // only editable before then (a failed campaign has already been delivered to).
+        if (updateData.audienceTags !== undefined && !['draft', 'scheduled'].includes(existing.status)) {
+            return NextResponse.json({ error: 'The audience can only be changed before sending starts' }, { status: 409 });
+        }
 
         if (typeof result.data.content === 'string') {
             updateData.content = sanitizeNewsletterHtml(result.data.content);
@@ -132,6 +139,14 @@ export async function PATCH(
         );
         
         if (!newsletter) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+        if (updateData.audienceTags !== undefined) {
+            await recordAdminAction(session, {
+                action: 'update-audience',
+                targetType: 'newsletters',
+                targetId: params.id,
+                summary: `${newsletter.subject} · ${formatAudience(newsletter.audienceTags)}`,
+            });
+        }
         return NextResponse.json(newsletter);
     } catch (error) {
         if (error instanceof AdminAccessError || error instanceof NewsletterDeliveryError) {

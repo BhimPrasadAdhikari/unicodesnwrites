@@ -16,6 +16,11 @@ export interface INewsletter extends Document {
   /** Blog posts featured in this campaign; used to stop an article being emailed twice. */
   posts: mongoose.Types.ObjectId[];
   /**
+   * Subscriber tags this campaign is limited to: confirmed subscribers carrying any of them.
+   * Empty means every confirmed subscriber. Fixed once delivery starts.
+   */
+  audienceTags: string[];
+  /**
    * `paused`: the email provider refused mail (quota, rate limit, bad credentials);
    * the scheduler resumes it after `resumeAfter`. `cancelled`: an admin stopped it,
    * recipients still pending are never sent.
@@ -70,6 +75,10 @@ const NewsletterSchema = new Schema<INewsletter>(
       type: [{ type: Schema.Types.ObjectId, ref: 'Post' }],
       default: [],
       index: true,
+    },
+    audienceTags: {
+      type: [String],
+      default: [],
     },
     status: {
       type: String,

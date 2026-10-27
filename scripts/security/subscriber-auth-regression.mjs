@@ -18,6 +18,16 @@ const guardedRoutes = [
     behavior: /parseCSV/,
   },
   {
+    path: 'app/api/subscribers/[id]/route.ts',
+    sink: /Subscriber\.findByIdAndUpdate\(params\.id, \{ \$set: \{ tags \} \}/,
+    behavior: /recordAdminAction\(session, \{\s*action: 'update-tags'/,
+  },
+  {
+    path: 'app/api/subscribers/tags/route.ts',
+    sink: /countSubscriberTags\(\)/,
+    behavior: /countCampaignAudience/,
+  },
+  {
     path: 'app/api/subscribers/[id]/test-email/route.ts',
     sink: /sendEmail/,
     behavior: /Subscriber\.findById/,
