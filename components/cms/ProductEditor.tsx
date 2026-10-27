@@ -6,12 +6,29 @@ import { useForm, useFieldArray, type FieldErrors, type FieldPath } from 'react-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema } from '@/lib/utils/validation';
 import { z } from 'zod';
-import { Loader2, Trash2, Upload, Save, X } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
+import { ArrowDown, ArrowUp, FileText, Film, Image as ImageIcon, Loader2, Trash2, Upload, Save, X } from 'lucide-react';
 import { useLocalDraft } from '@/hooks/useLocalDraft';
 import NotionLikeEditor from './NotionLikeEditor';
 import { Alert } from '@/components/ui/Alert';
 
 type ProductFormData = z.infer<typeof productSchema>;
+type PreviewFileType = 'pdf' | 'video' | 'image';
+
+const PREVIEW_MAX_BYTES = 200 * 1024 * 1024;
+const PREVIEW_ACCEPT = 'video/mp4,video/webm,application/pdf,image/*,.mp4,.webm,.pdf';
+
+function previewTypeFor(file: File): PreviewFileType | null {
+  if (file.type === 'video/mp4' || file.type === 'video/webm') return 'video';
+  if (file.type === 'application/pdf') return 'pdf';
+  if (file.type.startsWith('image/')) return 'image';
+  return null;
+}
+
+function previewPathnameFor(file: File) {
+  const safeName = file.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 100) || 'preview';
+  return `products/previews/${safeName}`;
+}
 
 interface ProductEditorProps {
   initialData?: ProductFormData & { _id: string };
@@ -25,6 +42,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [previewUpload, setPreviewUpload] = useState<{ name: string; percentage: number } | null>(null);
   const [feedback, setFeedback] = useState('');
 
   const {
@@ -83,6 +101,16 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
   const { fields: includedFields, append: appendIncluded, remove: removeIncluded } = useFieldArray({
     control,
     name: 'whatsIncluded' as any, // Type cast for array of strings issue in hook form
+  });
+
+  const {
+    fields: previewFields,
+    append: appendPreview,
+    remove: removePreview,
+    move: movePreview,
+  } = useFieldArray({
+    control,
+    name: 'previewFiles',
   });
 
   // Watch title to auto-generate slug
@@ -172,7 +200,7 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
 
   const uploadImage = async (file: File) => {
     if (!file.type.startsWith('image/')) throw new Error('Choose a valid image file.');
-    if (file.size > 5 * 1024 * 1024) throw new Error('Images must be 5 MB or smaller.');
+    if (file.size > 8 * 1024 * 1024) throw new Error('Images must be 8 MB or smaller.');
     const formData = new FormData();
     formData.append('file', file);
 
@@ -225,6 +253,42 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
       setUploadingGallery(false);
       e.target.value = '';
     }
+  };
+
+  // Large proof videos go straight from the browser to Vercel Blob (server routes cap bodies at ~4.5 MB).
+  const handlePreviewUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (files.length === 0) return;
+
+    setFeedback('');
+    for (const file of files) {
+      const type = previewTypeFor(file);
+      if (!type) {
+        setFeedback(`${file.name}: use MP4, WebM, PDF or an image.`);
+        continue;
+      }
+      if (file.size > PREVIEW_MAX_BYTES) {
+        setFeedback(`${file.name}: previews must be 200 MB or smaller.`);
+        continue;
+      }
+
+      setPreviewUpload({ name: file.name, percentage: 0 });
+      try {
+        const blob = await upload(previewPathnameFor(file), file, {
+          access: 'public',
+          handleUploadUrl: '/api/upload/preview-file',
+          contentType: file.type,
+          multipart: file.size > 20 * 1024 * 1024,
+          onUploadProgress: ({ percentage }) => setPreviewUpload({ name: file.name, percentage }),
+        });
+        appendPreview({ type, url: blob.url, title: '' });
+      } catch (error) {
+        console.error(error);
+        setFeedback(`${file.name}: ${error instanceof Error ? error.message : 'upload failed.'}`);
+      }
+    }
+    setPreviewUpload(null);
   };
 
   const handleRemoveGalleryImage = (urlToRemove: string) => {
@@ -631,6 +695,108 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
                )}
              </div>
           </div>
+        </div>
+
+        {/* ── PROOF & PREVIEWS ── */}
+        <div className="space-y-6">
+          <div className="border-b pb-2">
+            <h3 className="text-lg font-semibold text-foreground">Proof &amp; previews</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Videos (MP4, WebM) and images appear in the product gallery; the first video plays in the hero.
+              A PDF shows as a &ldquo;Read a free sample&rdquo; link. Max 200 MB each.
+            </p>
+          </div>
+
+          <div>
+            <input
+              type="file"
+              id="preview-upload"
+              className="hidden"
+              accept={PREVIEW_ACCEPT}
+              multiple
+              onChange={handlePreviewUpload}
+              disabled={previewUpload !== null}
+            />
+            <label
+              htmlFor="preview-upload"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            >
+              {previewUpload ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+              {previewUpload
+                ? `Uploading ${previewUpload.name}… ${Math.round(previewUpload.percentage)}%`
+                : 'Upload previews'}
+            </label>
+          </div>
+
+          {previewFields.length > 0 && (
+            <ul className="space-y-3">
+              {previewFields.map((field, index) => {
+                const TypeIcon = field.type === 'video' ? Film : field.type === 'pdf' ? FileText : ImageIcon;
+                const titleError = errors.previewFiles?.[index]?.title?.message;
+                return (
+                  <li key={field.id} className="flex flex-col gap-3 rounded-lg border border-border p-3 sm:flex-row sm:items-center">
+                    <div className="relative h-20 w-full shrink-0 overflow-hidden rounded-md border border-border bg-muted sm:w-32">
+                      {field.type === 'video' ? (
+                        <video src={field.url} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+                      ) : field.type === 'image' ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={field.url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                          <FileText size={28} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
+                        <TypeIcon size={14} aria-hidden="true" /> {field.type}
+                        <a href={field.url} target="_blank" rel="noopener noreferrer" className="ml-1 normal-case tracking-normal underline decoration-primary underline-offset-4">
+                          open
+                        </a>
+                      </p>
+                      <input
+                        {...register(`previewFiles.${index}.title`)}
+                        maxLength={120}
+                        aria-label={`Caption for preview ${index + 1}`}
+                        placeholder="Caption, e.g. Full film made with the kit"
+                        className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm focus:ring-0"
+                      />
+                      {titleError && <p className="text-destructive text-sm">{titleError}</p>}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1 self-end sm:self-center">
+                      <button
+                        type="button"
+                        onClick={() => movePreview(index, index - 1)}
+                        disabled={index === 0}
+                        aria-label={`Move preview ${index + 1} up`}
+                        className="touch-target rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
+                      >
+                        <ArrowUp size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => movePreview(index, index + 1)}
+                        disabled={index === previewFields.length - 1}
+                        aria-label={`Move preview ${index + 1} down`}
+                        className="touch-target rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
+                      >
+                        <ArrowDown size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removePreview(index)}
+                        aria-label={`Remove preview ${index + 1}`}
+                        className="touch-target rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {errors.previewFiles?.message && <p className="text-destructive text-sm">{errors.previewFiles.message}</p>}
         </div>
       </div>
     </form>

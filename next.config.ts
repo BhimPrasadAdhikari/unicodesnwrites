@@ -37,7 +37,8 @@ const securityHeaders = [
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
       font-src 'self' data:;
-      connect-src 'self' https://api.stripe.com https://*.sentry.io https://vitals.vercel-insights.com;
+      media-src 'self' blob: https://*.public.blob.vercel-storage.com;
+      connect-src 'self' https://api.stripe.com https://*.sentry.io https://vitals.vercel-insights.com https://vercel.com/api/blob/;
       frame-src https://js.stripe.com https://checkout.stripe.com https://www.youtube.com https://www.youtube-nocookie.com;
     `.replace(/\s{2,}/g, ' ').trim()
   }

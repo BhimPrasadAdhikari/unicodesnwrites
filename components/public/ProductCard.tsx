@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { CoverPlaceholder } from '@/components/ui/CoverPlaceholder';
 import { glyphFor } from '@/components/ui/Glyph';
 import { formatCurrency } from '@/lib/utils/currency';
+import { isAnimatableImage } from '@/lib/utils/media';
 
 interface ProductCardProps {
   product: {
@@ -24,7 +25,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-foreground/40">
         <div className="relative aspect-[16/10] overflow-hidden border-b border-border">
           {product.thumbnailImage ? (
-            <Image src={product.thumbnailImage} alt="" fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
+            <Image
+              src={product.thumbnailImage}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              unoptimized={isAnimatableImage(product.thumbnailImage)}
+              className="object-cover"
+            />
           ) : (
             <CoverPlaceholder kind={glyphFor(product.productType)} label={product.productType.toUpperCase()} />
           )}

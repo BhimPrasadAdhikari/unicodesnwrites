@@ -1,15 +1,14 @@
 import Link from 'next/link';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import {connectDB} from '@/lib/db/connection';
 import Product from '@/lib/models/Product';
 import CheckoutButton from '@/components/public/CheckoutButton';
+import ProductMedia from '@/components/public/ProductMedia';
 import ReviewForm from '@/components/public/ReviewForm';
 import ReviewsList from '@/components/public/ReviewsList';
 import { formatCurrency } from '@/lib/utils/currency';
 import { Check } from 'lucide-react';
-import { GlyphCell, glyphFor } from '@/components/ui/Glyph';
 import BlogContent from '@/components/public/BlogContent';
 import { preserveSpacing } from '@/lib/utils/markdown';
 import { Section, Container } from '@/components/ui/Section';
@@ -53,33 +52,13 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
           </nav>
           
           <div className="mt-6 grid grid-cols-1 items-start gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
-            <div className="space-y-6">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-3xl border border-border">
-                {product.thumbnailImage ? (
-                  <Image
-                    src={product.thumbnailImage}
-                    alt={product.title}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <GlyphCell kind={glyphFor(product.productType)} label={product.productType.toUpperCase()} glyphSize={120} className="absolute inset-0" />
-                )}
-              </div>
-
-              {product.galleryImages && product.galleryImages.length > 0 && (
-                <div className="grid grid-cols-4 gap-4">
-                  {product.galleryImages.map((img: string, idx: number) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-square overflow-hidden rounded-xl border border-border"
-                    >
-                      <Image src={img} alt={`${product.title} preview ${idx + 1}`} fill className="object-cover" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ProductMedia
+              title={product.title}
+              productType={product.productType}
+              thumbnailImage={product.thumbnailImage}
+              galleryImages={product.galleryImages}
+              previewFiles={product.previewFiles}
+            />
 
             <div>
               <p className="text-eyebrow text-primary">{product.productType} · {product.category}</p>
