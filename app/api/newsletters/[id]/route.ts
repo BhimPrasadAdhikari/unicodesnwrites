@@ -150,13 +150,14 @@ export async function DELETE(
         await requireAdminSession();
         if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid newsletter ID' }, { status: 400 });
         await dbConnect();
-        const existing = await Newsletter.findById(params.id).select('status').lean();
+        const existing = await Newsletter.findById(params.id).select('status sentCount').lean();
         if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
         if (existing.status === 'sending' || existing.status === 'paused') {
             return NextResponse.json({ error: 'Stop this campaign before deleting it' }, { status: 409 });
         }
         // A sent issue is the record of who got what (and stops a post being emailed twice).
-        if (existing.status === 'sent') {
+        // That holds for a cancelled or failed campaign that reached anyone, too.
+        if (existing.status === 'sent' || (existing.sentCount ?? 0) > 0) {
             return NextResponse.json({ error: 'Sent issues are kept as a delivery record and cannot be deleted.' }, { status: 409 });
         }
         const newsletter = await Newsletter.findByIdAndDelete(params.id);

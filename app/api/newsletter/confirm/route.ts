@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/connection';
 import Subscriber from '@/lib/models/Subscriber';
+import SuppressedEmail, { hashSuppressedEmail } from '@/lib/models/SuppressedEmail';
 import { sendWelcomeEmail } from '@/lib/services/email';
 import { Analytics } from '@/lib/models/Analytics';
 
@@ -55,6 +56,13 @@ export async function GET(req: NextRequest) {
     );
     if (!confirmed) {
       return NextResponse.json({ message: 'You are already subscribed. New issues will arrive in your inbox.', source: subscriber.source }, { status: 200 });
+    }
+
+    // They opted back in themselves, so an earlier admin deletion no longer blocks imports.
+    try {
+      await SuppressedEmail.deleteOne({ emailHash: hashSuppressedEmail(subscriber.email) });
+    } catch (suppressionError) {
+      console.error('Failed to clear email suppression', suppressionError);
     }
 
     try {

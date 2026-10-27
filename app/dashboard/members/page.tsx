@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { UserRound } from 'lucide-react';
 
 import { AdminRowActions, type AdminAction } from '@/components/cms/AdminRowActions';
-import { escapeRegex, FilterTabs, Pager, parsePage, SearchBox } from '@/components/cms/AdminListControls';
+import { escapeRegex, FilterTabs, Pager, parsePage, redirectPastLastPage, SearchBox } from '@/components/cms/AdminListControls';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
@@ -48,6 +48,7 @@ export default async function MembersPage(props: { searchParams: Promise<{ role?
   const enrollmentsBy = new Map(enrollmentRows.map((row) => [String(row._id), row]));
   const countOf = (value: string) => roleCounts.find((row) => row._id === value)?.count ?? 0;
   const linkParams = { role: params.role, q: params.q };
+  redirectPastLastPage('/dashboard/members', linkParams, page, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div>

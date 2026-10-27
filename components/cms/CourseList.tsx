@@ -29,6 +29,7 @@ export function CourseList({ courses }: { courses: CourseRow[] }) {
     const response = await fetch(`/api/courses/${encodeURIComponent(course._id)}`, { method: 'DELETE' });
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(payload?.error || 'Course could not be deleted.');
+    setFeedback('');
     router.refresh();
   };
 

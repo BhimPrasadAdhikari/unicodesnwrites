@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { CheckCircle2, Mail, RefreshCw, RotateCcw, Search, ShoppingBag } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { CheckCircle2, Mail, RefreshCw, RotateCcw, ShoppingBag } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/currency';
 import { Alert } from '@/components/ui/Alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
@@ -18,8 +18,19 @@ interface Purchase {
   purchasedAt: string;
 }
 
+interface PurchaseSummary {
+  completedCount: number;
+  refundedCount: number;
+  revenue: { currency: string; amount: number }[];
+}
+
 interface PurchasesListProps {
+  /** One page of orders; search and paging happen on the server. */
   purchases: Purchase[];
+  summary: PurchaseSummary;
+  total: number;
+  search: string;
+  searchBox: ReactNode;
 }
 
 const statusStyles: Record<string, string> = {
@@ -28,26 +39,14 @@ const statusStyles: Record<string, string> = {
   pending: 'border-warning/20 bg-warning/10 text-warning',
 };
 
-export default function PurchasesList({ purchases }: PurchasesListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+export default function PurchasesList({ purchases, summary, total, search, searchBox }: PurchasesListProps) {
   const [resending, setResending] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const normalizedSearch = searchTerm.trim().toLowerCase();
-  const filteredPurchases = useMemo(
-    () => purchases.filter((purchase) => {
-      if (!normalizedSearch) return true;
-      return [purchase.customerEmail, purchase.customerName, purchase.purchaseId, purchase.product?.title]
-        .filter(Boolean)
-        .some((value) => value!.toLowerCase().includes(normalizedSearch));
-    }),
-    [normalizedSearch, purchases],
-  );
-
-  const completed = purchases.filter((purchase) => purchase.status === 'completed');
-  const refunded = purchases.filter((purchase) => purchase.status === 'refunded').length;
-  const revenue = completed.reduce((total, purchase) => total + purchase.amount, 0);
-  const primaryCurrency = completed[0]?.currency || 'INR';
+  // Totals in different currencies can't be added together, so each is listed.
+  const revenue = summary.revenue.length
+    ? summary.revenue.map((row) => formatCurrency(row.amount, row.currency)).join(' + ')
+    : formatCurrency(0, 'INR');
 
   const handleResendEmail = async (id: string) => {
     setResending(id);
@@ -68,9 +67,9 @@ export default function PurchasesList({ purchases }: PurchasesListProps) {
     <div className="space-y-5">
       <section aria-label="Purchase summary" className="grid gap-3 sm:grid-cols-3">
         {[
-          { label: 'Completed orders', value: completed.length.toLocaleString(), icon: CheckCircle2 },
-          { label: 'Recorded revenue', value: formatCurrency(revenue, primaryCurrency), icon: ShoppingBag },
-          { label: 'Refunded orders', value: refunded.toLocaleString(), icon: RotateCcw },
+          { label: 'Completed orders', value: summary.completedCount.toLocaleString(), icon: CheckCircle2 },
+          { label: 'Recorded revenue', value: revenue, icon: ShoppingBag },
+          { label: 'Refunded orders', value: summary.refundedCount.toLocaleString(), icon: RotateCcw },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-xl border border-border bg-card/70 p-4">
             <div className="flex items-center justify-between gap-4">
@@ -84,20 +83,8 @@ export default function PurchasesList({ purchases }: PurchasesListProps) {
 
       <section className="overflow-hidden rounded-xl border border-border bg-card/70">
         <div className="border-b border-border p-4 sm:p-5">
-          <label htmlFor="purchase-search" className="sr-only">Search purchases</label>
-          <div className="relative max-w-lg">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-            <input
-              id="purchase-search"
-              type="search"
-              maxLength={120}
-              placeholder="Search email, order, customer, or product"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
-            />
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">Showing {filteredPurchases.length} of {purchases.length} orders</p>
+          {searchBox}
+          <p className="mt-2 text-xs text-muted-foreground">{total.toLocaleString()} {search ? 'matching ' : ''}{total === 1 ? 'order' : 'orders'}</p>
         </div>
 
         {feedback && (
@@ -107,7 +94,7 @@ export default function PurchasesList({ purchases }: PurchasesListProps) {
         )}
 
         <div className="grid gap-3 p-4 md:hidden">
-          {filteredPurchases.map((purchase) => (
+          {purchases.map((purchase) => (
             <article key={purchase._id} className="rounded-xl border border-border bg-background/70 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -137,7 +124,7 @@ export default function PurchasesList({ purchases }: PurchasesListProps) {
               <tr>{['Order', 'Customer', 'Product', 'Date', 'Amount', 'Status', 'Action'].map((heading) => <TableHead key={heading} className={heading === 'Action' ? 'text-right' : undefined}>{heading}</TableHead>)}</tr>
             </TableHeader>
             <TableBody>
-              {filteredPurchases.map((purchase) => (
+              {purchases.map((purchase) => (
                 <TableRow key={purchase._id}>
                   <TableCell className="font-mono text-xs text-muted-foreground">#{purchase.purchaseId.slice(0, 8)}</TableCell>
                   <TableCell><p className="text-sm font-medium">{purchase.customerName || 'Customer'}</p><p className="mt-1 text-xs text-muted-foreground">{purchase.customerEmail}</p></TableCell>
@@ -148,7 +135,7 @@ export default function PurchasesList({ purchases }: PurchasesListProps) {
                   <TableCell className="text-right"><button type="button" onClick={() => handleResendEmail(purchase._id)} disabled={resending === purchase._id} aria-label={`Resend delivery email for order ${purchase.purchaseId}`} className="touch-target rounded-lg border border-border p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50">{resending === purchase._id ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}</button></TableCell>
                 </TableRow>
               ))}
-              {filteredPurchases.length === 0 && <TableRow><TableCell colSpan={7} className="py-14 text-center text-sm text-muted-foreground">No orders match that search.</TableCell></TableRow>}
+              {purchases.length === 0 && <TableRow><TableCell colSpan={7} className="py-14 text-center text-sm text-muted-foreground">{search ? 'No orders match that search.' : 'No orders yet.'}</TableCell></TableRow>}
             </TableBody>
           </Table>
         </div>

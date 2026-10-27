@@ -10,11 +10,12 @@ function neutralize(value: unknown): unknown {
   return typeof value === 'string' && FORMULA_PREFIX.test(value) ? `'${value}` : value;
 }
 
-export function toCSV<T extends object>(data: T[], fields?: string[]): string {
+// header: false formats rows only, for streaming an export in batches after the header.
+export function toCSV<T extends object>(data: T[], fields?: string[], { header = true }: { header?: boolean } = {}): string {
   // json2csv refuses an empty list unless it knows the columns; an empty export is just a header (or nothing).
-  if (data.length === 0) return fields ? `${fields.map((field) => `"${field}"`).join(',')}\n` : '';
+  if (data.length === 0) return fields && header ? `${fields.map((field) => `"${field}"`).join(',')}\n` : '';
   try {
-    const opts = fields ? { fields } : {};
+    const opts = fields ? { fields, header } : { header };
     const parser = new Parser(opts);
     const safe = data.map((row) =>
       Object.fromEntries(Object.entries(row).map(([key, value]) => [key, neutralize(value)]))

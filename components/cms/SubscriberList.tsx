@@ -124,7 +124,11 @@ export default function SubscriberList({ subscribers: initialSubscribers, totalC
     setExporting(true);
     setFeedback(null);
     try {
-      const response = await fetch('/api/subscribers/export');
+      // Exports what the list is filtered to; with no status filter the API exports confirmed subscribers.
+      const params = new URLSearchParams();
+      if (search) params.set('q', search);
+      if (statusFilter) params.set('status', statusFilter);
+      const response = await fetch(`/api/subscribers/export${params.size ? `?${params}` : ''}`);
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
         throw new Error(payload?.error || 'Subscriber export failed.');
@@ -223,7 +227,7 @@ export default function SubscriberList({ subscribers: initialSubscribers, totalC
             <option value="pending">Pending</option>
             <option value="unsubscribed">Unsubscribed</option>
           </select>
-          <button type="button" onClick={handleExport} disabled={exporting} className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-3.5 text-sm font-semibold transition hover:bg-muted disabled:opacity-50">
+          <button type="button" onClick={handleExport} disabled={exporting} title={statusFilter ? undefined : 'Exports confirmed subscribers matching the current search'} className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-3.5 text-sm font-semibold transition hover:bg-muted disabled:opacity-50">
             {exporting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export CSV
           </button>
           <button type="button" onClick={() => router.refresh()} className="inline-flex h-11 items-center gap-2 rounded-lg bg-foreground px-3.5 text-sm font-semibold text-background transition hover:bg-foreground/90">

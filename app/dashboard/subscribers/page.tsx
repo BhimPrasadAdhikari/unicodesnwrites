@@ -142,7 +142,7 @@ export default async function SubscribersPage(props: {
                 </summary>
                 <div className="border-t border-border p-5">
                     <p className="mb-4 text-sm text-muted-foreground">
-                        Imported addresses are added as confirmed, so only import people who agreed to hear from you. Addresses already on the list, including anyone who unsubscribed, are left alone.
+                        Imported addresses are added as confirmed, so only import people who agreed to hear from you. Addresses already on the list, including anyone who unsubscribed, are left alone, and addresses you deleted are skipped until the person subscribes again themselves.
                     </p>
                     <SubscriberImport />
                 </div>

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Mail } from 'lucide-react';
 
 import { AdminRowActions } from '@/components/cms/AdminRowActions';
-import { escapeRegex, FilterTabs, Pager, parsePage, SearchBox } from '@/components/cms/AdminListControls';
+import { escapeRegex, FilterTabs, Pager, parsePage, redirectPastLastPage, SearchBox } from '@/components/cms/AdminListControls';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { connectDB } from '@/lib/db/connection';
@@ -38,6 +38,7 @@ export default async function InboxPage(props: { searchParams: Promise<{ status?
   const countOf = (value: string) => counts.find((row) => row._id === value)?.count ?? 0;
   const all = counts.reduce((sum, row) => sum + row.count, 0);
   const linkParams = { status: params.status, q: params.q };
+  redirectPastLastPage('/dashboard/inbox', linkParams, page, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div>

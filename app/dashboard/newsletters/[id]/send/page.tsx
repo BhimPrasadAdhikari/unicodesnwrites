@@ -167,10 +167,11 @@ export default function SendNewsletterPage() {
         if (data.pendingCount === 0) router.refresh();
         break;
       }
-      setConfirmSend(false);
     } catch (error) {
       setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Campaign could not be sent.' });
     } finally {
+      // Success or failure, the next click asks for confirmation again.
+      setConfirmSend(false);
       setIsSending(false);
     }
   };

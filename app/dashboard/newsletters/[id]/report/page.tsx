@@ -132,7 +132,7 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
                         {failureGroups.map((group) => (
                             <li key={group._id} className="px-5 py-4 text-sm">
                                 <p className="flex gap-3"><span className="w-14 shrink-0 font-semibold tabular-nums">{group.count.toLocaleString()}</span><span className="min-w-0 break-words text-muted-foreground">{group._id}</span></p>
-                                <p className="mt-1 pl-[4.25rem] text-xs text-muted-foreground/80">{group.emails.join(', ')}{group.count > group.emails.length ? ', …' : ''}</p>
+                                <p className="mt-1 pl-[4.25rem] text-xs text-muted-foreground/80">{group.emails.map((email) => email || 'deleted subscriber').join(', ')}{group.count > group.emails.length ? ', …' : ''}</p>
                             </li>
                         ))}
                     </ul>
@@ -159,7 +159,7 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
                             <TableBody>
                                 {recentActivity.map((entry) => (
                                     <TableRow key={entry._id.toString()}>
-                                        <TableCell className="font-medium">{entry.email}</TableCell>
+                                        <TableCell className="font-medium">{entry.email || <span className="text-muted-foreground">Deleted subscriber</span>}</TableCell>
                                         <TableCell><span className={`rounded-md border px-2.5 py-1 text-2xs font-semibold capitalize ${entry.status === 'sent' ? 'border-success/20 bg-success/10 text-success' : entry.status === 'pending' || entry.status === 'processing' ? 'border-warning/20 bg-warning/10 text-warning' : 'border-destructive/20 bg-destructive/10 text-destructive'}`}>{entry.status}</span></TableCell>
                                         <TableCell className="text-muted-foreground">{new Date(entry.updatedAt || entry.sentAt || 0).toLocaleString()}</TableCell>
                                         <TableCell className="max-w-xs truncate text-muted-foreground">{entry.failureReason || '—'}</TableCell>

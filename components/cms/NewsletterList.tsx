@@ -223,7 +223,8 @@ export default function NewsletterList({ newsletters }: { newsletters: Newslette
                                             )}
                                             {IN_FLIGHT_STATUSES.includes(newsletter.status)
                                                 ? <StopCampaignButton label={newsletter.subject} onConfirm={() => handleStop(newsletter._id)} onError={setFeedback} />
-                                                : newsletter.status === 'sent'
+                                                // Anything that reached an inbox is kept as the delivery record.
+                                                : newsletter.status === 'sent' || (newsletter.sentCount ?? 0) > 0
                                                     ? null
                                                     : <ConfirmDeleteButton compact label={newsletter.subject} onConfirm={() => handleDelete(newsletter._id)} onError={setFeedback} />}
                                         </div>

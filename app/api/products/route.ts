@@ -55,6 +55,10 @@ export async function POST(req: NextRequest) {
 
     await dbConnect();
 
+    if (await Product.exists({ slug: data.slug })) {
+      return NextResponse.json({ error: 'Slug already exists' }, { status: 409 });
+    }
+
     const product = await Product.create({
       ...data,
       author: session.user.id,
