@@ -8,6 +8,7 @@ import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 import newsletterHtmlSanitizer from '@/lib/utils/newsletter-html-sanitizer';
 import { htmlToPlainText } from '@/lib/services/newsletter-content';
 import { assertCampaignPostsSendable, NewsletterDeliveryError } from '@/lib/services/newsletter-delivery';
+import { recordAdminAction } from '@/lib/services/admin-audit';
 
 const { sanitizeNewsletterHtml } = newsletterHtmlSanitizer;
 
@@ -147,7 +148,7 @@ export async function DELETE(
 ) {
     const params = await props.params;
     try {
-        await requireAdminSession();
+        const session = await requireAdminSession();
         if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid newsletter ID' }, { status: 400 });
         await dbConnect();
         const existing = await Newsletter.findById(params.id).select('status sentCount').lean();
@@ -163,6 +164,7 @@ export async function DELETE(
         const newsletter = await Newsletter.findByIdAndDelete(params.id);
          if (!newsletter) return NextResponse.json({ error: 'Not found' }, { status: 404 });
         await NewsletterSend.deleteMany({ newsletter: newsletter._id });
+await recordAdminAction(session, { action: 'delete', targetType: 'newsletters', targetId: params.id, summary: newsletter.subject });
         return NextResponse.json({ message: 'Deleted' });
     } catch (error) {
         if (error instanceof AdminAccessError) {

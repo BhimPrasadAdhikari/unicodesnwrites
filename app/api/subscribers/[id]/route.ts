@@ -6,6 +6,7 @@ import NewsletterSend from '@/lib/models/NewsletterSend';
 import SuppressedEmail, { hashSuppressedEmail } from '@/lib/models/SuppressedEmail';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 import { sendSubscriberConfirmation } from '@/lib/services/email';
+import { recordAdminAction } from '@/lib/services/admin-audit';
 
 const isObjectId = (value: string) => /^[a-f\d]{24}$/i.test(value);
 
@@ -63,7 +64,7 @@ export async function DELETE(
 ) {
     const params = await props.params;
     try {
-        await requireAdminSession();
+        const session = await requireAdminSession();
         if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid subscriber ID' }, { status: 400 });
         await dbConnect();
 
@@ -80,6 +81,7 @@ export async function DELETE(
         await NewsletterSend.deleteMany({ subscriber: subscriber._id, status: { $in: ['pending', 'processing'] } });
         await NewsletterSend.updateMany({ subscriber: subscriber._id }, { $set: { email: '' } });
 
+await recordAdminAction(session, { action: 'delete', targetType: 'subscribers', targetId: params.id });
         return NextResponse.json({ message: 'Subscriber deleted' }, { status: 200 });
     } catch (error) {
         if (error instanceof AdminAccessError) {

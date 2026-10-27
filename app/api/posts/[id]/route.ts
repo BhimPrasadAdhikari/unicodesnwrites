@@ -4,6 +4,7 @@ import { Post } from '@/lib/models/Post';
 import { postSchema } from '@/lib/utils/validations/post';
 import { calculateReadingTime } from '@/lib/utils/slug';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { recordAdminAction } from '@/lib/services/admin-audit';
 
 const isObjectId = (value: string) => /^[a-f\d]{24}$/i.test(value);
 
@@ -127,7 +128,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdminSession();
+    const session = await requireAdminSession();
     const { id } = await params;
     if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid post ID' }, { status: 400 });
     await connectDB();
@@ -137,6 +138,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
+await recordAdminAction(session, { action: 'delete', targetType: 'posts', targetId: id, summary: post.title });
     return NextResponse.json({ message: 'Post deleted successfully' });
   } catch (error) {
     if (error instanceof AdminAccessError) {

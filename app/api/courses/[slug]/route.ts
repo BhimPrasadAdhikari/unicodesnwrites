@@ -15,6 +15,7 @@ import {
 } from '@/lib/services/course-admin';
 import { isObjectId } from '@/lib/utils/validations/common';
 import { courseInputSchema } from '@/lib/utils/validations/course';
+import { recordAdminAction } from '@/lib/services/admin-audit';
 
 type RouteContext = { params: Promise<{ slug: string }> };
 
@@ -84,7 +85,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
 export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   try {
-    await requireAdminSession();
+    const session = await requireAdminSession();
     const { slug: id } = await params;
     if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid course ID' }, { status: 400 });
     await connectDB();
@@ -106,6 +107,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
         CourseRevision.deleteMany({ course: course._id }),
       ]);
     }
+if (course) await recordAdminAction(session, { action: 'delete', targetType: 'courses', targetId: id, summary: course.title });
     return course
       ? NextResponse.json({ message: 'Course deleted' })
       : NextResponse.json({ error: 'Course not found' }, { status: 404 });

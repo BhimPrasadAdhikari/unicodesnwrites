@@ -5,6 +5,7 @@ import Purchase from '@/lib/models/Purchase';
 import { productSchema } from '@/lib/utils/validation';
 import { onlySentFields } from '@/lib/utils/validations/patch';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { recordAdminAction } from '@/lib/services/admin-audit';
 
 interface RouteProps {
   params: Promise<{ id: string }>;
@@ -87,7 +88,7 @@ export async function PATCH(req: NextRequest, { params }: RouteProps) {
 
 export async function DELETE(req: NextRequest, { params }: RouteProps) {
   try {
-    await requireAdminSession();
+    const session = await requireAdminSession();
 
     await dbConnect();
     const { id } = await params;
@@ -108,6 +109,7 @@ export async function DELETE(req: NextRequest, { params }: RouteProps) {
 
     await product.deleteOne();
 
+await recordAdminAction(session, { action: 'delete', targetType: 'products', targetId: id, summary: product.title });
     return NextResponse.json({ message: 'Product deleted' });
   } catch (error) {
     if (error instanceof AdminAccessError) {

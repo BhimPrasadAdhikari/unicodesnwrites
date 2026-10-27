@@ -19,6 +19,7 @@ import {
   LogOut,
   Menu,
   MessageSquare,
+  ScrollText,
   ShoppingBag,
   Star,
   UserRound,
@@ -84,6 +85,7 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
       { href: '/dashboard/analytics/content', label: 'Content', icon: BarChart3 },
       { href: '/dashboard/analytics/ai', label: 'AI telemetry', icon: Cpu },
       { href: '/dashboard/health', label: 'System health', icon: HeartPulse },
+      { href: '/dashboard/audit', label: 'Audit log', icon: ScrollText },
     ],
   },
 ];
