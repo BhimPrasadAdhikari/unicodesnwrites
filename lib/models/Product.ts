@@ -19,6 +19,7 @@ export interface IProduct extends Document {
   previewFiles: Array<{
     type: 'pdf' | 'video' | 'image';
     url: string;
+    title?: string; // caption shown to buyers, max 120 characters
   }>;
   whatsIncluded: string[];
   requirements?: string;
@@ -61,6 +62,7 @@ const ProductSchema: Schema = new Schema(
       {
         type: { type: String, enum: ['pdf', 'video', 'image'] },
         url: { type: String },
+        title: { type: String, trim: true, maxlength: 120 },
       },
     ],
     whatsIncluded: [{ type: String }],

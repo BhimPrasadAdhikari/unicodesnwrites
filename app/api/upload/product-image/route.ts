@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
     }
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 8 * 1024 * 1024; // 8MB (room for animated WebP thumbnails)
     if (file.size > maxSize) {
-      return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 });
+      return NextResponse.json({ error: 'File too large (max 8MB)' }, { status: 400 });
     }
 
     const fileExtension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];

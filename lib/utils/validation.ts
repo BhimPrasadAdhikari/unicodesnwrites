@@ -38,6 +38,7 @@ export const productSchema = z.object({
     z.object({
       type: z.enum(['pdf', 'video', 'image']),
       url: assetUrlSchema,
+      title: z.string().trim().max(120, 'Caption must be 120 characters or fewer').transform(cleanSingleLine).optional(),
     })
   ).max(20).optional(),
   whatsIncluded: z.array(z.string().trim().max(200).transform(cleanSingleLine)).max(50).transform((values) => values.filter(Boolean)).optional(),
