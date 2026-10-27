@@ -1,8 +1,10 @@
 name: Newsletter scheduler
 
 # Vercel Hobby only allows a daily cron, so this calls the newsletter scheduler
-# every 10 minutes to start due campaigns and resume paused ones server-side.
-# GitHub may delay or skip scheduled runs under load; the scheduler is idempotent.
+# every 5 minutes to start due campaigns and resume paused ones server-side.
+# GitHub often delays or skips scheduled runs (hours apart in practice), so each
+# run keeps calling the scheduler while a campaign still has recipients pending.
+# The scheduler is idempotent.
 #
 # Setup: add the repository secret CRON_SECRET (same value as the
 # Vercel env var). Optionally set the repository variable NEWSLETTER_SCHEDULER_URL.
@@ -11,7 +13,7 @@ name: Newsletter scheduler
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +25,7 @@ permissions: {}
 jobs:
   run-scheduler:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 9
     steps:
       - name: Call scheduler
         env:
@@ -34,12 +36,23 @@ jobs:
             echo "::warning::CRON_SECRET is not set; skipping."
             exit 0
           fi
-          status=$(curl -sS -o response.json -w '%{http_code}' --max-time 90 \
-            -X POST -H "Authorization: Bearer $CRON_SECRET" "$SCHEDULER_URL")
-          cat response.json
-          echo
-          # Anything but 2xx (including a redirect page) means the scheduler didn't run.
-          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
-            echo "::error::Scheduler returned HTTP $status"
-            exit 1
-          fi
+          # Each call sends for ~35 s; up to 8 calls drain a few thousand recipients per run.
+          for call in 1 2 3 4 5 6 7 8; do
+            status=$(curl -sS -o response.json -w '%{http_code}' --max-time 90 \
+              -X POST -H "Authorization: Bearer $CRON_SECRET" "$SCHEDULER_URL")
+            cat response.json
+            echo
+            # Anything but 2xx (including a redirect page) means the scheduler didn't run.
+            if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+              echo "::error::Scheduler returned HTTP $status"
+              exit 1
+            fi
+            # Stop when nothing is left to send, nothing moved, or the provider pushed back.
+            pending=$(jq '[.processed[] | select(.status == "sending") | .pendingCount] | add // 0' response.json)
+            moved=$(jq '[.processed[].processedCount] | add // 0' response.json)
+            errors=$(jq '.errors | length' response.json)
+            echo "call $call: processed $moved, pending $pending, errors $errors"
+            if [ "$pending" -eq 0 ] || [ "$moved" -eq 0 ] || [ "$errors" -gt 0 ]; then
+              break
+            fi
+          done
