@@ -58,14 +58,18 @@ export async function PATCH(req: NextRequest, { params }: RouteProps) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const updateData: Record<string, unknown> = { ...validationResult.data };
+    // zod 4 still fills defaults (currency 'USD') inside .partial(), so keep only the fields the request sent.
+    const sentKeys = new Set(Object.keys(body ?? {}));
+    const updateData: Record<string, unknown> = Object.fromEntries(
+      Object.entries(validationResult.data).filter(([key]) => sentKeys.has(key))
+    );
 
-    const hasPriceUpdate = typeof validationResult.data.price === 'number';
-    const hasCurrencyUpdate = typeof validationResult.data.currency === 'string';
+    const hasPriceUpdate = typeof updateData.price === 'number';
+    const hasCurrencyUpdate = typeof updateData.currency === 'string';
 
     if ((hasPriceUpdate || hasCurrencyUpdate) && existingProduct.stripeProductId) {
-      const nextPrice = hasPriceUpdate ? validationResult.data.price : existingProduct.price;
-      const nextCurrency = hasCurrencyUpdate ? validationResult.data.currency : existingProduct.currency;
+      const nextPrice = hasPriceUpdate ? updateData.price : existingProduct.price;
+      const nextCurrency = hasCurrencyUpdate ? updateData.currency : existingProduct.currency;
 
       const stripePrice = await createStripePrice(
         Math.round(Number(nextPrice)),
