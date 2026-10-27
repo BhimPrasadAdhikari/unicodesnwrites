@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import { postSchema } from '@/lib/utils/validations/post';
 import { calculateReadingTime } from '@/lib/utils/slug';
 import { AdminAccessError, getOptionalAdminSession, requireAdminSession } from '@/lib/auth/admin';
-import { livePostFilter } from '@/lib/utils/post-visibility';
+import { livePostFilter, slugTakenMessage } from '@/lib/utils/post-visibility';
 
 // GET - List all posts (with filters)
 export async function GET(request: NextRequest) {
@@ -87,9 +87,9 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Check if slug already exists
-    const existingPost = await Post.findOne({ slug: validatedData.slug });
+    const existingPost = await Post.findOne({ slug: validatedData.slug }).select('trashedAt').lean();
     if (existingPost) {
-      return NextResponse.json({ error: 'Slug already exists' }, { status: 400 });
+      return NextResponse.json({ error: slugTakenMessage(existingPost) }, { status: 400 });
     }
 
     // Calculate reading time

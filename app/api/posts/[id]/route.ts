@@ -5,6 +5,7 @@ import { postSchema } from '@/lib/utils/validations/post';
 import { calculateReadingTime } from '@/lib/utils/slug';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 import Comment from '@/lib/models/Comment';
+import { slugTakenMessage } from '@/lib/utils/post-visibility';
 import { recordAdminAction } from '@/lib/services/admin-audit';
 
 const isObjectId = (value: string) => /^[a-f\d]{24}$/i.test(value);
@@ -59,9 +60,9 @@ export async function PATCH(
 
     // If slug changed, check if new slug exists
     if (validatedData.slug !== post.slug) {
-      const existingPost = await Post.findOne({ slug: validatedData.slug });
+      const existingPost = await Post.findOne({ slug: validatedData.slug }).select('trashedAt').lean();
       if (existingPost) {
-        return NextResponse.json({ error: 'Slug already exists' }, { status: 400 });
+        return NextResponse.json({ error: slugTakenMessage(existingPost) }, { status: 400 });
       }
     }
 
@@ -105,10 +106,14 @@ export async function PATCH(
       updateOp.$unset = updateUnset;
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(id, updateOp, {
+    // Conditional on not being trashed, so a save racing a trash can't republish it.
+    const updatedPost = await Post.findOneAndUpdate({ _id: id, trashedAt: null }, updateOp, {
       new: true,
       runValidators: true,
     });
+    if (!updatedPost) {
+      return NextResponse.json({ error: 'This post was moved to the trash. Restore it before editing.' }, { status: 409 });
+    }
 
     return NextResponse.json(updatedPost);
   } catch (error) {

@@ -50,7 +50,11 @@ export default async function BlogPostsPage(props: { searchParams: Promise<{ q?:
     const expired = await Post.find({ trashedAt: { $lt: cutoff } }).select('_id').lean();
     if (expired.length) {
       const ids = expired.map((post) => post._id);
-      await Promise.all([Post.deleteMany({ _id: { $in: ids } }), Comment.deleteMany({ post: { $in: ids } })]);
+      // Re-check the cutoff on delete: a post restored meanwhile must survive, with its comments.
+      await Post.deleteMany({ _id: { $in: ids }, trashedAt: { $lt: cutoff } });
+      const kept = new Set((await Post.find({ _id: { $in: ids } }).select('_id').lean()).map((post) => String(post._id)));
+      const removed = ids.filter((id) => !kept.has(String(id)));
+      if (removed.length) await Comment.deleteMany({ post: { $in: removed } });
     }
   }
   const [posts, grouped, trashCount] = await Promise.all([
