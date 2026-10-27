@@ -57,7 +57,7 @@ export default function BlogPostList({
   const handleDelete = async (postId: string) => {
     const response = await fetch(`/api/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' });
     const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.error || 'Post could not be deleted.');
+    if (!response.ok) throw new Error(payload?.error || 'Post could not be moved to the trash.');
     router.refresh();
   };
 

@@ -53,6 +53,9 @@ export async function PATCH(
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
+    if (post.trashedAt) {
+      return NextResponse.json({ error: 'This post is in the trash. Restore it before editing.' }, { status: 409 });
+    }
 
     // If slug changed, check if new slug exists
     if (validatedData.slug !== post.slug) {
@@ -123,7 +126,7 @@ export async function PATCH(
   }
 }
 
-// DELETE - Delete post
+// DELETE - Move a post to the trash, or (?permanent=1, trashed posts only) delete it for good
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -132,11 +135,24 @@ export async function DELETE(
     const session = await requireAdminSession();
     const { id } = await params;
     if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid post ID' }, { status: 400 });
+    const permanent = request.nextUrl.searchParams.get('permanent') === '1';
     await connectDB();
-    const post = await Post.findByIdAndDelete(id);
 
+    if (!permanent) {
+      // Unpublishing hides it everywhere readers look; restoring brings it back as a draft.
+      const trashed = await Post.findOneAndUpdate(
+        { _id: id, trashedAt: null },
+        { $set: { trashedAt: new Date(), published: false } },
+        { new: true },
+      ).select('title');
+      if (!trashed) return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+      await recordAdminAction(session, { action: 'trash', targetType: 'posts', targetId: id, summary: trashed.title });
+      return NextResponse.json({ message: 'Moved to trash. Restore it from the Trash tab within 30 days.' });
+    }
+
+    const post = await Post.findOneAndDelete({ _id: id, trashedAt: { $ne: null } });
     if (!post) {
-      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Only posts in the trash can be deleted for good.' }, { status: 409 });
     }
     // Its comments would otherwise sit in the moderation queue under "a deleted post".
     await Comment.deleteMany({ post: post._id });

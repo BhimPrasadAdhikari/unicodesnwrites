@@ -31,6 +31,8 @@ export async function GET(request: NextRequest) {
     if (!isAdmin) {
       Object.assign(query, livePostFilter());
     } else {
+      // Trashed posts stay out of admin lists too; they live on the dashboard's Trash tab.
+      query.trashedAt = null;
       // Admin can filter. If param is provided, use it.
       if (publishedParam !== null) {
         query.published = publishedParam === 'true';
