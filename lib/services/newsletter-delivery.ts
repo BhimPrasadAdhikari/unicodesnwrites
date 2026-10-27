@@ -5,7 +5,7 @@ import dbConnect from '@/lib/db/connection';
 import Newsletter, { IN_FLIGHT_STATUSES, type NewsletterStatus } from '@/lib/models/Newsletter';
 import NewsletterSend from '@/lib/models/NewsletterSend';
 import Subscriber from '@/lib/models/Subscriber';
-import { EMAIL_MAX_CONNECTIONS, sendNewsletterToSubscriber } from '@/lib/services/email';
+import { EMAIL_MAX_CONNECTIONS, EMAIL_SEND_RATE, sendNewsletterToSubscriber } from '@/lib/services/email';
 import { findCommittedCampaignsForPosts, loadPostsForNewsletter } from '@/lib/services/newsletter-content';
 import { isPostLive } from '@/lib/utils/post-visibility';
 
@@ -18,6 +18,9 @@ const CANCELLATION_CHECK_INTERVAL = 20;
 const INITIALIZATION_WAIT_MS = 10_000;
 // Sends in flight at once. The transport's rate limit, not this, caps messages per second.
 const SEND_CONCURRENCY = Math.min(Math.max(EMAIL_MAX_CONNECTIONS, 1), 20);
+// A per-second throttle is retried after a short wait; this many in one batch pauses the campaign.
+const MAX_THROTTLES_PER_BATCH = 20;
+const THROTTLE_WAIT_MS = 2_000;
 
 export interface NewsletterDeliveryResult {
   newsletterId: string;
@@ -44,7 +47,7 @@ export class NewsletterDeliveryError extends Error {
   }
 }
 
-type SendFailureKind = 'provider' | 'rate-limit' | 'recipient' | 'transient';
+type SendFailureKind = 'provider' | 'throttle' | 'rate-limit' | 'recipient' | 'transient';
 
 /**
  * Sorts SMTP/Nodemailer errors into failures that are the provider's fault
@@ -61,6 +64,10 @@ export function classifySendError(error: unknown): SendFailureKind {
   // the provider's fault, so pause the queue rather than burn every reader's retries.
   if (/not verified|sending paused|account is (?:paused|suspended)/i.test(text)) {
     return 'provider';
+  }
+  // Sending a little too fast for the per-second cap: slow down and retry, don't pause for an hour.
+  if (/maximum sending rate exceeded|throttling failure/i.test(text) && !/quota/i.test(text)) {
+    return 'throttle';
   }
   if (err.responseCode === 421 || err.responseCode === 454 || /5\.4\.5|quota|rate limit|too many/i.test(text)) {
     return 'rate-limit';
@@ -415,6 +422,17 @@ export async function startOrContinueNewsletterDelivery(
   let resumeAfter: Date | undefined;
   let stopped = false;
   let claimsSinceStatusCheck = 0;
+  let throttles = 0;
+  // Sends are spaced evenly across all workers, and spaced further after a throttle.
+  let sendIntervalMs = 1000 / EMAIL_SEND_RATE;
+  let nextSendAt = 0;
+  let throttledUntil = 0;
+  const waitForSendSlot = async () => {
+    const now = Date.now();
+    const at = Math.max(now, nextSendAt, throttledUntil);
+    nextSendAt = at + sendIntervalMs;
+    if (at > now) await new Promise((resolve) => setTimeout(resolve, at - now));
+  };
 
   const deliverClaimed = async (claimed: NonNullable<Awaited<ReturnType<typeof claimNextDelivery>>>) => {
     const { send, leaseToken } = claimed;
@@ -424,6 +442,7 @@ export async function startOrContinueNewsletterDelivery(
         await markPermanentFailure(send._id, leaseToken, 'Subscriber is no longer confirmed');
         return;
       }
+      await waitForSendSlot();
       await sendNewsletterToSubscriber(newsletter, subscriber, String(send._id));
       await NewsletterSend.updateOne(
         { _id: send._id, status: 'processing', leaseToken },
@@ -434,7 +453,25 @@ export async function startOrContinueNewsletterDelivery(
       );
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'Unknown send error';
-      const kind = classifySendError(error);
+      let kind = classifySendError(error);
+      if (kind === 'throttle') {
+        throttles += 1;
+        if (throttles <= MAX_THROTTLES_PER_BATCH) {
+          // Give the attempt back and retry this recipient shortly, at a slower pace.
+          throttledUntil = Date.now() + THROTTLE_WAIT_MS;
+          sendIntervalMs = Math.min(sendIntervalMs * 1.5, 1000);
+          await NewsletterSend.updateOne(
+            { _id: send._id, status: 'processing', leaseToken },
+            {
+              $set: { status: 'pending', nextAttemptAt: new Date(Date.now() + THROTTLE_WAIT_MS) },
+              $inc: { attemptCount: -1 },
+              $unset: { leaseToken: 1, leaseExpiresAt: 1 },
+            },
+          );
+          return;
+        }
+        kind = 'provider'; // still throttled after slowing down: pause briefly
+      }
       if (kind === 'provider' || kind === 'rate-limit') {
         // Not this recipient's fault: give the attempt back, pause the queue and stop the batch.
         stopped = true;

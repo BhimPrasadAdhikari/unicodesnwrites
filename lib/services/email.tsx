@@ -18,16 +18,15 @@ function boundedEnvInt(value: string | undefined, fallback: number, maximum: num
   return Number.isInteger(parsed) && parsed > 0 ? Math.min(parsed, maximum) : fallback;
 }
 
-/** Messages per second across all connections. SES allows 14/s on this account; keep headroom. */
-export const EMAIL_SEND_RATE = boundedEnvInt(process.env.EMAIL_SEND_RATE, 12, 50);
+/** Messages per second for newsletter batches. SES allows 14/s on this account; keep headroom. */
+export const EMAIL_SEND_RATE = boundedEnvInt(process.env.EMAIL_SEND_RATE, 10, 50);
 export const EMAIL_MAX_CONNECTIONS = boundedEnvInt(process.env.EMAIL_MAX_CONNECTIONS, 8, 20);
 
 const transporter = nodemailer.createTransport({
   pool: true, // reuse SMTP connections across a newsletter batch
   maxConnections: EMAIL_MAX_CONNECTIONS,
-  // The pool spaces messages so parallel newsletter sends stay under the provider's rate.
-  rateDelta: 1000,
-  rateLimit: EMAIL_SEND_RATE,
+  // Newsletter delivery paces sends itself: nodemailer's fixed-window limiter lets
+  // two windows' worth through back to back, which SES counts as one burst.
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
   port: Number(process.env.EMAIL_PORT) || 587,
   secure: false, // true for 465, false for other ports
