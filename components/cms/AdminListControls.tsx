@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
 
@@ -87,6 +88,13 @@ export function Pager({ base, params, page, totalPages }: { base: string; params
 export function parsePage(value: string | undefined) {
   const page = Number.parseInt(value || '1', 10);
   return Number.isFinite(page) ? Math.min(Math.max(page, 1), 10_000) : 1;
+}
+
+/** A page number past the end (e.g. after deleting the last rows) goes to the last page instead of an empty list. */
+export function redirectPastLastPage(base: string, params: Params, page: number, totalPages: number) {
+  if (totalPages > 0 && page > totalPages) {
+    redirect(hrefWith(base, params, { page: totalPages > 1 ? String(totalPages) : undefined }));
+  }
 }
 
 export function escapeRegex(value: string) {

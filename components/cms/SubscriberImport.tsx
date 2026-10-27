@@ -9,6 +9,8 @@ export default function SubscriberImport() {
     const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
     const [result, setResult] = useState<any>(null);
     const [errorMessage, setErrorMessage] = useState('');
+    // Bumped after every attempt so picking the same file again still fires onChange.
+    const [inputKey, setInputKey] = useState(0);
     const router = useRouter();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,11 +38,13 @@ export default function SubscriberImport() {
             setResult(json);
             setStatus('success');
             router.refresh();
-            setFile(null); // Clear file
         } catch (error) {
             console.error(error);
             setErrorMessage(error instanceof Error ? error.message : 'Upload failed');
             setStatus('error');
+        } finally {
+            setFile(null);
+            setInputKey((key) => key + 1);
         }
     };
 
@@ -51,6 +55,7 @@ export default function SubscriberImport() {
             <div className="space-y-4">
                 <div className="border-2 border-dashed border-border rounded-md p-6 flex flex-col items-center justify-center text-center hover:bg-muted transition-colors">
                     <input 
+                        key={inputKey}
                         type="file" 
                         accept=".csv" 
                         onChange={handleFileChange} 
@@ -86,7 +91,7 @@ export default function SubscriberImport() {
                         <Check className="h-5 w-5 mt-0.5" />
                         <div>
                             <p className="font-medium">Import Successful</p>
-                            <p className="text-sm">Added: {result.added}, Duplicates: {result.duplicates}, Invalid: {result.invalid}</p>
+                            <p className="text-sm">Added: {result.added}, Duplicates: {result.duplicates}, Invalid: {result.invalid}{result.suppressed ? `, Skipped (previously deleted): ${result.suppressed}` : ''}</p>
                         </div>
                     </div>
                 )}

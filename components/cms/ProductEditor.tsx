@@ -147,8 +147,11 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to save product');
+        // Routes answer with { error, details? }; details holds Zod issues for a 400.
+        const payload = await res.json().catch(() => null);
+        const issue = Array.isArray(payload?.details) ? payload.details[0] : null;
+        const detail = issue?.message ? `${issue.path?.length ? `${issue.path.join('.')}: ` : ''}${issue.message}` : '';
+        throw new Error(detail || payload?.error || 'Failed to save product');
       }
 
       clearDraft();

@@ -410,6 +410,9 @@ export function CourseEditor({ initialData }: CourseEditorProps) {
   const hasUnsavedWork =
     saveStatus === "unsaved" ||
     saveStatus === "saving" ||
+    // A failed or conflicting save leaves the edits unsaved, so leaving should still warn.
+    saveStatus === "conflict" ||
+    saveStatus === "error" ||
     (!initialData && Boolean(form.title.trim()));
 
   useEffect(() => {

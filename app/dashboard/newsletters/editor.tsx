@@ -34,6 +34,16 @@ export default function EditNewsletterPage({ params }: { params?: { id: string }
     const [subject, setSubject] = useState('');
     const [previewText, setPreviewText] = useState('');
     const [content, setContent] = useState('<p>Hello subscribers,</p>');
+    // What the server last stored, to tell whether leaving would lose edits.
+    const [savedSnapshot, setSavedSnapshot] = useState(() => JSON.stringify(['', '', '<p>Hello subscribers,</p>']));
+    const isDirty = JSON.stringify([subject, previewText, content]) !== savedSnapshot;
+
+    useEffect(() => {
+        if (!isDirty || isSaving) return;
+        const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+        window.addEventListener('beforeunload', warn);
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [isDirty, isSaving]);
 
     useEffect(() => {
         if (!isNew && params?.id) {
@@ -48,6 +58,7 @@ export default function EditNewsletterPage({ params }: { params?: { id: string }
                     setSubject(data.subject);
                     setPreviewText(data.previewText || '');
                     setContent(data.content);
+                    setSavedSnapshot(JSON.stringify([data.subject, data.previewText || '', data.content]));
                     setIsLoading(false);
                 })
                 .catch(err => {
@@ -81,6 +92,7 @@ export default function EditNewsletterPage({ params }: { params?: { id: string }
 
             const data = await res.json().catch(() => null);
             if (!res.ok) throw new Error(data?.error || 'Campaign could not be saved.');
+            setSavedSnapshot(JSON.stringify([validation.data.subject, validation.data.previewText || '', content]));
 
             if (isNew) {
                 router.push(`/dashboard/newsletters/${data._id}/edit`);

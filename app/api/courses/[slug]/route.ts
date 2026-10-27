@@ -88,6 +88,14 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
     const { slug: id } = await params;
     if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid course ID' }, { status: 400 });
     await connectDB();
+    // Deleting would wipe learners' progress, notes and quiz history, so a course
+    // anyone has enrolled in can only be archived.
+    if (await CourseEnrollment.exists({ course: id })) {
+      return NextResponse.json(
+        { error: 'Learners are enrolled in this course, so it cannot be deleted without losing their progress. Archive it instead to hide it from the catalogue.' },
+        { status: 409 },
+      );
+    }
     const course = await Course.findByIdAndDelete(id);
     if (course) {
       await Promise.all([

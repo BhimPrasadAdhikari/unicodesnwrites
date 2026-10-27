@@ -87,11 +87,15 @@ export default function ProjectEditor({ initialData, isEditing = false }: Projec
 
       if (!res.ok) {
         const errData = await res.json().catch(() => null);
-        // Handle flattened Zod errors
-        if (errData.error?.fieldErrors) {
-            throw new Error('Validation failed. Please check the form.');
+        // Flattened Zod errors: show the first real field message rather than a generic one.
+        const flattened = errData?.error;
+        if (flattened && typeof flattened === 'object') {
+            const [field, messages] = Object.entries((flattened.fieldErrors ?? {}) as Record<string, string[] | undefined>)
+                .find(([, list]) => list?.length) ?? [];
+            if (field && messages) throw new Error(`${field}: ${messages[0]}`);
+            throw new Error(flattened.formErrors?.[0] || 'Validation failed. Please check the form.');
         }
-        throw new Error(errData.error || 'Something went wrong');
+        throw new Error(flattened || 'Something went wrong');
       }
 
       router.push('/dashboard/projects');

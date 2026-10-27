@@ -61,6 +61,10 @@ export async function PATCH(req: NextRequest, { params }: RouteProps) {
     const sent = onlySentFields(validationResult.data, body);
     const updateData: Record<string, unknown> = { ...sent };
 
+    if (sent.slug && sent.slug !== existingProduct.slug && await Product.exists({ slug: sent.slug, _id: { $ne: existingProduct._id } })) {
+      return NextResponse.json({ error: 'Slug already exists' }, { status: 409 });
+    }
+
     const product = await Product.findByIdAndUpdate(
       id,
       { $set: updateData },

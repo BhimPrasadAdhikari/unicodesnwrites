@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db/connection';
 import Subscriber from '@/lib/models/Subscriber';
+import SuppressedEmail, { hashSuppressedEmail } from '@/lib/models/SuppressedEmail';
 import { parseCSV } from '@/lib/utils/csv';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 
@@ -45,14 +46,22 @@ export async function POST(req: NextRequest) {
         // people who unsubscribed) are never touched by an import.
         let added = 0;
         let duplicates = 0;
+        let suppressed = 0;
         const all = [...rows.values()];
         for (let i = 0; i < all.length; i += CHUNK) {
             const chunk = all.slice(i, i + CHUNK);
             const existing = new Set(
                 (await Subscriber.find({ email: { $in: chunk.map((row) => row.email) } }).select('email').lean()).map((row) => row.email)
             );
-            const fresh = chunk.filter((row) => !existing.has(row.email));
-            duplicates += chunk.length - fresh.length;
+            // Addresses an admin deleted stay out until the person opts back in themselves.
+            const hashes = new Map(chunk.map((row) => [row.email, hashSuppressedEmail(row.email)]));
+            const suppressedHashes = new Set(
+                (await SuppressedEmail.find({ emailHash: { $in: [...hashes.values()] } }).select('emailHash').lean()).map((row) => row.emailHash)
+            );
+            const notSuppressed = chunk.filter((row) => !suppressedHashes.has(hashes.get(row.email)!));
+            suppressed += chunk.length - notSuppressed.length;
+            const fresh = notSuppressed.filter((row) => !existing.has(row.email));
+            duplicates += notSuppressed.length - fresh.length;
             if (!fresh.length) continue;
             const now = new Date();
             try {
@@ -69,7 +78,7 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        return NextResponse.json({ added, duplicates, invalid });
+        return NextResponse.json({ added, duplicates, invalid, suppressed });
 
     } catch (error) {
         if (error instanceof AdminAccessError) {

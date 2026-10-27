@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Star } from 'lucide-react';
 
 import { AdminRowActions } from '@/components/cms/AdminRowActions';
-import { FilterTabs, Pager, parsePage } from '@/components/cms/AdminListControls';
+import { FilterTabs, Pager, parsePage, redirectPastLastPage } from '@/components/cms/AdminListControls';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { connectDB } from '@/lib/db/connection';
@@ -46,6 +46,7 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ state
     Review.countDocuments({ approved: true }),
   ]);
   const linkParams = { state: params.state };
+  redirectPastLastPage('/dashboard/reviews', linkParams, page, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div>

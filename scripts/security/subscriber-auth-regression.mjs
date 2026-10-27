@@ -8,12 +8,13 @@ const read = (path) => readFileSync(join(root, path), 'utf8');
 const guardedRoutes = [
   {
     path: 'app/api/subscribers/export/route.ts',
-    sink: /Subscriber\.find\(\{\s*status:\s*'confirmed'\s*\}\)/,
+    // Filtered export; with no status filter it still exports confirmed subscribers only.
+    sink: /status && STATUSES\.has\(status\) \? status : 'confirmed'[\s\S]*Subscriber\.find\(query\)/,
     behavior: /toCSV/,
   },
   {
     path: 'app/api/subscribers/import/route.ts',
-    sink: /Subscriber\.create/,
+    sink: /Subscriber\.insertMany/,
     behavior: /parseCSV/,
   },
   {
