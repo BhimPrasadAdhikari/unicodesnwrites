@@ -81,7 +81,7 @@ export async function DELETE(
         await NewsletterSend.deleteMany({ subscriber: subscriber._id, status: { $in: ['pending', 'processing'] } });
         await NewsletterSend.updateMany({ subscriber: subscriber._id }, { $set: { email: '' } });
 
-await recordAdminAction(session, { action: 'delete', targetType: 'subscribers', targetId: params.id });
+        await recordAdminAction(session, { action: 'delete', targetType: 'subscribers', targetId: params.id });
         return NextResponse.json({ message: 'Subscriber deleted' }, { status: 200 });
     } catch (error) {
         if (error instanceof AdminAccessError) {

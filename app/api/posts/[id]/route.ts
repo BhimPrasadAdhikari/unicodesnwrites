@@ -4,6 +4,7 @@ import { Post } from '@/lib/models/Post';
 import { postSchema } from '@/lib/utils/validations/post';
 import { calculateReadingTime } from '@/lib/utils/slug';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import Comment from '@/lib/models/Comment';
 import { recordAdminAction } from '@/lib/services/admin-audit';
 
 const isObjectId = (value: string) => /^[a-f\d]{24}$/i.test(value);
@@ -137,8 +138,10 @@ export async function DELETE(
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
+    // Its comments would otherwise sit in the moderation queue under "a deleted post".
+    await Comment.deleteMany({ post: post._id });
 
-await recordAdminAction(session, { action: 'delete', targetType: 'posts', targetId: id, summary: post.title });
+    await recordAdminAction(session, { action: 'delete', targetType: 'posts', targetId: id, summary: post.title });
     return NextResponse.json({ message: 'Post deleted successfully' });
   } catch (error) {
     if (error instanceof AdminAccessError) {

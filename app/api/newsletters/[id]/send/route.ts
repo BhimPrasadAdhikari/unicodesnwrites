@@ -64,7 +64,7 @@ export async function POST(
             deadline: Date.now() + SEND_TIME_BUDGET_MS,
         });
 
-await recordAdminAction(session, { action: retryFailed ? 'retry-send' : 'send', targetType: 'newsletters', targetId: params.id, summary: `${newsletter.subject} · processed ${result.processedCount}, pending ${result.pendingCount}` });
+        await recordAdminAction(session, { action: retryFailed ? 'retry-send' : 'send', targetType: 'newsletters', targetId: params.id, summary: `${newsletter.subject} · processed ${result.processedCount}, pending ${result.pendingCount}` });
         const responseStatus = result.pendingCount > 0 ? 202 : 200;
         const pendingMessage = result.status === 'paused'
             ? 'Sending paused by the email provider. The scheduler resumes it automatically.'

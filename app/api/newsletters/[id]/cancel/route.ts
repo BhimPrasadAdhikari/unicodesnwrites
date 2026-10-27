@@ -13,7 +13,7 @@ export async function POST(
         const session = await requireAdminSession();
         if (!mongoose.isValidObjectId(params.id)) return NextResponse.json({ error: 'Invalid newsletter ID' }, { status: 400 });
         const result = await cancelNewsletterDelivery(params.id);
-await recordAdminAction(session, { action: 'stop', targetType: 'newsletters', targetId: params.id });
+        await recordAdminAction(session, { action: 'stop', targetType: 'newsletters', targetId: params.id });
         return NextResponse.json({ message: 'Campaign stopped. Pending recipients will not be emailed.', ...result });
     } catch (error) {
         if (error instanceof AdminAccessError || error instanceof NewsletterDeliveryError) {

@@ -164,7 +164,7 @@ export async function DELETE(
         const newsletter = await Newsletter.findByIdAndDelete(params.id);
          if (!newsletter) return NextResponse.json({ error: 'Not found' }, { status: 404 });
         await NewsletterSend.deleteMany({ newsletter: newsletter._id });
-await recordAdminAction(session, { action: 'delete', targetType: 'newsletters', targetId: params.id, summary: newsletter.subject });
+        await recordAdminAction(session, { action: 'delete', targetType: 'newsletters', targetId: params.id, summary: newsletter.subject });
         return NextResponse.json({ message: 'Deleted' });
     } catch (error) {
         if (error instanceof AdminAccessError) {

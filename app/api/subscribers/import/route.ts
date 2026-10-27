@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
             }
         }
 
-await recordAdminAction(session, { action: 'import', targetType: 'subscribers', summary: `added ${added}, duplicates ${duplicates}, invalid ${invalid}, suppressed ${suppressed}` });
+        await recordAdminAction(session, { action: 'import', targetType: 'subscribers', summary: `added ${added}, duplicates ${duplicates}, invalid ${invalid}, suppressed ${suppressed}` });
         return NextResponse.json({ added, duplicates, invalid, suppressed });
 
     } catch (error) {

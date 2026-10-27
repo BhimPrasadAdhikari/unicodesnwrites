@@ -10,7 +10,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function CoursesDashboardPage() {
   await connectDB();
-  const courses = await Course.find().sort({ updatedAt: -1 }).lean();
+  // Only what the list and totals show: full lessons carry transcripts and quizzes.
+  const courses = await Course.find()
+    .sort({ updatedAt: -1 })
+    .select('title topic level status updatedAt modules.lessons.durationMinutes')
+    .lean();
   const serialized = JSON.parse(JSON.stringify(courses));
   const lessons = courses.flatMap((course) => course.modules.flatMap((module) => module.lessons));
   const minutes = lessons.reduce((total, lesson) => total + lesson.durationMinutes, 0);
