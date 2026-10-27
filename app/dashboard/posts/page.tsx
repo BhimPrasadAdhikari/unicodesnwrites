@@ -39,7 +39,7 @@ export default async function BlogPostsPage(props: { searchParams: Promise<{ q?:
   await connectDB();
   const [posts, grouped] = await Promise.all([
     Post.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 }) // _id breaks ties so pages never repeat a post
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
       // Only what the table shows; bodies made this page slow as posts grew.
