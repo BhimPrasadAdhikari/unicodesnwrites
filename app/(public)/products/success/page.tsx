@@ -20,9 +20,26 @@ async function getPurchase(orderId: string) {
   await connectDB();
   // Ensure Product model is registered for populate
   if (Product) {} 
-  const purchase = await Purchase.findOne({ razorpayOrderId: orderId, status: 'completed' }).populate('product');
+  const purchase = await Purchase.findOne({ razorpayOrderId: orderId }).populate('product');
   if (!purchase) return null;
   return JSON.parse(JSON.stringify(purchase));
+}
+
+function InvalidOrder({ message }: { message: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="max-w-md text-center">
+        <p className="mb-4 text-destructive">{message}</p>
+        <Link href="/products" className="font-medium underline decoration-primary decoration-2 underline-offset-4">Return to tools</Link>
+      </div>
+    </div>
+  );
+}
+
+function hoursUntil(date: string | undefined) {
+  if (!date) return null;
+  const hours = Math.round((new Date(date).getTime() - Date.now()) / 3_600_000);
+  return hours > 0 ? hours : null;
 }
 
 export default async function SuccessPage(props: {
@@ -32,19 +49,21 @@ export default async function SuccessPage(props: {
   const orderId = searchParams.order_id;
 
   if (!orderId || !isRazorpayOrderId(orderId)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-           <p className="mb-4 text-destructive">This checkout session is invalid or incomplete.</p>
-           <Link href="/products" className="font-medium underline decoration-primary decoration-2 underline-offset-4">Return to tools</Link>
-        </div>
-      </div>
-    );
+    return <InvalidOrder message="This checkout session is invalid or incomplete." />;
   }
 
   let purchase = await getPurchase(orderId);
 
+  // Only orders this site created are checked with Razorpay.
   if (!purchase) {
+    return <InvalidOrder message="This checkout session is invalid or incomplete." />;
+  }
+
+  if (purchase.status === 'refunded') {
+    return <InvalidOrder message="This order was refunded, so there’s nothing to download. Contact me with your order number if that seems wrong." />;
+  }
+
+  if (purchase.status !== 'completed') {
     // FALLBACK: ask Razorpay directly in case the checkout callback and the
     // webhook are both delayed or lost.
     try {
@@ -57,9 +76,11 @@ export default async function SuccessPage(props: {
     }
   }
 
-  if (!purchase) {
+  if (!purchase || purchase.status !== 'completed') {
      return <OrderProcessing />;
   }
+
+  const linkHours = hoursUntil(purchase.downloadTokenExpiry);
 
   const product = purchase.product;
 
@@ -98,9 +119,11 @@ export default async function SuccessPage(props: {
               </div>
             </dl>
 
-            <p className="mt-5 text-sm text-muted-foreground">
-              A confirmation went to <span className="font-medium text-foreground">{purchase.customerEmail}</span>.
-            </p>
+            {purchase.emailSent && purchase.customerEmail ? (
+              <p className="mt-5 text-sm text-muted-foreground">
+                A confirmation went to <span className="font-medium text-foreground">{purchase.customerEmail}</span>.
+              </p>
+            ) : null}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
@@ -113,7 +136,7 @@ export default async function SuccessPage(props: {
                 <Link href="/products">Browse more tools</Link>
               </Button>
             </div>
-            <p className="pen-note mt-6 text-base">the link expires in 24 hours; <Link href="/products/download" className="underline">get a fresh one any time</Link></p>
+            <p className="pen-note mt-6 text-base">{linkHours ? `the link expires in ${linkHours} hour${linkHours === 1 ? '' : 's'}; ` : ''}<Link href="/products/download" className="underline">get a fresh one any time</Link></p>
           </div>
         </Container>
       </Section>

@@ -29,8 +29,28 @@ export async function consumeAiNotesQuota(clientIdentifier: string) {
   const day = new Date().toISOString().slice(0, 10);
   const clientHash = createHash('sha256').update(clientIdentifier).digest('hex').slice(0, 24);
 
-  const clientAllowed = await incrementBelowLimit(`ai-notes:${day}:client:${clientHash}`, clientLimit, tomorrow);
+  const clientKey = `ai-notes:${day}:client:${clientHash}`;
+  const globalKey = `ai-notes:${day}:global`;
+  const clientAllowed = await incrementBelowLimit(clientKey, clientLimit, tomorrow);
   if (!clientAllowed) return { allowed: false, reason: 'client' as const };
-  const globallyAllowed = await incrementBelowLimit(`ai-notes:${day}:global`, globalLimit, tomorrow);
-  return globallyAllowed ? { allowed: true as const } : { allowed: false as const, reason: 'global' as const };
+  const globallyAllowed = await incrementBelowLimit(globalKey, globalLimit, tomorrow);
+  if (!globallyAllowed) {
+    // The learner didn't get a note, so don't count it against them.
+    await decrement([clientKey]);
+    return { allowed: false as const, reason: 'global' as const };
+  }
+  return { allowed: true as const, keys: [clientKey, globalKey] };
+}
+
+async function decrement(keys: string[]) {
+  try {
+    await AiUsageBudget.updateMany({ key: { $in: keys }, count: { $gt: 0 } }, { $inc: { count: -1 } });
+  } catch (error) {
+    console.error('AI notes quota release failed:', error instanceof Error ? error.message : 'unknown error');
+  }
+}
+
+/** Gives back a consumed quota slot when generation produced no note. */
+export async function releaseAiNotesQuota(quota: { keys?: string[] }) {
+  if (quota.keys?.length) await decrement(quota.keys);
 }

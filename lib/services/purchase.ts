@@ -338,14 +338,23 @@ export async function emailFreshDownloadLinks(email: string) {
     .collation({ locale: 'en', strength: 2 })
     .sort({ purchasedAt: -1 })
     .limit(20)
-    .select('_id product')
+    .select('_id product downloadToken downloadTokenExpiry downloadCount maxDownloads')
     .lean();
 
   let sent = 0;
+  const now = Date.now();
   for (const item of purchases) {
     const product = await Product.findById(item.product);
     if (!product) continue;
-    const purchase = await reissueDownloadToken(String(item._id));
+    // A link that still works is re-sent as it is, so asking for links can't
+    // revoke the one the buyer already has.
+    const stillValid = Boolean(item.downloadToken)
+      && item.downloadTokenExpiry && new Date(item.downloadTokenExpiry).getTime() > now
+      && item.downloadCount < item.maxDownloads;
+    const purchase = stillValid
+      ? await Purchase.findById(item._id)
+      : await reissueDownloadToken(String(item._id));
+    if (!purchase) continue;
     try {
       await sendPurchaseConfirmation(purchase, product);
       sent += 1;
@@ -363,24 +372,21 @@ export async function resendPurchaseConfirmationEmail(purchaseId: string) {
   if (!purchase) {
     throw new ProductPurchaseError('Purchase not found', 404);
   }
+  if (purchase.status !== 'completed') {
+    throw new ProductPurchaseError(`This purchase is ${purchase.status}, so there is no download to send.`, 409);
+  }
+  if (!purchase.customerEmail) {
+    throw new ProductPurchaseError('This purchase has no customer email.', 409);
+  }
 
   const product = await Product.findById(purchase.product);
   if (!product) {
     throw new ProductPurchaseError('Associated product not found', 404);
   }
 
-  const updatedPurchase = await Purchase.findByIdAndUpdate(
-    purchase._id,
-    {
-      downloadToken: generateDownloadToken(),
-      downloadTokenExpiry: getExpiryDate(24),
-    },
-    { new: true }
-  );
-
-  if (!updatedPurchase) {
-    throw new ProductPurchaseError('Failed to update purchase', 500);
-  }
+  // New token, configured expiry and a restored download allowance, so the
+  // resent link works even if the buyer had used it up.
+  const updatedPurchase = await reissueDownloadToken(String(purchase._id));
 
   await sendPurchaseConfirmation(updatedPurchase, product);
 

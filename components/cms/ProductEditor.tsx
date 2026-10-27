@@ -18,12 +18,12 @@ type ProductFormData = z.infer<typeof productSchema>;
 type PreviewFileType = 'pdf' | 'video' | 'image';
 
 const PREVIEW_MAX_BYTES = 200 * 1024 * 1024;
-const PREVIEW_ACCEPT = 'video/mp4,video/webm,application/pdf,image/*,.mp4,.webm,.pdf';
+const PREVIEW_ACCEPT = 'video/mp4,video/webm,application/pdf,image/jpeg,image/png,image/webp,image/gif,.mp4,.webm,.pdf';
 
 function previewTypeFor(file: File): PreviewFileType | null {
   if (file.type === 'video/mp4' || file.type === 'video/webm') return 'video';
   if (file.type === 'application/pdf') return 'pdf';
-  if (file.type.startsWith('image/')) return 'image';
+  if (['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) return 'image';
   return null;
 }
 

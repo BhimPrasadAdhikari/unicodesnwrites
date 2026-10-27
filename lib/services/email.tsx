@@ -108,7 +108,9 @@ export const sendPurchaseConfirmation = async (
   product: IProduct
 ) => {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const downloadLink = `${appUrl}/api/download?token=${purchase.downloadToken}`;
+  // A landing page with a button, not the file itself: mail scanners that open
+  // links would otherwise use up the buyer's downloads.
+  const downloadLink = `${appUrl}/products/download?token=${encodeURIComponent(purchase.downloadToken)}`;
   
   const html = getPurchaseConfirmationHtml({
     customerName: purchase.customerName || 'Customer',

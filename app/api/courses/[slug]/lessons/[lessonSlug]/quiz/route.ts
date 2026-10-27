@@ -28,7 +28,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: 'Invalid quiz submission', details: parsed.error.issues }, { status: 400 });
   }
 
-  const result = await gradePublishedLessonQuiz(slug, lessonSlug, parsed.data.answers);
+  let result: Awaited<ReturnType<typeof gradePublishedLessonQuiz>>;
+  try {
+    result = await gradePublishedLessonQuiz(slug, lessonSlug, parsed.data.answers);
+  } catch (error) {
+    console.error('Quiz grading failed:', error instanceof Error ? error.message : 'unknown error');
+    return NextResponse.json({ error: 'Your quiz couldn’t be checked just now. Try again.' }, { status: 503 });
+  }
   if (!result) return NextResponse.json({ error: 'Published lesson not found' }, { status: 404 });
   const { courseId, ...gradedResult } = result;
   try {

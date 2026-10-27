@@ -6,7 +6,8 @@ import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 // browser to Vercel Blob. Server routes on Vercel cap request bodies at ~4.5 MB,
 // so this route only issues short-lived client tokens.
 const MAX_PREVIEW_FILE_SIZE = 200 * 1024 * 1024;
-const ALLOWED_CONTENT_TYPES = ['video/mp4', 'video/webm', 'application/pdf', 'image/*'];
+// Raster images only: an SVG can carry script.
+const ALLOWED_CONTENT_TYPES = ['video/mp4', 'video/webm', 'application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const PATHNAME_PREFIX = 'products/previews/';
 
 export async function POST(request: NextRequest) {
