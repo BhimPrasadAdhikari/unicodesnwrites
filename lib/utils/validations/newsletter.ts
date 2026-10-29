@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { cleanMultiline, cleanSingleLine } from '@/lib/utils/sanitize';
 import { objectIdSchema } from '@/lib/utils/validations/common';
+import { BOUNCED_TAG, subscriberTagListSchema } from '@/lib/utils/validations/subscriber';
 
 export const newsletterSourceSchema = z.enum([
   'homepage',
@@ -32,8 +33,12 @@ export const createNewsletterSchema = z.object({
 
 // Editing can only move an issue between draft and scheduled. Sending, sent and failed are set
 // by the delivery code; letting a PATCH set them would skip its checks or lock the issue.
+// audienceTags: empty sends to every confirmed subscriber.
 export const updateNewsletterSchema = createNewsletterSchema.partial().extend({
   status: z.enum(['draft', 'scheduled']).optional(),
+  audienceTags: subscriberTagListSchema
+    .refine((tags) => !tags.includes(BOUNCED_TAG), '"bounced" marks dead addresses and can’t be used as an audience.')
+    .optional(),
 });
 
 export const sendNewsletterSchema = z.object({

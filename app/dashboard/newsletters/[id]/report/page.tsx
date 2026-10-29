@@ -9,6 +9,7 @@ import { isValidObjectId } from 'mongoose';
 import { AdminRowActions } from '@/components/cms/AdminRowActions';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { mailboxGoneSendFilter } from '@/lib/services/newsletter-delivery';
+import { formatAudience } from '@/lib/utils/validations/subscriber';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 
 interface RecentSend {
@@ -93,8 +94,9 @@ export default async function CampaignReportPage(props: { params: Promise<{ id: 
                     <div><p className="text-eyebrow text-primary">Campaign</p><h2 className="mt-2 text-xl font-semibold">{newsletter.subject}</h2></div>
                     <div className="flex flex-wrap items-center gap-2">{failed > 0 && newsletter.status !== 'cancelled' && <Link href={`/dashboard/newsletters/${params.id}/send`} className="inline-flex items-center gap-2 rounded-md border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive"><RefreshCw className="h-3.5 w-3.5" /> Retry failures</Link>}<span className={`w-fit rounded-md border px-3 py-1 text-xs font-semibold capitalize ${newsletter.status === 'sent' ? 'border-success/20 bg-success/10 text-success' : 'border-warning/20 bg-warning/10 text-warning'}`}>{newsletter.status}</span></div>
                 </div>
-                <div className="mt-2 text-sm text-muted-foreground">
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     <span>Sent on {newsletter.sentAt ? new Date(newsletter.sentAt).toLocaleDateString() : '-'}</span>
+                    <span>Audience: {formatAudience(newsletter.audienceTags)}</span>
                 </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-5 lg:grid-cols-5">

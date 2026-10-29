@@ -6,6 +6,8 @@ import { CheckCircle2, Clock3, Download, Mail, RefreshCw, Search, Send, Trash2, 
 import { format } from 'date-fns';
 import { Alert } from '@/components/ui/Alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import SubscriberTagEditor from '@/components/cms/SubscriberTagEditor';
+import type { SubscriberTagCount } from '@/lib/services/subscriber-tags';
 
 interface Subscriber {
   _id: string;
@@ -15,6 +17,7 @@ interface Subscriber {
   source: string;
   createdAt: string;
   confirmedAt?: string;
+  tags?: string[];
 }
 
 interface SubscriberListProps {
@@ -24,6 +27,8 @@ interface SubscriberListProps {
   totalPages: number;
   search?: string;
   statusFilter?: '' | Subscriber['status'];
+  tagFilter?: string;
+  tagCounts?: SubscriberTagCount[];
 }
 
 const statusStyles = {
@@ -32,18 +37,26 @@ const statusStyles = {
   unsubscribed: 'border-border/20 bg-muted-foreground/10 text-foreground',
 };
 
-export default function SubscriberList({ subscribers: initialSubscribers, totalCount, page, totalPages, search = '', statusFilter = '' }: SubscriberListProps) {
+export default function SubscriberList({ subscribers: initialSubscribers, totalCount, page, totalPages, search = '', statusFilter = '', tagFilter = '', tagCounts = [] }: SubscriberListProps) {
   const router = useRouter();
   const [subscribers, setSubscribers] = useState(initialSubscribers);
   const [searchQuery, setSearchQuery] = useState(search);
 
-  // Keeps search and status filters when paging or changing one of them.
-  const listUrl = (changes: { page?: number; q?: string; status?: string }) => {
+  const tagSuggestions = tagCounts.map((item) => item.tag);
+  // A filter for a tag nobody carries any more still shows as selected.
+  const tagOptions = tagFilter && !tagSuggestions.includes(tagFilter)
+    ? [...tagCounts, { tag: tagFilter, confirmed: 0, total: 0 }]
+    : tagCounts;
+
+  // Keeps search, status and tag filters when paging or changing one of them.
+  const listUrl = (changes: { page?: number; q?: string; status?: string; tag?: string }) => {
     const params = new URLSearchParams();
     const q = changes.q ?? search;
     const status = changes.status ?? statusFilter;
+    const tag = changes.tag ?? tagFilter;
     if (q) params.set('q', q);
     if (status) params.set('status', status);
+    if (tag) params.set('tag', tag);
     if (changes.page && changes.page > 1) params.set('page', String(changes.page));
     const query = params.toString();
     return query ? `/dashboard/subscribers?${query}` : '/dashboard/subscribers';
@@ -128,6 +141,7 @@ export default function SubscriberList({ subscribers: initialSubscribers, totalC
       const params = new URLSearchParams();
       if (search) params.set('q', search);
       if (statusFilter) params.set('status', statusFilter);
+      if (tagFilter) params.set('tag', tagFilter);
       const response = await fetch(`/api/subscribers/export${params.size ? `?${params}` : ''}`);
       if (!response.ok) {
         const payload = await response.json().catch(() => null);
@@ -227,7 +241,20 @@ export default function SubscriberList({ subscribers: initialSubscribers, totalC
             <option value="pending">Pending</option>
             <option value="unsubscribed">Unsubscribed</option>
           </select>
-          <button type="button" onClick={handleExport} disabled={exporting} title={statusFilter ? undefined : 'Exports confirmed subscribers matching the current search'} className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-3.5 text-sm font-semibold transition hover:bg-muted disabled:opacity-50">
+          <label htmlFor="subscriber-tag" className="sr-only">Filter by tag</label>
+          <select
+            id="subscriber-tag"
+            value={tagFilter}
+            onChange={(event) => router.push(listUrl({ tag: event.target.value, page: 1 }))}
+            disabled={!tagOptions.length}
+            className="h-10 max-w-[14rem] rounded-xl border border-border bg-background px-3 text-sm font-medium disabled:opacity-50"
+          >
+            <option value="">{tagOptions.length ? 'All tags' : 'No tags yet'}</option>
+            {tagOptions.map((item) => (
+              <option key={item.tag} value={item.tag}>{item.tag} ({item.total.toLocaleString()} · {item.confirmed.toLocaleString()} confirmed)</option>
+            ))}
+          </select>
+          <button type="button" onClick={handleExport} disabled={exporting} title={statusFilter ? undefined : 'Exports confirmed subscribers matching the current search and tag'} className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-3.5 text-sm font-semibold transition hover:bg-muted disabled:opacity-50">
             {exporting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export CSV
           </button>
           <button type="button" onClick={() => router.refresh()} className="inline-flex h-11 items-center gap-2 rounded-lg bg-foreground px-3.5 text-sm font-semibold text-background transition hover:bg-foreground/90">
@@ -254,6 +281,7 @@ export default function SubscriberList({ subscribers: initialSubscribers, totalC
               <span className={`rounded-md border px-2 py-1 text-2xs font-semibold capitalize ${statusStyles[subscriber.status]}`}>{subscriber.status}</span>
             </div>
             <dl className="my-4 grid grid-cols-2 gap-3 text-xs"><div><dt className="text-muted-foreground">Source</dt><dd className="mt-1 capitalize">{subscriber.source}</dd></div><div><dt className="text-muted-foreground">Joined</dt><dd className="mt-1">{format(new Date(subscriber.createdAt), 'MMM d, yyyy')}</dd></div></dl>
+            <div className="mb-4"><SubscriberTagEditor subscriberId={subscriber._id} email={subscriber.email} tags={subscriber.tags || []} suggestions={tagSuggestions} /></div>
             {renderActions(subscriber)}
           </article>
         ))}
@@ -261,19 +289,20 @@ export default function SubscriberList({ subscribers: initialSubscribers, totalC
       </div>
 
       <div className="hidden overflow-x-auto md:block">
-        <Table className="min-w-[760px]">
-          <TableHeader><tr><TableHead>Subscriber</TableHead><TableHead>Status</TableHead><TableHead>Source</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead></tr></TableHeader>
+        <Table className="min-w-[960px]">
+          <TableHeader><tr><TableHead>Subscriber</TableHead><TableHead>Status</TableHead><TableHead>Tags</TableHead><TableHead>Source</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead></tr></TableHeader>
           <TableBody>
             {subscribers.map((subscriber) => (
               <TableRow key={subscriber._id}>
                 <TableCell><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-foreground">{subscriber.email.charAt(0).toUpperCase()}</span><div><p className="text-sm font-medium">{subscriber.name || 'Subscriber'}</p><p className="mt-0.5 text-xs text-muted-foreground">{subscriber.email}</p></div></div></TableCell>
                 <TableCell><span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-2xs font-semibold capitalize ${statusStyles[subscriber.status]}`}>{subscriber.status === 'confirmed' ? <CheckCircle2 className="h-3 w-3" /> : subscriber.status === 'pending' ? <Clock3 className="h-3 w-3" /> : <UserX className="h-3 w-3" />}{subscriber.status}</span></TableCell>
+                <TableCell className="max-w-[16rem]"><SubscriberTagEditor subscriberId={subscriber._id} email={subscriber.email} tags={subscriber.tags || []} suggestions={tagSuggestions} /></TableCell>
                 <TableCell className="text-sm capitalize text-muted-foreground">{subscriber.source}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{format(new Date(subscriber.createdAt), 'MMM d, yyyy')}</TableCell>
                 <TableCell>{renderActions(subscriber)}</TableCell>
               </TableRow>
             ))}
-            {subscribers.length === 0 && <TableRow><TableCell colSpan={5} className="py-14 text-center text-sm text-muted-foreground">No subscribers found.</TableCell></TableRow>}
+            {subscribers.length === 0 && <TableRow><TableCell colSpan={6} className="py-14 text-center text-sm text-muted-foreground">No subscribers found.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </div>

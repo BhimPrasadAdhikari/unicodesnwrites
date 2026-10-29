@@ -7,9 +7,12 @@ import { Users, UserPlus, UserMinus, TrendingUp } from 'lucide-react';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import type { ISubscriber } from '@/lib/models/Subscriber';
 import { cleanSingleLine } from '@/lib/utils/sanitize';
+import { countSubscriberTags } from '@/lib/services/subscriber-tags';
+import { parseTagFilter } from '@/lib/utils/validations/subscriber';
 
 interface SubscriberQuery {
     status?: ISubscriber['status'];
+    tags?: string;
     $or?: Array<
         | { email: { $regex: string; $options: 'i' } }
         | { name: { $regex: string; $options: 'i' } }
@@ -21,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SubscribersPage(props: {
-    searchParams: Promise<{ page?: string; q?: string; status?: string }>;
+    searchParams: Promise<{ page?: string; q?: string; status?: string; tag?: string }>;
 }) {
     await dbConnect();
 
@@ -45,9 +48,11 @@ export default async function SubscribersPage(props: {
     if (searchParams.status && allowedStatuses.has(searchParams.status as ISubscriber['status'])) {
         query.status = searchParams.status as ISubscriber['status'];
     }
+    const tag = parseTagFilter(searchParams.tag);
+    if (tag) query.tags = tag;
 
     // Data Fetching
-    const [subscribers, totalCount, globalStats, recentStats] = await Promise.all([
+    const [subscribers, totalCount, globalStats, recentStats, tagCounts] = await Promise.all([
         Subscriber.find(query)
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -72,6 +77,7 @@ export default async function SubscribersPage(props: {
             },
             { $count: 'count' },
         ]),
+        countSubscriberTags(),
     ]);
 
     const globalConfirmed = globalStats.find((stat) => stat._id === 'confirmed')?.count || 0;
@@ -87,6 +93,7 @@ export default async function SubscribersPage(props: {
         updatedAt: sub.updatedAt.toISOString(),
         confirmedAt: sub.confirmedAt?.toISOString(),
         subscribedAt: sub.subscribedAt?.toISOString(),
+        tags: sub.tags || [],
     }));
 
     const totalPages = Math.ceil(totalCount / limit);
@@ -150,9 +157,11 @@ export default async function SubscribersPage(props: {
 
             <SubscriberList 
                 // Remount on navigation so the list doesn't keep the previous page's rows.
-                key={`${page}-${search}-${query.status ?? 'all'}`}
+                key={`${page}-${search}-${query.status ?? 'all'}-${tag}`}
                 search={search}
                 statusFilter={query.status ?? ''}
+                tagFilter={tag}
+                tagCounts={tagCounts}
                 subscribers={serializedSubscribers}
                 totalCount={totalCount}
                 page={page}

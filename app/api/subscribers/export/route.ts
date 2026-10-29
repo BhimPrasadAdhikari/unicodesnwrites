@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db/connection';
 import Subscriber, { type ISubscriber } from '@/lib/models/Subscriber';
 import { toCSV } from '@/lib/utils/csv';
 import { cleanSingleLine } from '@/lib/utils/sanitize';
+import { parseTagFilter } from '@/lib/utils/validations/subscriber';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 
 const FIELDS = ['email', 'name', 'status', 'source', 'joined_at'];
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
         await requireAdminSession();
         await dbConnect();
 
-        // Same q/status filters as the subscribers page; with no status it exports
+        // Same q/status/tag filters as the subscribers page; with no status it exports
         // confirmed subscribers only, as it always has.
         const { searchParams } = new URL(req.url);
         const status = searchParams.get('status') as ISubscriber['status'] | null;
@@ -27,6 +28,8 @@ export async function GET(req: NextRequest) {
                 { name: { $regex: escapedSearch, $options: 'i' } },
             ];
         }
+        const tag = parseTagFilter(searchParams.get('tag'));
+        if (tag) query.tags = tag;
 
         // Stream from a cursor so a large list is never held in memory at once.
         const cursor = Subscriber.find(query)

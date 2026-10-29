@@ -4,6 +4,7 @@ import Subscriber from '@/lib/models/Subscriber';
 import SuppressedEmail, { hashSuppressedEmail } from '@/lib/models/SuppressedEmail';
 import { sendWelcomeEmail } from '@/lib/services/email';
 import { Analytics } from '@/lib/models/Analytics';
+import { BOUNCED_TAG } from '@/lib/utils/validations/subscriber';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -51,7 +52,8 @@ export async function GET(req: NextRequest) {
     // Conditional update: two clicks at once confirm (and send the welcome email) only once.
     const confirmed = await Subscriber.findOneAndUpdate(
       { _id: subscriber._id, status: 'pending', confirmationToken: hashedToken },
-      { $set: { status: 'confirmed', confirmedAt: new Date() }, $unset: { confirmationTokenExpiry: 1 } },
+      // Opening the link proves the mailbox works again, so an old "bounced" tag no longer keeps them off campaigns.
+      { $set: { status: 'confirmed', confirmedAt: new Date() }, $unset: { confirmationTokenExpiry: 1 }, $pull: { tags: BOUNCED_TAG } },
       { new: true },
     );
     if (!confirmed) {

@@ -6,6 +6,8 @@ import { ArrowLeft, Clock, Loader2, Mail, OctagonX, Send, Users } from 'lucide-r
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { subscribeSchema } from '@/lib/utils/validations/newsletter';
 import { Alert } from '@/components/ui/Alert';
+import { BOUNCED_TAG, formatAudience } from '@/lib/utils/validations/subscriber';
+import type { SubscriberTagCount } from '@/lib/services/subscriber-tags';
 
 interface NewsletterCampaign {
   _id: string;
@@ -16,6 +18,8 @@ interface NewsletterCampaign {
   pausedReason?: string;
   resumeAfter?: string | null;
   scheduledFor?: string | null;
+  /** Empty: every confirmed subscriber. */
+  audienceTags?: string[];
   recipientCount?: number;
   sentCount?: number;
   failedCount?: number;
@@ -23,6 +27,14 @@ interface NewsletterCampaign {
 }
 
 type Feedback = { type: 'success' | 'error' | 'info'; message: string };
+
+interface TagSummary {
+  everyone: number;
+  tags: SubscriberTagCount[];
+  audience?: { tags: string[]; count: number };
+}
+
+const tagKey = (tags: readonly string[]) => [...tags].sort().join(',');
 
 const statusStyles: Record<NewsletterCampaign['status'], string> = {
   draft: 'border-border bg-muted text-muted-foreground',
@@ -47,6 +59,13 @@ export default function SendNewsletterPage() {
   const router = useRouter();
   const [newsletter, setNewsletter] = useState<NewsletterCampaign | null>(null);
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
+  const [tagCounts, setTagCounts] = useState<SubscriberTagCount[]>([]);
+  const [audienceMode, setAudienceMode] = useState<'everyone' | 'tagged'>('everyone');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  // Recipient count for a tag selection, from the server; keyed so a stale answer is never shown.
+  const [taggedCount, setTaggedCount] = useState<{ key: string; count: number } | null>(null);
+  const [isSavingAudience, setIsSavingAudience] = useState(false);
+  const [audienceError, setAudienceError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
@@ -64,18 +83,22 @@ export default function SendNewsletterPage() {
     const fetchData = async () => {
       if (!params.id) return;
       try {
-        const [campaignResponse, countResponse] = await Promise.all([
+        const [campaignResponse, tagsResponse] = await Promise.all([
           fetch(`/api/newsletters/${encodeURIComponent(params.id)}`),
-          fetch('/api/subscribers/count?status=confirmed'),
+          fetch('/api/subscribers/tags'),
         ]);
         if (!campaignResponse.ok) throw new Error('Campaign could not be loaded.');
-        if (!countResponse.ok) throw new Error('Subscriber count could not be loaded.');
+        if (!tagsResponse.ok) throw new Error('Subscriber counts could not be loaded.');
 
         const campaign = await campaignResponse.json() as NewsletterCampaign;
-        const count = await countResponse.json() as { count?: number };
+        const summary = await tagsResponse.json() as Partial<TagSummary>;
         setNewsletter(campaign);
         setScheduleAt(toLocalDateTimeInput(campaign.scheduledFor));
-        setSubscriberCount(typeof count.count === 'number' ? count.count : 0);
+        setSubscriberCount(typeof summary.everyone === 'number' ? summary.everyone : 0);
+        setTagCounts(Array.isArray(summary.tags) ? summary.tags : []);
+        const savedTags = campaign.audienceTags || [];
+        setAudienceMode(savedTags.length ? 'tagged' : 'everyone');
+        setSelectedTags([...savedTags].sort());
       } catch (error) {
         setFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Campaign data could not be loaded.' });
       } finally {
@@ -84,6 +107,53 @@ export default function SendNewsletterPage() {
     };
     fetchData();
   }, [params.id]);
+
+  const selectionKey = audienceMode === 'tagged' ? tagKey(selectedTags) : '';
+  useEffect(() => {
+    if (!selectionKey) return;
+    const controller = new AbortController();
+    fetch(`/api/subscribers/tags?audience=${encodeURIComponent(selectionKey)}`, { signal: controller.signal })
+      .then(async (response) => {
+        const summary = await response.json().catch(() => null) as (Partial<TagSummary> & { error?: string }) | null;
+        if (!response.ok || !summary?.audience) throw new Error(summary?.error || 'Recipient count could not be loaded.');
+        setTaggedCount({ key: selectionKey, count: summary.audience.count });
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setAudienceError(error instanceof Error ? error.message : 'Recipient count could not be loaded.');
+      });
+    return () => controller.abort();
+  }, [selectionKey]);
+
+  const toggleTag = (tag: string) => {
+    setAudienceError(null);
+    setSelectedTags((current) => (current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag].sort()));
+  };
+
+  const handleSaveAudience = async () => {
+    const audienceTags = audienceMode === 'tagged' ? selectedTags : [];
+    if (audienceMode === 'tagged' && !audienceTags.length) {
+      setAudienceError('Pick at least one tag, or choose Everyone.');
+      return;
+    }
+    setIsSavingAudience(true);
+    setAudienceError(null);
+    try {
+      const response = await fetch(`/api/newsletters/${encodeURIComponent(params.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audienceTags }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error || 'Audience could not be saved.');
+      setNewsletter(data);
+      setFeedback({ type: 'success', message: `Audience saved: ${formatAudience(data.audienceTags)}.` });
+    } catch (error) {
+      setAudienceError(error instanceof Error ? error.message : 'Audience could not be saved.');
+    } finally {
+      setIsSavingAudience(false);
+    }
+  };
 
   const handleSendTest = async () => {
     const validation = subscribeSchema.safeParse({ email: testEmail, source: 'api' });
@@ -260,8 +330,24 @@ export default function SendNewsletterPage() {
   const isFailed = newsletter.status === 'failed';
   const isCancelled = newsletter.status === 'cancelled';
   const hasRetryableFailures = (newsletter.failedCount || 0) > 0 && (isSent || isFailed || isSendingState);
+  const hasStarted = isSendingState || isSent || isFailed || isCancelled;
+  const savedTags = newsletter.audienceTags || [];
+  // The audience is fixed once delivery starts; until then it must be saved before sending.
+  const canEditAudience = newsletter.status === 'draft' || isScheduled;
+  const audienceDirty = canEditAudience && (audienceMode === 'tagged' ? tagKey(selectedTags) : '') !== tagKey(savedTags);
+  const selectionCount = audienceMode === 'everyone'
+    ? subscriberCount
+    : selectedTags.length ? (taggedCount?.key === selectionKey ? taggedCount.count : null) : 0;
+  const audience = hasStarted && newsletter.recipientCount ? newsletter.recipientCount : selectionCount ?? 0;
+  // "Only subscribers tagged…" with nothing ticked would otherwise read 0 but send to everyone.
+  const emptyTaggedAudience = (savedTags.length > 0 && !audienceDirty && selectionCount === 0)
+    || (canEditAudience && audienceMode === 'tagged' && !selectedTags.length);
   const canSchedule = !isSendingState && !isSent && !isCancelled;
-  const audience = subscriberCount ?? newsletter.recipientCount ?? 0;
+  // Tags to pick from: everything in use except "bounced", plus any saved tag nobody carries any more.
+  const tagChoices = [
+    ...tagCounts.filter((item) => item.tag !== BOUNCED_TAG),
+    ...savedTags.filter((tag) => !tagCounts.some((item) => item.tag === tag)).map((tag) => ({ tag, confirmed: 0, total: 0 })),
+  ];
   const scheduleDisplay = newsletter.scheduledFor ? new Date(newsletter.scheduledFor).toLocaleString() : 'Not scheduled';
 
   return (
@@ -298,10 +384,46 @@ export default function SendNewsletterPage() {
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-xl border border-border bg-card/70 p-5">
-            <div className="flex items-center justify-between"><h2 className="font-semibold">Audience</h2><Users className="h-4 w-4 text-muted-foreground" /></div>
-            <p className="mt-4 text-3xl font-semibold tracking-tight">{audience.toLocaleString()}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Confirmed subscribers</p>
+          <section className="rounded-xl border border-border bg-card/70 p-5" aria-labelledby="audience-heading">
+            <div className="flex items-center justify-between"><h2 id="audience-heading" className="font-semibold">Audience</h2><Users className="h-4 w-4 text-muted-foreground" /></div>
+            <p className="mt-4 text-3xl font-semibold tracking-tight" aria-live="polite">{hasStarted || selectionCount !== null ? audience.toLocaleString() : '…'}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{hasStarted ? 'Recipients' : 'Confirmed subscribers who will receive it'}</p>
+            {canEditAudience ? (
+              <fieldset className="mt-4 space-y-2 border-t border-border pt-4" disabled={isSavingAudience}>
+                <legend className="sr-only">Who receives this campaign</legend>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="radio" name="audience-mode" value="everyone" checked={audienceMode === 'everyone'} onChange={() => { setAudienceMode('everyone'); setAudienceError(null); }} className="h-4 w-4 accent-primary" />
+                  Everyone ({(subscriberCount ?? 0).toLocaleString()} confirmed)
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="radio" name="audience-mode" value="tagged" checked={audienceMode === 'tagged'} onChange={() => { setAudienceMode('tagged'); setAudienceError(null); }} disabled={!tagChoices.length} className="h-4 w-4 accent-primary" />
+                  Only subscribers tagged…
+                </label>
+                {!tagChoices.length && <p className="pl-6 text-xs text-muted-foreground">Tag subscribers on the Subscribers page to send to part of the list.</p>}
+                {audienceMode === 'tagged' && tagChoices.length > 0 && (
+                  <fieldset className="max-h-48 space-y-1.5 overflow-y-auto pl-6">
+                    <legend className="sr-only">Tags to send to (subscribers with any of them)</legend>
+                    {tagChoices.map((item) => (
+                      <label key={item.tag} className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={selectedTags.includes(item.tag)} onChange={() => toggleTag(item.tag)} className="h-4 w-4 accent-primary" />
+                        <span className="min-w-0 truncate">{item.tag}</span>
+                        <span className="ml-auto text-xs text-muted-foreground">{item.confirmed.toLocaleString()}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                )}
+                {audienceError && <p role="alert" className="text-xs text-destructive">{audienceError}</p>}
+                {audienceDirty && (
+                  <>
+                    <button type="button" onClick={handleSaveAudience} disabled={isSavingAudience || (audienceMode === 'tagged' && !selectedTags.length)} className="mt-1 inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">{isSavingAudience && <Loader2 className="h-4 w-4 animate-spin" />} Save audience</button>
+                    <p className="text-xs text-muted-foreground">Save the audience before sending or scheduling.</p>
+                  </>
+                )}
+                {emptyTaggedAudience && <p className="text-xs text-warning">No confirmed subscribers have these tags yet.</p>}
+              </fieldset>
+            ) : (
+              <p className="mt-3 text-xs text-muted-foreground">{formatAudience(savedTags)}</p>
+            )}
             {(isSendingState || isSent || isFailed || isCancelled) && <p className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">Sent {newsletter.sentCount || 0} · Failed {newsletter.failedCount || 0} · Pending {Math.max(0, (newsletter.recipientCount || 0) - (newsletter.sentCount || 0) - (newsletter.failedCount || 0))}</p>}
             {isPaused && <p className="mt-2 text-xs text-warning">Paused{newsletter.resumeAfter ? ` until ${new Date(newsletter.resumeAfter).toLocaleString()}` : ''}: {newsletter.pausedReason || 'the email provider refused mail.'}</p>}
           </section>
@@ -321,13 +443,13 @@ export default function SendNewsletterPage() {
 
             {confirmSend && (
               <div className="mt-4 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-xs leading-5 text-destructive">
-                This will deliver to {audience.toLocaleString()} subscribers. Sending cannot be undone.
+                This will deliver to {audience.toLocaleString()} subscribers ({formatAudience(savedTags)}). Sending cannot be undone.
                 <button type="button" onClick={() => setConfirmSend(false)} className="mt-2 block font-semibold underline underline-offset-2">Cancel send</button>
               </div>
             )}
 
-            {hasRetryableFailures ? <button type="button" onClick={() => handleSendNow(false, true)} disabled={isSending} className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition disabled:opacity-50 ${confirmSend ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>{isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{confirmSend ? 'Confirm retry' : `Retry ${newsletter.failedCount} failures`}</button> : <button type="button" onClick={() => handleSendNow(isScheduled)} disabled={isSending || isSent || isCancelled} className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${confirmSend ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>{isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{confirmSend ? 'Confirm and send' : isPaused ? 'Resume now' : isSendingState ? 'Process next batch' : isCancelled ? 'Stopped' : isScheduled ? 'Send now instead' : 'Send now'}</button>}
-            <button type="button" onClick={isScheduled ? handleUnschedule : handleSchedule} disabled={isScheduling || !canSchedule} className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">{isScheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}{isScheduled ? 'Move back to draft' : 'Schedule campaign'}</button>
+            {hasRetryableFailures ? <button type="button" onClick={() => handleSendNow(false, true)} disabled={isSending} className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition disabled:opacity-50 ${confirmSend ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>{isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{confirmSend ? 'Confirm retry' : `Retry ${newsletter.failedCount} failures`}</button> : <button type="button" onClick={() => handleSendNow(isScheduled)} disabled={isSending || isSent || isCancelled || audienceDirty || emptyTaggedAudience} className={`mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${confirmSend ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>{isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{confirmSend ? 'Confirm and send' : isPaused ? 'Resume now' : isSendingState ? 'Process next batch' : isCancelled ? 'Stopped' : isScheduled ? 'Send now instead' : 'Send now'}</button>}
+            <button type="button" onClick={isScheduled ? handleUnschedule : handleSchedule} disabled={isScheduling || !canSchedule || (!isScheduled && audienceDirty)} className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50">{isScheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock className="h-4 w-4" />}{isScheduled ? 'Move back to draft' : 'Schedule campaign'}</button>
           </section>
         </aside>
       </div>
