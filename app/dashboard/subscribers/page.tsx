@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db/connection';
 import Subscriber from '@/lib/models/Subscriber';
 import SubscriberList from '@/components/cms/SubscriberList';
 import SubscriberImport from '@/components/cms/SubscriberImport';
+import SubscriberSuppressList from '@/components/cms/SubscriberSuppressList';
 import { Users, UserPlus, UserMinus, TrendingUp } from 'lucide-react';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import type { ISubscriber } from '@/lib/models/Subscriber';
@@ -152,6 +153,19 @@ export default async function SubscribersPage(props: {
                         Imported addresses are added as confirmed, so only import people who agreed to hear from you. Addresses already on the list, including anyone who unsubscribed, are left alone, and addresses you deleted are skipped until the person subscribes again themselves.
                     </p>
                     <SubscriberImport />
+                </div>
+            </details>
+
+            <details className="group rounded-lg border border-border bg-card">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-sm font-medium">
+                    Mark addresses as bounced
+                    <span className="font-mono text-[12px] text-muted-foreground">column: email, or one per line</span>
+                </summary>
+                <div className="border-t border-border p-5">
+                    <p className="mb-4 text-sm text-muted-foreground">
+                        Unsubscribes and tags &ldquo;bounced&rdquo; every subscriber in the file, for reconciling the Amazon SES suppression list; addresses not on the list are ignored.
+                    </p>
+                    <SubscriberSuppressList />
                 </div>
             </details>
 

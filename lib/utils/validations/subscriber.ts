@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const MAX_SUBSCRIBER_TAGS = 20;
 /** Set by bounce clean-up. Subscribers carrying it are never emailed a campaign. */
 export const BOUNCED_TAG = 'bounced';
+/** Set when a recipient marked an email as spam (SES complaint). They are unsubscribed too. */
+export const COMPLAINED_TAG = 'complained';
 export const SUBSCRIBER_TAG_PATTERN = /^[a-z0-9_ -]{1,32}$/;
 
 export const subscriberTagSchema = z

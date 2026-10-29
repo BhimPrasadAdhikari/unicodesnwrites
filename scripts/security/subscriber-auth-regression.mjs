@@ -23,6 +23,11 @@ const guardedRoutes = [
     behavior: /recordAdminAction\(session, \{\s*action: 'update-tags'/,
   },
   {
+    path: 'app/api/subscribers/suppress-list/route.ts',
+    sink: /suppressSubscriberEmails\(emails, BOUNCED_TAG\)/,
+    behavior: /recordAdminAction\(session, \{ action: 'mark-bounced'/,
+  },
+  {
     path: 'app/api/subscribers/tags/route.ts',
     sink: /countSubscriberTags\(\)/,
     behavior: /countCampaignAudience/,
