@@ -3,6 +3,7 @@ import CourseEnrollment from '@/lib/models/CourseEnrollment';
 import CourseQuizAttempt from '@/lib/models/CourseQuizAttempt';
 import LearnerLessonState, { type LessonWorkspaceTab } from '@/lib/models/LearnerLessonState';
 import LearnerNotebookEntry from '@/lib/models/LearnerNotebookEntry';
+import { upsertCardsForMissedQuestions } from '@/lib/services/review-queue';
 
 type QuizResult = {
   score: number;
@@ -86,6 +87,18 @@ export async function recordQuizAttempt(input: {
     ...input.result,
     attemptedAt: new Date(),
   });
+  try {
+    await upsertCardsForMissedQuestions({
+      userId: input.userId,
+      courseId: input.courseId,
+      lessonSlug: input.lessonSlug,
+      results: input.result.results,
+      now: attempt.attemptedAt,
+    });
+  } catch (error) {
+    // The attempt is saved; review cards are a bonus and must never fail the quiz.
+    console.error('Review card upsert failed:', error instanceof Error ? error.message : 'unknown error');
+  }
   return { attemptId: attempt._id.toString(), attemptedAt: attempt.attemptedAt.toISOString() };
 }
 

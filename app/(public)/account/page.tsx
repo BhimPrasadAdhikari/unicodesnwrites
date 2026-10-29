@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { AccountSettings } from '@/components/public/AccountSettings';
+import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Section';
 import { authOptions } from '@/lib/config/auth';
 import { connectDB } from '@/lib/db/connection';
@@ -10,6 +12,7 @@ import LearnerNotebookEntry from '@/lib/models/LearnerNotebookEntry';
 import Product from '@/lib/models/Product';
 import Purchase from '@/lib/models/Purchase';
 import { User } from '@/lib/models/User';
+import { countDueReviews } from '@/lib/services/review-queue';
 
 export const metadata = {
   title: 'Account and Profile settings',
@@ -39,6 +42,7 @@ export default async function AccountPage() {
   }> = [];
   let enrolledCount = 0;
   let notebookCount = 0;
+  let reviewDueCount = 0;
 
   try {
     await connectDB();
@@ -102,6 +106,12 @@ export default async function AccountPage() {
     console.error('Failed to load user purchases or stats:', error);
   }
 
+  try {
+    reviewDueCount = await countDueReviews(user._id.toString(), user.role || 'learner');
+  } catch (error) {
+    console.error('Failed to count due review cards:', error);
+  }
+
   const joinedAtStr = user.createdAt
     ? new Date(user.createdAt).toISOString()
     : new Date().toISOString();
@@ -115,6 +125,9 @@ export default async function AccountPage() {
           <p className="mt-4 max-w-2xl text-[17px] leading-[1.6] text-muted-foreground">
             Manage your personal profile, view learning overview, protect your security, retrieve purchased digital assets, and control your personal data.
           </p>
+          <Button asChild variant="outline" className="mt-5">
+            <Link href="/review">Review ({reviewDueCount} due)</Link>
+          </Button>
         </Container>
       </section>
       <Container className="max-w-[1200px] py-10 sm:py-12">
@@ -132,6 +145,7 @@ export default async function AccountPage() {
             purchasesCount: purchases.length,
             enrolledCount,
             notebookCount,
+            reviewDueCount,
           }}
           isAdmin={user.role === 'admin'}
         />

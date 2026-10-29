@@ -33,6 +33,7 @@ export default async function MyLearningPage() {
             <nav aria-label="Learner" className="flex gap-1 border-b border-border sm:border-0">
               <span aria-current="page" className="-mb-px inline-flex h-11 items-center border-b-2 border-primary px-3.5 text-[15px] font-semibold">Courses</span>
               <Link href="/learn/notebook" className="-mb-px inline-flex h-11 items-center border-b-2 border-transparent px-3.5 text-[15px] font-medium text-muted-foreground hover:text-foreground">Notebook</Link>
+              <Link href="/review" className="-mb-px inline-flex h-11 items-center border-b-2 border-transparent px-3.5 text-[15px] font-medium text-muted-foreground hover:text-foreground">Review</Link>
               <Link href="/account" className="-mb-px inline-flex h-11 items-center border-b-2 border-transparent px-3.5 text-[15px] font-medium text-muted-foreground hover:text-foreground">Account</Link>
             </nav>
           </div>

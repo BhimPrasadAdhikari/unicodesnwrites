@@ -11,6 +11,7 @@ import {
   Download,
   FileText,
   KeyRound,
+  ListChecks,
   Loader2,
   PackageCheck,
   Save,
@@ -51,6 +52,7 @@ type StatsData = {
   purchasesCount: number;
   enrolledCount: number;
   notebookCount: number;
+  reviewDueCount: number;
 };
 
 function Feedback({ value }: { value: { type: 'success' | 'error'; text: string } | null }) {
@@ -371,7 +373,7 @@ export function AccountSettings({
               <CardDescription>Overview of your registered courses, completed modules, and AI study notes.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-xl border border-border bg-card p-5">
                   <div className="flex items-center justify-between">
                     <BookOpenCheck className="h-6 w-6 text-muted-foreground" />
@@ -393,6 +395,18 @@ export function AccountSettings({
                   <p className="mt-1 text-xs text-muted-foreground">Saved takeaways, code snippets, and study explanations.</p>
                   <Button asChild variant="outline" size="sm" className="mt-4 w-full">
                     <Link href="/learn">Open Notebook</Link>
+                  </Button>
+                </div>
+
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex items-center justify-between">
+                    <ListChecks className="h-6 w-6 text-muted-foreground" />
+                    <span className="font-serif text-[28px] font-medium leading-none">{stats.reviewDueCount}</span>
+                  </div>
+                  <h3 className="mt-3 font-serif text-lg font-medium">Review queue</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">Missed quiz questions, spaced out until they stick.</p>
+                  <Button asChild variant="outline" size="sm" className="mt-4 w-full">
+                    <Link href="/review">Review ({stats.reviewDueCount} due)</Link>
                   </Button>
                 </div>
 
