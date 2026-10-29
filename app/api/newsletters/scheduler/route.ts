@@ -5,6 +5,7 @@ import {
   NewsletterDeliveryError,
   startOrContinueNewsletterDelivery,
 } from '@/lib/services/newsletter-delivery';
+import { sendDueWelcomeEmails, type WelcomeSeriesRunResult } from '@/lib/services/welcome-series';
 import crypto from 'crypto';
 
 const DEFAULT_BATCH_SIZE = 500;
@@ -101,6 +102,7 @@ async function runScheduler(request: NextRequest) {
   const errors: Array<{ newsletterId: string; error: string }> = [];
 
   const startedAt = Date.now();
+  let providerRefused = false;
   for (const campaign of dueCampaigns) {
     if (Date.now() - startedAt > RUN_TIME_BUDGET_MS) break;
     try {
@@ -134,6 +136,7 @@ async function runScheduler(request: NextRequest) {
       });
       if (result.providerError) {
         errors.push({ newsletterId: result.newsletterId, error: result.providerError });
+        providerRefused = true;
         break; // the provider is refusing mail; don't hammer it with other campaigns
       }
     } catch (error) {
@@ -148,12 +151,25 @@ async function runScheduler(request: NextRequest) {
     }
   }
 
+  // Welcome-series follow-ups go after campaigns, in whatever time is left, and not at
+  // all when the provider just refused a campaign.
+  let welcome: WelcomeSeriesRunResult = { enabled: false, sent: 0, failed: 0 };
+  if (!providerRefused && Date.now() - startedAt < RUN_TIME_BUDGET_MS) {
+    try {
+      welcome = await sendDueWelcomeEmails({ deadline: startedAt + RUN_TIME_BUDGET_MS });
+    } catch (error) {
+      console.error('Welcome series run failed:', error);
+      welcome = { ...welcome, error: error instanceof Error ? error.message : 'Unknown welcome series error' };
+    }
+  }
+
   return NextResponse.json({
     runAt: now.toISOString(),
     consideredCampaigns: dueCampaigns.length,
     waitingCampaigns: inFlight.length - dueCampaigns.filter((campaign) => campaign.status !== 'scheduled').length,
     processed,
     errors,
+    welcome,
   });
 }
 

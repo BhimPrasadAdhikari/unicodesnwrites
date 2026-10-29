@@ -12,6 +12,7 @@ const guardedRoutes = [
   'app/api/newsletters/[id]/send/route.ts',
   'app/api/newsletters/[id]/test/route.ts',
   'app/api/newsletters/from-posts/route.ts',
+  'app/api/newsletters/welcome-series/route.ts',
 ];
 
 for (const route of guardedRoutes) {
