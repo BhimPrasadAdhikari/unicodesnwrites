@@ -43,10 +43,13 @@ export default function BlogPostList({
   posts,
   seriesList = [],
   emailedCampaigns = {},
+  emptyMessage = 'No blog posts yet. Create your first post!',
 }: {
   posts: Post[];
   seriesList?: Series[];
   emailedCampaigns?: Record<string, EmailedCampaign>;
+  /** Shown when the list is empty, e.g. after a search finds nothing */
+  emptyMessage?: string;
 }) {
   const router = useRouter();
   const [feedback, setFeedback] = useState('');
@@ -214,7 +217,7 @@ export default function BlogPostList({
           <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-xl border border-border bg-secondary">
             <FileText className="h-8 w-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground">No blog posts yet. Create your first post!</p>
+          <p className="text-muted-foreground">{emptyMessage}</p>
         </div>
       )}
     </div>
