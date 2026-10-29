@@ -10,6 +10,7 @@ import ConfirmationEmail from '@/lib/email-templates/confirmation';
 import WelcomeEmail from '@/lib/email-templates/welcome';
 import NewsletterEmail from '@/lib/email-templates/newsletter';
 import UnsubscribeConfirmationEmail from '@/lib/email-templates/unsubscribe-confirm';
+import welcomeSeriesTemplate from '@/lib/email-templates/welcome-series';
 import { generateUnsubscribeToken } from '@/lib/utils/email-tokens';
 import { addTracking } from '@/lib/services/newsletter-tracking';
 
@@ -144,6 +145,11 @@ export const sendPurchaseConfirmation = async (
 
 // Newsletter Functions
 
+export interface WelcomeSeriesSection {
+  heading: string;
+  links: Array<{ title: string; url: string; description?: string }>;
+}
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export const sendSubscriberConfirmation = async (subscriber: ISubscriber, token: string) => {
@@ -171,6 +177,42 @@ export const sendWelcomeEmail = async (subscriber: ISubscriber) => {
     html,
     text: `Welcome! We're glad to have you. You can unsubscribe anytime here: ${unsubscribeUrl}`,
   });
+};
+
+/**
+ * A welcome-series follow-up (steps after the welcome email). Same footer and
+ * unsubscribe handling as campaigns; throws when the send was skipped so the
+ * series never records an email that didn't go out.
+ */
+export const sendWelcomeSeriesEmail = async (
+  subscriber: Pick<ISubscriber, 'email'>,
+  email: { step: number; subject: string; intro: string; sections: WelcomeSeriesSection[] },
+) => {
+  const unsubscribeQuery = `email=${encodeURIComponent(subscriber.email)}&token=${generateUnsubscribeToken(subscriber.email)}`;
+  const unsubscribeUrl = `${APP_URL}/newsletter/unsubscribe?${unsubscribeQuery}`;
+  const oneClickUnsubscribeUrl = `${APP_URL}/api/newsletter/unsubscribe?${unsubscribeQuery}`;
+
+  const { html, text } = welcomeSeriesTemplate.renderWelcomeSeriesEmail({
+    subject: email.subject,
+    intro: email.intro,
+    sections: email.sections,
+    unsubscribeUrl,
+    postalAddress: businessConfig.mailingAddress,
+  });
+
+  const result = await sendEmail({
+    to: subscriber.email,
+    subject: email.subject,
+    html,
+    text,
+    headers: {
+      'List-Unsubscribe': `<${oneClickUnsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      'Precedence': 'bulk',
+      'X-Campaign-ID': `welcome-step-${email.step}`,
+    },
+  });
+  if (result && 'skipped' in result) throw new Error('EMAIL_SKIPPED');
 };
 
 export const sendNewsletterToSubscriber = async (

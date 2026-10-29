@@ -3,7 +3,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import newsletterHtmlSanitizer from '../../lib/utils/newsletter-html-sanitizer.js';
 
+import welcomeSeriesTemplate from '../../lib/email-templates/welcome-series.js';
+
 const { sanitizeNewsletterHtml } = newsletterHtmlSanitizer;
+const { renderWelcomeSeriesEmail } = welcomeSeriesTemplate;
 
 const root = process.cwd();
 const read = (path) => readFileSync(join(root, path), 'utf8');
@@ -35,5 +38,31 @@ const publicPage = read('app/(public)/newsletter/[id]/page.tsx');
 assert.match(createRoute, /content:\s*sanitizeNewsletterHtml\(result\.data\.content\)/, 'newsletter create must sanitize content before storage');
 assert.match(updateRoute, /updateData\.content\s*=\s*sanitizeNewsletterHtml\(result\.data\.content\)/, 'newsletter update must sanitize content before storage');
 assert.match(publicPage, /SandboxedHtml\s+html=\{sanitizeNewsletterHtml\(newsletter\.content\)\}/s, 'public newsletter render must sanitize content before passing it into the sandboxed renderer');
+
+// Welcome-series emails mix admin copy with post/course titles: everything must be escaped
+// and only http(s) links may survive.
+const welcome = renderWelcomeSeriesEmail({
+  subject: '<script>alert(1)</script>',
+  intro: 'Hi <img src=x onerror=alert(1)>\n\nSecond "paragraph"',
+  sections: [{
+    heading: '<b>Start</b>',
+    links: [
+      { title: '<script>alert(2)</script>', url: 'https://example.com/blog/a?x="><script>', description: '<svg onload=alert(3)>' },
+      { title: 'bad link', url: 'javascript:alert(4)' },
+    ],
+  }],
+  unsubscribeUrl: 'https://example.com/newsletter/unsubscribe?email=a%40b.c&token=t',
+  postalAddress: 'Somewhere <script>',
+});
+assert.doesNotMatch(welcome.html, /<script|<img|<svg|<b>/i, 'welcome series email must escape dynamic text');
+assert.doesNotMatch(welcome.html, /javascript:/i, 'welcome series email must drop non-http links');
+assert.doesNotMatch(welcome.html, /bad link/, 'links with unsafe URLs must be dropped entirely');
+assert.match(welcome.html, /&lt;script&gt;alert\(2\)&lt;\/script&gt;/, 'escaped titles must still be shown');
+assert.match(welcome.html, /href="https:\/\/example\.com\/newsletter\/unsubscribe\?email=a%40b\.c&amp;token=t"/, 'welcome series email must carry the unsubscribe link');
+assert.match(welcome.html, /Somewhere &lt;script&gt;/, 'welcome series email must carry the postal address footer');
+assert.match(welcome.text, /Unsubscribe: https:\/\/example\.com\/newsletter\/unsubscribe/, 'welcome series text version must carry the unsubscribe link');
+
+const emailService = read('lib/services/email.tsx');
+assert.match(emailService, /renderWelcomeSeriesEmail\(/, 'welcome series sends must use the escaping renderer');
 
 console.log('newsletter XSS regression checks passed');

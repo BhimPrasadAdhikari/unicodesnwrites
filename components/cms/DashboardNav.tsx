@@ -17,6 +17,7 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
+  MailPlus,
   Menu,
   MessageSquare,
   ScrollText,
@@ -67,6 +68,7 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
     label: 'Letters',
     items: [
       { href: '/dashboard/newsletters', label: 'Issues', glyph: 'letters' },
+      { href: '/dashboard/newsletters/welcome', label: 'Welcome series', icon: MailPlus },
       { href: '/dashboard/subscribers', label: 'Subscribers', icon: Users },
     ],
   },
@@ -90,10 +92,14 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
   },
 ];
 
+const navHrefs = navGroups.flatMap((group) => group.items.map((item) => item.href));
+const isUnder = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+// A nested item (e.g. the welcome series under Issues) wins over its parent.
 const isCurrent = (pathname: string, href: string) =>
   href === '/dashboard' || href === '/dashboard/analytics'
     ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
+    : isUnder(pathname, href) && !navHrefs.some((other) => other.length > href.length && other.startsWith(`${href}/`) && isUnder(pathname, other));
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (

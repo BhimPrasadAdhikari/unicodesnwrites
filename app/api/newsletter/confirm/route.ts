@@ -5,6 +5,8 @@ import SuppressedEmail, { hashSuppressedEmail } from '@/lib/models/SuppressedEma
 import { sendWelcomeEmail } from '@/lib/services/email';
 import { Analytics } from '@/lib/models/Analytics';
 import { BOUNCED_TAG } from '@/lib/utils/validations/subscriber';
+import { addSourceTags, getWelcomeSeriesSettings, welcomeSeriesStartFields } from '@/lib/services/welcome-series';
+import type { Types } from 'mongoose';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -49,11 +51,22 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // The welcome series is opt-in for the site: it only starts for readers confirming while it is on.
+    const welcomeSeries = await getWelcomeSeriesSettings().catch((settingsError) => {
+      console.error('Failed to load welcome series settings', settingsError);
+      return null;
+    });
+    const confirmedAt = new Date();
+
     // Conditional update: two clicks at once confirm (and send the welcome email) only once.
     const confirmed = await Subscriber.findOneAndUpdate(
       { _id: subscriber._id, status: 'pending', confirmationToken: hashedToken },
       // Opening the link proves the mailbox works again, so an old "bounced" tag no longer keeps them off campaigns.
-      { $set: { status: 'confirmed', confirmedAt: new Date() }, $unset: { confirmationTokenExpiry: 1 }, $pull: { tags: BOUNCED_TAG } },
+      {
+        $set: { status: 'confirmed', confirmedAt, ...welcomeSeriesStartFields(welcomeSeries, subscriber, confirmedAt) },
+        $unset: { confirmationTokenExpiry: 1 },
+        $pull: { tags: BOUNCED_TAG },
+      },
       { new: true },
     );
     if (!confirmed) {
@@ -65,6 +78,15 @@ export async function GET(req: NextRequest) {
       await SuppressedEmail.deleteOne({ emailHash: hashSuppressedEmail(subscriber.email) });
     } catch (suppressionError) {
       console.error('Failed to clear email suppression', suppressionError);
+    }
+
+    // A separate write: the confirmation above already $pulls from tags.
+    if (welcomeSeries?.enabled) {
+      try {
+        await addSourceTags(confirmed._id as Types.ObjectId, confirmed.source);
+      } catch (tagError) {
+        console.error('Failed to add source tags', tagError);
+      }
     }
 
     try {
@@ -82,7 +104,7 @@ export async function GET(req: NextRequest) {
       console.error('Failed to log confirmation analytics event', analyticsError);
     }
 
-    // Send welcome email
+    // Send welcome email (step 0 of the welcome series; the scheduler sends the rest)
     try {
         await sendWelcomeEmail(subscriber);
     } catch (emailError) {

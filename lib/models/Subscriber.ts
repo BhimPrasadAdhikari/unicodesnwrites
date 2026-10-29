@@ -24,6 +24,10 @@ export interface ISubscriber extends Document {
   userAgent?: string;
   tags: string[];
   metadata?: Record<string, unknown>;
+  /** The last welcome-series step sent (0 is the welcome email sent on confirmation). */
+  welcomeStep: number;
+  /** When the next welcome-series step is due; null when none is scheduled. */
+  welcomeNextAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   
@@ -98,6 +102,16 @@ const SubscriberSchema = new Schema<ISubscriber>(
       type: Map,
       of: Schema.Types.Mixed,
     },
+    // Only set on confirmation while the welcome series is enabled, so existing
+    // subscribers are never backfilled into it.
+    welcomeStep: {
+      type: Number,
+      default: 0,
+    },
+    welcomeNextAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -106,6 +120,7 @@ const SubscriberSchema = new Schema<ISubscriber>(
 
 // Indexes
 SubscriberSchema.index({ confirmedAt: -1 });
+SubscriberSchema.index({ welcomeNextAt: 1 });
 
 // Methods
 SubscriberSchema.methods.generateConfirmationToken = function(this: ISubscriber): string {
