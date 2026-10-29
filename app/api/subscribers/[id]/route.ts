@@ -7,11 +7,17 @@ import SuppressedEmail, { hashSuppressedEmail } from '@/lib/models/SuppressedEma
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 import { sendSubscriberConfirmation } from '@/lib/services/email';
 import { recordAdminAction } from '@/lib/services/admin-audit';
+import { subscriberTagListSchema } from '@/lib/utils/validations/subscriber';
 
 const isObjectId = (value: string) => /^[a-f\d]{24}$/i.test(value);
 
 const subscriberActionSchema = z.object({
     action: z.enum(['unsubscribe', 'resend-confirmation']),
+});
+
+// The whole tag list is sent each time; it replaces what the subscriber had.
+const subscriberTagsSchema = z.object({
+    tags: subscriberTagListSchema,
 });
 
 // PATCH /api/subscribers/[id] — admin actions that keep the subscriber record
@@ -21,9 +27,31 @@ export async function PATCH(
 ) {
     const params = await props.params;
     try {
-        await requireAdminSession();
+        const session = await requireAdminSession();
         if (!isObjectId(params.id)) return NextResponse.json({ error: 'Invalid subscriber ID' }, { status: 400 });
-        const parsed = subscriberActionSchema.safeParse(await req.json().catch(() => null));
+        const body = await req.json().catch(() => null);
+
+        if (body && typeof body === 'object' && 'tags' in body) {
+            const parsedTags = subscriberTagsSchema.safeParse(body);
+            if (!parsedTags.success) {
+                return NextResponse.json({ error: parsedTags.error.issues[0]?.message || 'Invalid tags' }, { status: 400 });
+            }
+            await dbConnect();
+            const { tags } = parsedTags.data;
+            const updated = await Subscriber.findByIdAndUpdate(params.id, { $set: { tags } }, { new: true })
+                .select('email tags')
+                .lean();
+            if (!updated) return NextResponse.json({ error: 'Subscriber not found' }, { status: 404 });
+            await recordAdminAction(session, {
+                action: 'update-tags',
+                targetType: 'subscribers',
+                targetId: params.id,
+                summary: tags.length ? tags.join(', ') : 'no tags',
+            });
+            return NextResponse.json({ message: `Tags saved for ${updated.email}.`, tags: updated.tags || [] });
+        }
+
+        const parsed = subscriberActionSchema.safeParse(body);
         if (!parsed.success) return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
         await dbConnect();
 

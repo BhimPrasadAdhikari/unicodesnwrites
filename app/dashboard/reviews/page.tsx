@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Star } from 'lucide-react';
 
 import { AdminRowActions } from '@/components/cms/AdminRowActions';
+import { BulkModeration, BulkSelectCheckbox } from '@/components/cms/BulkModeration';
 import { FilterTabs, Pager, parsePage, redirectPastLastPage } from '@/components/cms/AdminListControls';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { Badge } from '@/components/ui/Badge';
@@ -75,40 +76,43 @@ export default async function ReviewsPage(props: { searchParams: Promise<{ state
           <p className="mt-3 text-sm text-muted-foreground">{state === 'pending' ? 'Nothing waiting for approval.' : 'No reviews here yet.'}</p>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {reviews.map((review) => {
-            const id = review._id.toString();
-            return (
-              <li key={id} className="rounded-xl border border-border bg-card p-5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-sm text-foreground" aria-label={`${review.rating} out of 5`}>
-                    {'★'.repeat(review.rating)}<span className="text-muted-foreground/40">{'★'.repeat(5 - review.rating)}</span>
-                  </span>
-                  {review.verified ? <Badge variant="success">Verified buyer</Badge> : <Badge variant="neutral">Unverified</Badge>}
-                  {review.approved ? <Badge variant="info">Live</Badge> : <Badge variant="warning">Waiting</Badge>}
-                </div>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{review.comment}</p>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {review.customerName} · {review.customerEmail} · {new Date(review.createdAt).toLocaleDateString()} ·{' '}
-                  {review.product?.slug ? (
-                    <Link href={`/products/${review.product.slug}`} className="underline underline-offset-2">{review.product.title}</Link>
-                  ) : (
-                    'Deleted product'
-                  )}
-                </p>
-                <AdminRowActions
-                  className="mt-4"
-                  actions={[
-                    review.approved
-                      ? { label: 'Hide', url: `/api/admin/reviews/${id}`, method: 'PATCH', body: { approved: false } }
-                      : { label: 'Approve', url: `/api/admin/reviews/${id}`, method: 'PATCH', body: { approved: true }, tone: 'primary' },
-                    { label: 'Delete', url: `/api/admin/reviews/${id}`, method: 'DELETE', confirm: 'Confirm delete', tone: 'danger' },
-                  ]}
-                />
-              </li>
-            );
-          })}
-        </ul>
+        <BulkModeration target="reviews" ids={reviews.map((review) => review._id.toString())}>
+          <ul className="space-y-3">
+            {reviews.map((review) => {
+              const id = review._id.toString();
+              return (
+                <li key={id} className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <BulkSelectCheckbox id={id} label={`Select review by ${review.customerName}`} />
+                    <span className="font-mono text-sm text-foreground" aria-label={`${review.rating} out of 5`}>
+                      {'★'.repeat(review.rating)}<span className="text-muted-foreground/40">{'★'.repeat(5 - review.rating)}</span>
+                    </span>
+                    {review.verified ? <Badge variant="success">Verified buyer</Badge> : <Badge variant="neutral">Unverified</Badge>}
+                    {review.approved ? <Badge variant="info">Live</Badge> : <Badge variant="warning">Waiting</Badge>}
+                  </div>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{review.comment}</p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {review.customerName} · {review.customerEmail} · {new Date(review.createdAt).toLocaleDateString()} ·{' '}
+                    {review.product?.slug ? (
+                      <Link href={`/products/${review.product.slug}`} className="underline underline-offset-2">{review.product.title}</Link>
+                    ) : (
+                      'Deleted product'
+                    )}
+                  </p>
+                  <AdminRowActions
+                    className="mt-4"
+                    actions={[
+                      review.approved
+                        ? { label: 'Hide', url: `/api/admin/reviews/${id}`, method: 'PATCH', body: { approved: false } }
+                        : { label: 'Approve', url: `/api/admin/reviews/${id}`, method: 'PATCH', body: { approved: true }, tone: 'primary' },
+                      { label: 'Delete', url: `/api/admin/reviews/${id}`, method: 'DELETE', confirm: 'Confirm delete', tone: 'danger' },
+                    ]}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </BulkModeration>
       )}
 
       <Pager base="/dashboard/reviews" params={linkParams} page={page} totalPages={Math.ceil(total / PAGE_SIZE)} />
