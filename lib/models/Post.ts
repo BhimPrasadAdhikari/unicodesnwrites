@@ -13,6 +13,8 @@ export interface IPost {
   tags?: string[];
   published: boolean;
   publishedAt?: Date;
+  /** Set while the post is in the trash (unpublished, restorable for 30 days). */
+  trashedAt?: Date | null;
   author: mongoose.Types.ObjectId | { name: string }; // Populated
   views: number;
   readingTime?: number;
@@ -38,6 +40,7 @@ const PostSchema = new Schema<IPost>({
   tags: [{ type: String }],
   published: { type: Boolean, default: false },
   publishedAt: { type: Date },
+  trashedAt: { type: Date, default: null },
   author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   views: { type: Number, default: 0 },
   readingTime: { type: Number }, // in minutes
@@ -57,6 +60,7 @@ const PostSchema = new Schema<IPost>({
 // Indexes for performance
 PostSchema.index({ published: 1, publishedAt: -1 });
 PostSchema.index({ category: 1 });
+PostSchema.index({ trashedAt: 1 });
 PostSchema.index({ tags: 1 });
 PostSchema.index({ seriesId: 1, seriesPart: 1 });
 

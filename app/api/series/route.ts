@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const augmented = await Promise.all(
       seriesList.map(async (s) => {
         const postQuery = isAdmin
-          ? { seriesId: s._id }
+          ? { seriesId: s._id, trashedAt: null }
           : { seriesId: s._id, ...livePostFilter() };
 
         const [partCount, latestPost] = await Promise.all([
