@@ -18,6 +18,7 @@
     "test:security:subscriber-auth": "node --preserve-symlinks --preserve-symlinks-main scripts/security/subscriber-auth-regression.mjs",
     "test:security:analytics-auth": "node --preserve-symlinks --preserve-symlinks-main scripts/security/analytics-auth-regression.mjs",
     "test:security:newsletter-xss": "node --preserve-symlinks --preserve-symlinks-main scripts/security/newsletter-xss-regression.mjs",
+    "test:security:ses-webhook": "node --preserve-symlinks --preserve-symlinks-main scripts/security/ses-webhook-regression.mjs",
     "db:seed": "tsx lib/db/seed.ts",
     "migrate:lesson-types": "tsx scripts/migrate-legacy-lesson-types.ts",
     "migrate:razorpay": "tsx scripts/migrate-stripe-to-razorpay.ts",

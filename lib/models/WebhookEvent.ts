@@ -3,14 +3,14 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 // Delivered provider webhook events, recorded after their DB changes commit so
 // a redelivery of the same event id is skipped but a failed one can retry.
 export interface IWebhookEvent extends Document {
-  provider: 'razorpay';
+  provider: 'razorpay' | 'ses';
   eventId: string;
   event: string;
   processedAt: Date;
 }
 
 const WebhookEventSchema: Schema = new Schema({
-  provider: { type: String, enum: ['razorpay'], required: true },
+  provider: { type: String, enum: ['razorpay', 'ses'], required: true },
   eventId: { type: String, required: true },
   event: { type: String, required: true },
   processedAt: { type: Date, default: Date.now },
