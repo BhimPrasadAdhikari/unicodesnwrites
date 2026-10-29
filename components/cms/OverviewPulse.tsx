@@ -108,7 +108,7 @@ async function renderPulse() {
     ]),
     ContactSubmission.countDocuments({ status: 'new' }),
     Review.countDocuments({ approved: false }),
-    Post.countDocuments({ published: false }),
+    Post.countDocuments({ published: false, trashedAt: null }),
     Post.countDocuments({ published: true, publishedAt: { $gt: now } }),
     Newsletter.countDocuments({ status: { $in: ['scheduled', 'sending', 'paused'] } }),
     Comment.countDocuments({ approved: false }),

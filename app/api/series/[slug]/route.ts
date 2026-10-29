@@ -44,7 +44,7 @@ export async function GET(
     }
 
     const postQuery = isAdmin
-      ? { seriesId: series._id }
+      ? { seriesId: series._id, trashedAt: null }
       : { seriesId: series._id, ...livePostFilter() };
 
     const posts = await Post.find(postQuery)

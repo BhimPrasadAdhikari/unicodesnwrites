@@ -16,7 +16,7 @@ export default async function SeriesPage() {
   
   // Part counts for every series in one query
   const counts = await Post.aggregate<{ _id: unknown; count: number }>([
-    { $match: { seriesId: { $in: series.map((s) => s._id) } } },
+    { $match: { seriesId: { $in: series.map((s) => s._id) }, trashedAt: null } },
     { $group: { _id: '$seriesId', count: { $sum: 1 } } },
   ]);
   const countBySeries = new Map(counts.map((row) => [String(row._id), row.count]));

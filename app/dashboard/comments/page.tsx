@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { MessageSquare } from 'lucide-react';
 
 import { AdminRowActions } from '@/components/cms/AdminRowActions';
+import { BulkModeration, BulkSelectCheckbox } from '@/components/cms/BulkModeration';
 import { FilterTabs, Pager, parsePage, redirectPastLastPage } from '@/components/cms/AdminListControls';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { Badge } from '@/components/ui/Badge';
@@ -75,38 +76,41 @@ export default async function CommentsPage(props: { searchParams: Promise<{ stat
           <p className="mt-3 text-sm text-muted-foreground">{state === 'pending' ? 'Nothing waiting for approval.' : 'No comments here yet.'}</p>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {comments.map((comment) => {
-            const id = comment._id.toString();
-            return (
-              <li key={id} className="rounded-xl border border-border bg-card p-5">
-                <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="font-semibold">{comment.authorName}</span>
-                  <span className="text-xs text-muted-foreground">{comment.user?.email || 'deleted account'}</span>
-                  {comment.approved ? <Badge variant="info">Live</Badge> : <Badge variant="warning">Waiting</Badge>}
-                </div>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{comment.body}</p>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {new Date(comment.createdAt).toLocaleString()} · on{' '}
-                  {comment.post?.slug ? (
-                    <Link href={`/blog/${comment.post.slug}#comments`} className="underline underline-offset-2">{comment.post.title}</Link>
-                  ) : (
-                    'a deleted post'
-                  )}
-                </p>
-                <AdminRowActions
-                  className="mt-4"
-                  actions={[
-                    comment.approved
-                      ? { label: 'Hide', url: `/api/admin/comments/${id}`, method: 'PATCH', body: { approved: false } }
-                      : { label: 'Approve', url: `/api/admin/comments/${id}`, method: 'PATCH', body: { approved: true }, tone: 'primary' },
-                    { label: 'Delete', url: `/api/admin/comments/${id}`, method: 'DELETE', confirm: 'Confirm delete', tone: 'danger' },
-                  ]}
-                />
-              </li>
-            );
-          })}
-        </ul>
+        <BulkModeration target="comments" ids={comments.map((comment) => comment._id.toString())}>
+          <ul className="space-y-3">
+            {comments.map((comment) => {
+              const id = comment._id.toString();
+              return (
+                <li key={id} className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <BulkSelectCheckbox id={id} label={`Select comment by ${comment.authorName}`} />
+                    <span className="font-semibold">{comment.authorName}</span>
+                    <span className="text-xs text-muted-foreground">{comment.user?.email || 'deleted account'}</span>
+                    {comment.approved ? <Badge variant="info">Live</Badge> : <Badge variant="warning">Waiting</Badge>}
+                  </div>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{comment.body}</p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {new Date(comment.createdAt).toLocaleString()} · on{' '}
+                    {comment.post?.slug ? (
+                      <Link href={`/blog/${comment.post.slug}#comments`} className="underline underline-offset-2">{comment.post.title}</Link>
+                    ) : (
+                      'a deleted post'
+                    )}
+                  </p>
+                  <AdminRowActions
+                    className="mt-4"
+                    actions={[
+                      comment.approved
+                        ? { label: 'Hide', url: `/api/admin/comments/${id}`, method: 'PATCH', body: { approved: false } }
+                        : { label: 'Approve', url: `/api/admin/comments/${id}`, method: 'PATCH', body: { approved: true }, tone: 'primary' },
+                      { label: 'Delete', url: `/api/admin/comments/${id}`, method: 'DELETE', confirm: 'Confirm delete', tone: 'danger' },
+                    ]}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </BulkModeration>
       )}
 
       <Pager base="/dashboard/comments" params={linkParams} page={page} totalPages={Math.ceil(total / PAGE_SIZE)} />
