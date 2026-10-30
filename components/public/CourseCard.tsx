@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { GlyphCell } from '@/components/ui/Glyph';
+import { SiteIconCell } from '@/components/ui/SiteIcon';
 
 type CourseCardProps = {
   course: {
@@ -31,7 +31,7 @@ export function CourseCard({ course }: CourseCardProps) {
         {course.coverImage ? (
           <Image src={course.coverImage} alt="" fill sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover" unoptimized />
         ) : (
-          <GlyphCell kind="courses" label={`COURSE · ${course.level.toUpperCase()}`} glyphSize={72} className="absolute inset-0" />
+          <SiteIconCell kind="courses" label={`COURSE · ${course.level.toUpperCase()}`} iconSize={72} className="absolute inset-0" />
         )}
         {course.featured ? (
           <span className="absolute right-3 top-3 rounded-md bg-primary px-2 py-0.5 font-mono text-[11px] tracking-[0.06em] text-primary-foreground">FEATURED</span>
@@ -46,7 +46,7 @@ export function CourseCard({ course }: CourseCardProps) {
         <p className="line-clamp-3 text-[15px] leading-[1.6] text-muted-foreground">{course.summary}</p>
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4 font-mono text-[12px] text-muted-foreground">
           <span>{course.lessonCount} LESSONS · {Math.max(1, Math.round(course.durationMinutes / 60))} H</span>
-          <span className="font-sans text-sm font-medium text-foreground underline decoration-primary decoration-2 underline-offset-4">Open course</span>
+          <span className="font-sans text-sm font-medium text-foreground underline decoration-primary decoration-2 underline-offset-4">See the course</span>
         </div>
       </div>
     </Link>

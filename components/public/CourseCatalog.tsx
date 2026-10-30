@@ -26,7 +26,7 @@ export function CourseCatalog({ courses }: { courses: CatalogCourse[] }) {
         <label className="flex items-center gap-3 rounded-xl bg-muted/55 px-4 py-3">
           <Search className="h-4 w-4 text-muted-foreground" />
           <span className="sr-only">Search courses</span>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search LLMs, agents, alignment…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search courses, e.g. chatbots or LLMs…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
         </label>
         <label className="flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium">
           <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
@@ -46,8 +46,8 @@ export function CourseCatalog({ courses }: { courses: CatalogCourse[] }) {
         </div>
       ) : (
         <div className="rounded-3xl border border-dashed border-border bg-muted/25 px-6 py-20 text-center">
-          <h2 className="text-xl font-medium">No learning paths match yet.</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Try another topic or level. New concept-first AIML courses are published from the private studio.</p>
+          <h2 className="text-xl font-medium">No courses match yet.</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Try another word or level. New courses are added from time to time.</p>
         </div>
       )}
     </div>

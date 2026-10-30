@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Projects',
   alternates: { canonical: '/projects' },
-  description: 'Case studies for applied AI, machine learning, and full-stack product systems.',
+  description: 'Real AI and machine learning projects I have built, with simple write-ups of what each one does and how it works.',
 };
 
 export default async function ProjectsPage() {
@@ -45,13 +45,13 @@ export default async function ProjectsPage() {
       <Section className="border-b border-border pb-12 pt-12 md:pb-16 md:pt-16">
         <Container>
           <div className="max-w-3xl">
-            <p className="text-eyebrow text-primary">§ Builds</p>
-            <h1 className="mt-3 text-title">Machine learning projects, built and shipped.</h1>
+            <p className="text-eyebrow text-primary">Projects</p>
+            <h1 className="mt-3 text-title">Things I&apos;ve built with AI.</h1>
             <p className="mt-5 max-w-2xl text-[17px] leading-[1.6] text-muted-foreground sm:text-lg">
-              End-to-end projects: trained, deployed to the cloud and running.
+              Real apps and tools that use AI. Each one says what it does, how it works and what I learned.
             </p>
             <p className="mt-6 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">
-              {serializedProjects.length} BUILDS · {featuredCount} FEATURED · {categories.length} CATEGORIES
+              {serializedProjects.length} PROJECTS · {featuredCount} FEATURED · {categories.length} TOPICS
             </p>
           </div>
         </Container>
@@ -63,8 +63,8 @@ export default async function ProjectsPage() {
             <ProjectGrid initialProjects={serializedProjects} />
           ) : (
             <div className="rounded-3xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
-              <h2 className="text-xl font-medium">Projects are being added</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Published projects will appear here automatically.</p>
+              <h2 className="text-xl font-medium">New projects are on their way</h2>
+              <p className="mt-2 text-sm text-muted-foreground">They will show up here soon.</p>
             </div>
           )}
         </Container>

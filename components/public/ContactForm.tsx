@@ -135,7 +135,7 @@ export default function ContactForm() {
           {...register('subject')}
           id="subject"
           maxLength={120}
-          placeholder="Project inquiry"
+          placeholder="e.g. A question about an article"
           disabled={status === 'loading'}
         />
       </div>

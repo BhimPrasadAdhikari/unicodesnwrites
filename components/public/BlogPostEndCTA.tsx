@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Glyph } from '@/components/ui/Glyph';
+import { SiteIcon } from '@/components/ui/SiteIcon';
 import NewsletterSignupForm from './NewsletterSignupForm';
 
 /**
@@ -21,17 +21,17 @@ export default function BlogPostEndCTA() {
       className="mt-16 rounded-3xl border border-border bg-card p-6 sm:p-8"
     >
       <div className="mb-5 flex items-start gap-4">
-        <Glyph kind="letters" size={40} className="mt-1 shrink-0 text-foreground" />
+        <SiteIcon kind="newsletter" size={40} className="mt-1 shrink-0 text-foreground" />
         <div>
           <p className="text-eyebrow text-primary">You made it to the end</p>
           <h2 className="mt-2 font-serif text-[26px] font-medium leading-[1.15] text-foreground">
-            One useful email when there is something worth sharing.
+            Get one helpful email when there&apos;s something new.
           </h2>
         </div>
       </div>
 
       <p className="mb-6 max-w-lg text-[15px] leading-[1.6] text-muted-foreground">
-        New dissections, build logs, courses and tool releases. Double opt-in, unsubscribe at any time.
+        New articles, courses and guides. It&apos;s free. You&apos;ll get a quick email to confirm, and you can unsubscribe any time.
       </p>
 
       <NewsletterSignupForm source="blog-post-end" variant="card" />

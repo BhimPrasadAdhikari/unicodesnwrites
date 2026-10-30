@@ -2,7 +2,8 @@ import Link from "next/link"
 
 import { Container } from "@/components/ui/Section"
 import { SectionHeading } from "@/components/ui/SectionHeading"
-import { GLYPHS, glyphFor } from "@/components/ui/Glyph"
+import { glyphFor } from "@/components/ui/Glyph"
+import { PLAIN_TOPIC } from "@/components/ui/SiteIcon"
 import { WritingList, type WritingItem } from "@/components/public/WritingList"
 import { connectDB } from "@/lib/db/connection"
 import { Post, IPost } from "@/lib/models/Post"
@@ -82,9 +83,9 @@ function toWritingItem(item: HomeListItem): WritingItem {
       key: `series-${series._id}`,
       href: `/blog/series/${series.slug}`,
       kind,
-      label: `${GLYPHS[kind].name.toUpperCase()} · SERIES · ${series.partCount} PARTS`,
+      label: `${PLAIN_TOPIC[kind].toUpperCase()} · SERIES · ${series.partCount} PARTS`,
       title: series.title,
-      dek: series.description || 'A multi-part guide and exploration.',
+      dek: series.description || 'A guide in several parts.',
     }
   }
   const post = item.data
@@ -93,7 +94,7 @@ function toWritingItem(item: HomeListItem): WritingItem {
     key: String(post._id),
     href: `/blog/${post.slug}`,
     kind,
-    label: [GLYPHS[kind].name.toUpperCase(), post.readingTime ? `${post.readingTime} MIN` : null].filter(Boolean).join(' · '),
+    label: [PLAIN_TOPIC[kind].toUpperCase(), post.readingTime ? `${post.readingTime} MIN READ` : null].filter(Boolean).join(' · '),
     title: post.title,
     dek: post.excerpt,
   }
@@ -105,14 +106,14 @@ export async function LatestBlogPosts() {
   return (
     <section id="writing" className="py-16 sm:py-20">
       <Container className="flex flex-col gap-7">
-        <SectionHeading eyebrow="§ Latest writing" title="Latest from the notebook" href="/blog" linkLabel="All writing" />
+        <SectionHeading icon="articles" eyebrow="New articles" title="Start with these" href="/blog" linkLabel="See all articles" />
         {items.length > 0 ? (
           <WritingList items={items.map(toWritingItem)} />
         ) : (
           <div className="rounded-xl border border-dashed border-border bg-card px-6 py-10">
-            <p className="font-serif text-2xl font-medium">The next breakdown is in progress.</p>
-            <p className="mt-2 max-w-xl text-muted-foreground">Paper dissections, ML build logs and agent guides will appear here.</p>
-            <Link href="/blog" className="mt-4 inline-flex min-h-11 items-center text-[15px] font-medium underline decoration-primary decoration-2 underline-offset-4">Browse the archive →</Link>
+            <p className="font-serif text-2xl font-medium">New articles are on their way.</p>
+            <p className="mt-2 max-w-xl text-muted-foreground">Simple guides to how AI works will show up here.</p>
+            <Link href="/blog" className="mt-4 inline-flex min-h-11 items-center text-[15px] font-medium underline decoration-primary decoration-2 underline-offset-4">See all articles →</Link>
           </div>
         )}
       </Container>

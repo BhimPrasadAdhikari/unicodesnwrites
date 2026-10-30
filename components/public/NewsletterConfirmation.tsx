@@ -52,7 +52,7 @@ export default function NewsletterConfirmation() {
     return (
       <div className="flex flex-col items-center justify-center py-8">
         <Loader2 className="h-12 w-12 text-muted-foreground animate-spin mb-4" />
-        <h2 className="font-serif text-[28px] font-medium leading-tight">Verifying your subscription...</h2>
+        <h2 className="font-serif text-[28px] font-medium leading-tight">Confirming your email...</h2>
         <p className="text-muted-foreground mt-2">Please wait a moment.</p>
       </div>
     );
@@ -62,17 +62,16 @@ export default function NewsletterConfirmation() {
     return (
       <div className="flex flex-col items-center justify-center py-4">
         <CheckCircle className="h-12 w-12 text-success mb-4" />
-        <h2 className="mb-2 font-serif text-[28px] font-medium leading-tight">Subscription confirmed.</h2>
+        <h2 className="mb-2 font-serif text-[28px] font-medium leading-tight">You&apos;re subscribed.</h2>
         <p className="text-muted-foreground mb-6">
-          Thank you for subscribing. You&apos;ve been successfully added to our newsletter list.
-          A welcome email is on its way to your inbox.
+          Thanks for joining! A welcome email is on its way to your inbox.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
             <Link 
                 href="/blog"
                 className="inline-flex h-11 items-center justify-center rounded-lg bg-foreground px-5 text-[15px] font-medium text-background hover:bg-foreground/90 transition-colors"
             >
-                Read the field notes
+                Read the articles
             </Link>
             <Link 
                 href="/"

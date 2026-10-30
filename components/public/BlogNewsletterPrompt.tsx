@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Glyph } from '@/components/ui/Glyph';
+import { SiteIcon } from '@/components/ui/SiteIcon';
 import { NewsletterSignupInline } from './NewsletterSignupInline';
 
 /**
@@ -29,11 +29,11 @@ export default function BlogNewsletterPrompt() {
         className="not-prose rounded-xl border border-border bg-card p-5 sm:p-6"
       >
         <div className="mb-4 flex items-start gap-3.5">
-          <Glyph kind="letters" size={32} className="mt-0.5 text-primary" />
+          <SiteIcon kind="newsletter" size={32} className="mt-0.5 text-foreground" />
           <div>
-            <p className="text-eyebrow text-primary">Letters</p>
+            <p className="text-eyebrow text-primary">Newsletter</p>
             <p className="mt-1 font-serif text-xl font-medium leading-snug text-foreground">
-              Enjoying this? Get the next dissection by email.
+              Enjoying this? Get the next article by email.
             </p>
           </div>
         </div>

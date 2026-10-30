@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  return <AuthShell title="Reset your password" description="Enter your verified account email. The single-use link expires in 30 minutes." back={{ href: '/login', label: 'Back to sign in' }}>
+  return <AuthShell title="Reset your password" description="Enter the email you signed up with. We will send you a link to reset your password. It works once and lasts 30 minutes." back={{ href: '/login', label: 'Back to sign in' }}>
         <form onSubmit={submit} className="space-y-4"><label className="block space-y-2 text-sm font-medium"><span>Email</span><Input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={loading} /></label>
           {message && <p role="status" className="rounded-lg border border-success/20 bg-success/10 p-3 text-sm text-success">{message}</p>}
           {error && <p role="alert" className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}

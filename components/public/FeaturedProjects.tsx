@@ -3,7 +3,7 @@ import Image from "next/image"
 
 import { Container } from "@/components/ui/Section"
 import { SectionHeading } from "@/components/ui/SectionHeading"
-import { GlyphCell } from "@/components/ui/Glyph"
+import { SiteIconCell } from "@/components/ui/SiteIcon"
 import { connectDB } from "@/lib/db/connection"
 import { Project, IProject } from "@/lib/models/Project"
 
@@ -32,7 +32,7 @@ export async function FeaturedProjects() {
   return (
     <section className="border-t border-border bg-secondary/40 py-16 sm:py-20">
       <Container className="flex flex-col gap-8">
-        <SectionHeading eyebrow="§ Build logs" title="Machine learning projects I've built" href="/projects" linkLabel="All builds" />
+        <SectionHeading icon="projects" eyebrow="Projects" title="Things I've built with AI" href="/projects" linkLabel="See all projects" />
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <Link
@@ -50,7 +50,7 @@ export async function FeaturedProjects() {
                     className="object-cover"
                   />
                 ) : (
-                  <GlyphCell kind="builds" className="absolute inset-0" />
+                  <SiteIconCell kind="projects" className="absolute inset-0" />
                 )}
               </div>
               <div className="flex flex-1 flex-col gap-2.5 p-5">

@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { Types } from 'mongoose';
 import { CheckCircle2 } from 'lucide-react';
 
-import { Glyph } from '@/components/ui/Glyph';
+import { SiteIcon } from '@/components/ui/SiteIcon';
 import { Container } from '@/components/ui/Section';
 import { authOptions } from '@/lib/config/auth';
 import { siteConfig } from '@/lib/config/site.config';
@@ -76,7 +76,7 @@ export default async function CourseCompletePage({ params }: PageProps) {
               Share on X
             </a>
             <Link href="/learn/notebook" className="inline-flex h-11 items-center rounded-lg border border-border px-5 text-[15px] font-medium hover:border-foreground/40">
-              Review your notebook
+              See your notes
             </Link>
           </div>
         </>
@@ -103,7 +103,7 @@ export default async function CourseCompletePage({ params }: PageProps) {
         <div className="mt-4 grid gap-3">
           {more.map((item) => (
             <Link key={item.slug} href={`/courses/${item.slug}`} className="group flex items-start gap-4 rounded-xl border border-border bg-card p-5 hover:border-foreground/40">
-              <Glyph kind="courses" size={24} className="mt-1 shrink-0 text-muted-foreground group-hover:text-primary" />
+              <SiteIcon kind="courses" size={24} className="mt-1 shrink-0 text-muted-foreground group-hover:text-primary" />
               <span>
                 <span className="block font-serif text-xl font-medium group-hover:text-primary">{item.title}</span>
                 <span className="mt-1 block text-sm text-muted-foreground">{item.summary}</span>
@@ -111,7 +111,7 @@ export default async function CourseCompletePage({ params }: PageProps) {
             </Link>
           ))}
           <Link href="/newsletter" className="flex items-center gap-3 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground hover:text-foreground">
-            <CheckCircle2 className="h-4 w-4" /> Get the next course and dissections first in Letters
+            <CheckCircle2 className="h-4 w-4" /> Get new courses and articles first in the newsletter
           </Link>
         </div>
       </section>

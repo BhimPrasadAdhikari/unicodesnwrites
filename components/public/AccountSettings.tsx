@@ -391,10 +391,10 @@ export function AccountSettings({
                     <FileText className="h-6 w-6 text-muted-foreground" />
                     <span className="font-serif text-[28px] font-medium leading-none">{stats.notebookCount}</span>
                   </div>
-                  <h3 className="mt-3 font-serif text-lg font-medium">AI Notebook entries</h3>
+                  <h3 className="mt-3 font-serif text-lg font-medium">Saved notes</h3>
                   <p className="mt-1 text-xs text-muted-foreground">Saved takeaways, code snippets, and study explanations.</p>
                   <Button asChild variant="outline" size="sm" className="mt-4 w-full">
-                    <Link href="/learn">Open Notebook</Link>
+                    <Link href="/learn">Open my learning</Link>
                   </Button>
                 </div>
 

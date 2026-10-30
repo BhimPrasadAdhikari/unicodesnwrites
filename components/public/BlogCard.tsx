@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { CoverPlaceholder } from '@/components/ui/CoverPlaceholder';
-import { Glyph, GLYPHS, glyphFor } from '@/components/ui/Glyph';
+import { glyphFor } from '@/components/ui/Glyph';
+import { iconForGlyph, PLAIN_TOPIC, SiteIcon } from '@/components/ui/SiteIcon';
 import { ObjectId } from 'mongodb';
 
 interface BlogCardProps {
@@ -27,9 +28,9 @@ interface BlogCardProps {
 function metaLabel(post: BlogCardProps['post']) {
   const kind = glyphFor(post.category);
   return [
-    post.category ? post.category.toUpperCase() : GLYPHS[kind].name.toUpperCase(),
+    post.category ? post.category.toUpperCase() : PLAIN_TOPIC[kind].toUpperCase(),
     post.seriesPart ? `PART ${post.seriesPart}` : null,
-    `${post.readingTime || 5} MIN`,
+    `${post.readingTime || 5} MIN READ`,
   ].filter(Boolean).join(' · ');
 }
 
@@ -48,7 +49,7 @@ export default function BlogCard({ post, variant = 'horizontal' }: BlogCardProps
             {post.coverImage ? (
               <Image src={post.coverImage} alt="" fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
             ) : (
-              <CoverPlaceholder kind={kind} />
+              <CoverPlaceholder kind={iconForGlyph(kind)} />
             )}
           </div>
           <div className="flex flex-1 flex-col gap-2.5 p-5">
@@ -71,7 +72,7 @@ export default function BlogCard({ post, variant = 'horizontal' }: BlogCardProps
           {post.coverImage ? (
             <Image src={post.coverImage} alt="" fill sizes="64px" className="object-cover" />
           ) : (
-            <Glyph kind={kind} size={30} className="group-hover:text-primary" />
+            <SiteIcon kind={iconForGlyph(kind)} size={30} className="group-hover:text-primary" />
           )}
         </span>
         <span className="flex min-w-0 flex-col gap-2">

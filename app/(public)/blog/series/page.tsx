@@ -11,8 +11,8 @@ import { livePostFilter } from '@/lib/utils/post-visibility';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Series',
-  description: 'Multi-part dissections and build logs, meant to be read in order.',
+  title: 'Article series',
+  description: 'Article series that explain one AI topic in a few short parts. Read them in order, one step at a time.',
   alternates: { canonical: '/blog/series' },
 };
 
@@ -39,10 +39,10 @@ export default async function SeriesIndexPage() {
   return (
     <Container className="py-12 sm:py-16">
       <div className="mb-10 max-w-3xl">
-        <p className="text-eyebrow text-primary">§ Series</p>
+        <p className="text-eyebrow text-primary">Article series</p>
         <h1 className="mt-3 text-title">Read these in order.</h1>
         <p className="mt-4 text-[17px] leading-[1.6] text-muted-foreground">
-          Multi-part dissections and build logs. Each one starts from first principles and builds to working code.
+          Each series explains one topic in a few short parts. Start at part one and go step by step.
         </p>
       </div>
       {rows.length ? (
@@ -55,7 +55,7 @@ export default async function SeriesIndexPage() {
         </div>
       ) : (
         <p className="text-muted-foreground">
-          No series yet. Browse <Link href="/blog" className="underline decoration-primary decoration-2 underline-offset-4">all writing</Link>.
+          No series yet. See <Link href="/blog" className="underline decoration-primary decoration-2 underline-offset-4">all articles</Link>.
         </p>
       )}
     </Container>

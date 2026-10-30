@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, FileText, Maximize2, Play, X } from 'lucide-react';
 
-import { GlyphCell, glyphFor } from '@/components/ui/Glyph';
+import { SiteIconCell, siteIconFor } from '@/components/ui/SiteIcon';
 import { buttonVariants } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { isAnimatableImage } from '@/lib/utils/media';
@@ -151,7 +151,7 @@ export default function ProductMedia(props: ProductMediaProps) {
               </span>
             </button>
           ) : (
-            <GlyphCell kind={glyphFor(productType)} label={productType.toUpperCase()} glyphSize={120} className="absolute inset-0" />
+            <SiteIconCell kind={siteIconFor(productType)} label={productType.toUpperCase()} iconSize={120} className="absolute inset-0" />
           )}
         </div>
         {hero?.caption && (

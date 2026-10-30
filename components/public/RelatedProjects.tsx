@@ -38,8 +38,8 @@ export default async function RelatedProjects({ currentProjectSlug, category }: 
        
        <div className="relative max-w-6xl mx-auto px-6 md:px-8">
            <div className="mb-8">
-             <p className="text-eyebrow text-primary">§ More builds</p>
-             <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium tracking-[-0.02em]">Related builds</h2>
+             <p className="text-eyebrow text-primary">More projects</p>
+             <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium tracking-[-0.02em]">Related projects</h2>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                {serializedProjects.map(p => (

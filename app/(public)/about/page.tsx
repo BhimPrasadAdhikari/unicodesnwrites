@@ -68,7 +68,7 @@ const education = [
 export const metadata: Metadata = {
    title: `About ${siteConfig.author.name}`,
   alternates: { canonical: '/about' },
-   description: `The personal portfolio, background, skills, and experience of ${siteConfig.author.name}.`,
+   description: `Meet ${siteConfig.author.name}, the machine learning engineer who writes unicodesnwrites: his story, skills, projects and experience.`,
 }
 
 export default function AboutPage() {
@@ -78,14 +78,14 @@ export default function AboutPage() {
             <Container>
                <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                   <div className="space-y-6">
-                     <p className="text-eyebrow text-primary">§ About</p>
+                     <p className="text-eyebrow text-primary">About me</p>
 
                      <h1 className="text-title">
-                        The person behind the notes, articles, and shipped systems
+                        Hi, I&apos;m the person who writes this site
                      </h1>
 
                      <p className="font-serif text-[19px] leading-[1.55] text-muted-foreground sm:text-[22px]">
-                        I&apos;m <span className="hl text-foreground">{siteConfig.author.name}</span> — an ML engineer and technical writer based in India. I&apos;ve shipped AI systems for agriculture, conversational interfaces, and document processing, and I write about the decisions that shaped them.
+                        I&apos;m <span className="hl text-foreground">{siteConfig.author.name}</span> — a machine learning engineer and writer based in India. I build AI apps for farming, chatbots and reading documents, and I write here to explain how AI works in plain words.
                      </p>
 
                      <p className="flex flex-wrap gap-x-2 gap-y-1 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
@@ -143,7 +143,7 @@ export default function AboutPage() {
                <div className="prose prose-lg mx-auto max-w-3xl dark:prose-invert prose-headings:font-serif prose-headings:font-medium prose-p:font-serif prose-p:text-[19px] prose-p:leading-[1.65] prose-p:text-foreground prose-a:text-foreground prose-a:decoration-primary prose-strong:text-foreground">
                    <h3 className="text-2xl font-medium">What I&apos;m looking for</h3>
                    <p>
-                      I&apos;m looking for ML engineering roles where I can own the full arc — from model experiments to production. I&apos;ve done this already: a CNN-backed agriculture platform, RAG chatbots containerised on Cloud Run, and a multi-agent document pipeline built with Google Document AI and Gemini. I write about the builds as I go.
+                      I&apos;m looking for ML engineering roles where I can own the full arc — from model experiments to production. I&apos;ve done this already: a CNN-backed agriculture platform, RAG chatbots containerised on Cloud Run, and a multi-agent document pipeline built with Google Document AI and Gemini. I write about what I build as I go.
                    </p>
 
                    <h3 className="mt-8 text-2xl font-medium">What I&apos;ve built</h3>
@@ -162,7 +162,7 @@ export default function AboutPage() {
          <Section>
             <Container>
                <div className="mb-12">
-                  <p className="text-eyebrow text-primary">§ Record</p>
+                  <p className="text-eyebrow text-primary">My background</p>
                   <h2 className="mt-3 font-serif text-[clamp(1.875rem,4vw,3rem)] font-medium tracking-[-0.02em]">Experience and education</h2>
                </div>
 

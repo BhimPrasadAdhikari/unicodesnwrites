@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { CoverPlaceholder } from '@/components/ui/CoverPlaceholder';
-import { glyphFor } from '@/components/ui/Glyph';
+import { siteIconFor } from '@/components/ui/SiteIcon';
 import { formatCurrency } from '@/lib/utils/currency';
 import { isAnimatableImage } from '@/lib/utils/media';
 
@@ -34,7 +34,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="object-cover"
             />
           ) : (
-            <CoverPlaceholder kind={glyphFor(product.productType)} label={product.productType.toUpperCase()} />
+            <CoverPlaceholder kind={siteIconFor(product.productType)} label={product.productType.toUpperCase()} />
           )}
         </div>
         <div className="flex flex-1 flex-col gap-2.5 p-5">
@@ -45,7 +45,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="font-mono text-[15px] text-foreground">
               {product.price === 0 ? 'Free' : formatCurrency(product.price, product.currency)}
             </span>
-            <span className="text-sm font-medium underline decoration-primary decoration-2 underline-offset-4">View tool</span>
+            <span className="text-sm font-medium underline decoration-primary decoration-2 underline-offset-4">See details</span>
           </div>
         </div>
       </article>

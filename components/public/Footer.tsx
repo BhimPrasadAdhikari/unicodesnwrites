@@ -1,27 +1,27 @@
 import Link from 'next/link';
 import { Github, Linkedin } from 'lucide-react';
 
-import { Glyph } from '@/components/ui/Glyph';
+import { SiteIcon } from '@/components/ui/SiteIcon';
 import { Lockup } from '@/components/ui/Logo';
 import { Container } from '@/components/ui/Section';
 import { siteConfig } from '@/lib/config/site.config';
 import { businessConfig } from '@/lib/config/business';
 
 const readLinks = [
-  { href: '/blog', label: 'Writing' },
-  { href: '/blog/series', label: 'Series' },
+  { href: '/blog', label: 'Articles' },
+  { href: '/blog/series', label: 'Article series' },
   { href: '/search', label: 'Search' },
-  { href: '/projects', label: 'Builds' },
+  { href: '/projects', label: 'Projects' },
 ];
 
 const learnLinks = [
   { href: '/courses', label: 'Courses' },
-  { href: '/products', label: 'Tools' },
-  { href: '/newsletter', label: 'Letters' },
+  { href: '/products', label: 'Shop' },
+  { href: '/newsletter', label: 'Newsletter' },
 ];
 
 const elsewhereLinks = [
-  { href: '/about', label: 'About' },
+  { href: '/about', label: 'About me' },
   { href: '/contact', label: 'Contact' },
   { href: '/feed.xml', label: 'RSS feed' },
   { href: '/privacy', label: 'Privacy' },
@@ -61,12 +61,12 @@ export function Footer() {
             <Link href="/" aria-label="unicodesnwrites home"><Lockup size={36} /></Link>
             <p className="mt-5 text-[15px] leading-7 text-muted-foreground">{siteConfig.description}</p>
             <Link href="/newsletter" className="mt-5 inline-flex items-center gap-2 text-[15px] font-medium underline decoration-primary decoration-2 underline-offset-4 hover:text-primary">
-              <Glyph kind="letters" size={18} className="text-primary" /> Join Letters
+              <SiteIcon kind="newsletter" size={20} /> Get the free newsletter
             </Link>
           </div>
           <Column title="Read" links={readLinks} />
           <Column title="Learn" links={learnLinks} />
-          <Column title="Elsewhere" links={elsewhereLinks} />
+          <Column title="More" links={elsewhereLinks} />
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">

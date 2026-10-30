@@ -176,9 +176,9 @@ export default function NewsletterSignupForm({
     <div ref={containerRef} className={`${variant === 'card' ? '' : ''} ${className}`}>
       {variant !== 'minimal' && (
         <div className="mb-6">
-            <h3 className="font-serif text-2xl font-medium">Subscribe to Letters</h3>
+            <h3 className="font-serif text-2xl font-medium">Get the free newsletter</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Name is optional. Email is all it takes.
+              Just add your email. Your name is optional.
             </p>
         </div>
       )}

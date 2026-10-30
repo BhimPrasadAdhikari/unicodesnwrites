@@ -75,7 +75,7 @@ export default function BlogSidebar({ categories }: BlogSidebarProps) {
       <NewsletterSignupForm source="blog-sidebar" variant="minimal" />
 
       <div className="space-y-3">
-        <h3 className="mb-3 text-eyebrow text-muted-foreground">Categories</h3>
+        <h3 className="mb-3 text-eyebrow text-muted-foreground">Topics</h3>
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           <button
             type="button"

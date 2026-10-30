@@ -120,7 +120,7 @@ export default async function AccountPage() {
     <div className="pb-24">
       <section className="border-b border-border py-12 sm:py-16">
         <Container className="max-w-[1200px]">
-          <p className="text-eyebrow text-primary">Student &amp; member portal</p>
+          <p className="text-eyebrow text-primary">Your account</p>
           <h1 className="mt-3 text-title">Account</h1>
           <p className="mt-4 max-w-2xl text-[17px] leading-[1.6] text-muted-foreground">
             Manage your personal profile, view learning overview, protect your security, retrieve purchased digital assets, and control your personal data.

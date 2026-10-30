@@ -168,7 +168,7 @@ export default async function RelatedPosts({
   return (
     <section className="mx-auto max-w-5xl px-6 pb-16 lg:px-8">
       <div className="border-t border-border pt-12">
-        <SectionHeading eyebrow="§ Keep reading" title="Related writing" href="/blog" linkLabel="All writing" className="mb-8" />
+        <SectionHeading icon="articles" eyebrow="Keep reading" title="You might also like" href="/blog" linkLabel="See all articles" className="mb-8" />
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {selectedPosts.map((post) => (
