@@ -15,7 +15,7 @@ export function NewsletterCTAStrip({ subscriberCount }: NewsletterCTAStripProps)
           <SiteIcon kind="newsletter" size={64} className="hidden shrink-0 sm:block" />
           <div className="flex flex-col gap-3.5">
             <p className="font-mono text-[12px] tracking-[0.08em] text-background/60">
-              NEWSLETTER · {subscriberCount > 0 ? `${subscriberCount.toLocaleString()} READERS` : 'FREE'}
+              NEWSLETTER · {subscriberCount > 0 ? `${subscriberCount.toLocaleString()} ${subscriberCount === 1 ? 'READER' : 'READERS'}` : 'FREE'}
             </p>
             <h2 className="font-serif text-[clamp(1.875rem,4vw,3rem)] font-medium leading-[1.05] tracking-[-0.02em]">
               Get one helpful email when there&apos;s something new.

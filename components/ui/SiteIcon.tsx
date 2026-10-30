@@ -148,7 +148,7 @@ export const PLAIN_TOPIC: Record<GlyphKind, string> = {
   agents: "AI agents",
   builds: "Projects",
   courses: "Lessons",
-  tools: "Guides & kits",
+  tools: "How-to guides",
   letters: "Newsletter",
 }
 
@@ -161,8 +161,14 @@ const ICON_FOR_GLYPH: Record<GlyphKind, SiteIconKind> = {
   letters: "newsletter",
 }
 
+/** Icon for an article or series. How-to posts get the steps icon, not the shop bag. */
 export function iconForGlyph(kind: GlyphKind): SiteIconKind {
-  return ICON_FOR_GLYPH[kind]
+  return kind === "tools" ? "learning" : ICON_FOR_GLYPH[kind]
+}
+
+/** Like siteIconFor, but for articles and series rather than products. */
+export function postIconFor(input?: string | null): SiteIconKind {
+  return iconForGlyph(glyphFor(input))
 }
 
 /** Map a category, post type or product type onto a friendly icon. */
