@@ -22,6 +22,7 @@ const primaryLinks: { href: string; label: string; icon: SiteIconKind }[] = [
 ];
 
 const mobileLinks: { href: string; label: string; icon?: SiteIconKind }[] = [
+  { href: '/start', label: 'Start here', icon: 'learning' },
   ...primaryLinks,
   { href: '/newsletter', label: 'Newsletter', icon: 'newsletter' },
   { href: '/about', label: 'About', icon: 'about' },

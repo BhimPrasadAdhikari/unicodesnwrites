@@ -65,6 +65,9 @@ export async function PublicationHero() {
               <Link href="/courses">See the courses</Link>
             </Button>
           </div>
+          <Link href="/start" className="-mt-2 inline-flex min-h-11 w-fit items-center text-[15px] font-medium text-muted-foreground underline decoration-primary decoration-2 underline-offset-4 hover:text-foreground">
+            New here? Start here →
+          </Link>
         </div>
 
         {desk ? (
