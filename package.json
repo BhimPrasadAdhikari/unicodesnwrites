@@ -24,7 +24,9 @@
     "migrate:razorpay": "tsx scripts/migrate-stripe-to-razorpay.ts",
     "test:razorpay": "tsx scripts/regression/razorpay-signatures.ts",
     "seed:prod": "tsx scripts/seed-production.ts",
-    "test:regression:markdown": "node scripts/regression/markdown-blockquote.mjs"
+    "test:regression:markdown": "node scripts/regression/markdown-blockquote.mjs",
+    "test:course-content": "tsx scripts/regression/course-content.ts",
+    "course:import:sandbox": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/with-sandbox-env.ps1 npx tsx scripts/course-content/import.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

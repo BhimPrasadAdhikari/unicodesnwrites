@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 import { cleanMultiline, cleanSingleLine } from '@/lib/utils/sanitize';
-import { optionalAssetUrlSchema } from '@/lib/utils/validations/common';
+import { assetUrlSchema, optionalAssetUrlSchema } from '@/lib/utils/validations/common';
+import { LESSON_INTERACTIVE_KEYS, LESSON_RESOURCE_KINDS } from '@/lib/courses/interactives';
 import { extractYouTubeVideoId } from '@/lib/utils/youtube';
 
 export const AIML_TOPICS = [
@@ -90,6 +91,62 @@ export const quizQuestionSchema = z
     }
   });
 
+export const lessonResourceSchema = z.object({
+  key: slugSchema,
+  title: singleLine(2, 160),
+  description: z.string().trim().max(600).transform(cleanMultiline).default(''),
+  kind: z.enum(LESSON_RESOURCE_KINDS),
+  url: assetUrlSchema,
+});
+
+export const lessonExerciseSchema = z.object({
+  key: slugSchema,
+  title: singleLine(3, 160),
+  prompt: multiline(10, 20_000),
+  hints: z.array(multiline(1, 1_000)).max(8).default([]),
+  solution: multiline(10, 40_000),
+});
+
+const walkthroughFileNameSchema = z.string().trim().min(1).max(120).regex(/^[\w.-]+$/, 'Use a plain file name');
+
+export const codeWalkthroughSchema = z
+  .object({
+    title: singleLine(3, 160),
+    files: z.record(walkthroughFileNameSchema, z.string().max(60_000).transform(cleanMultiline)),
+    steps: z
+      .array(
+        z.object({
+          title: singleLine(2, 160),
+          markdown: multiline(1, 6_000),
+          file: walkthroughFileNameSchema,
+          startLine: z.number().int().min(1).max(5_000).optional(),
+          endLine: z.number().int().min(1).max(5_000).optional(),
+        })
+      )
+      .min(1)
+      .max(30),
+  })
+  .superRefine((walkthrough, context) => {
+    const fileNames = Object.keys(walkthrough.files);
+    if (fileNames.length === 0 || fileNames.length > 8) {
+      context.addIssue({ code: 'custom', path: ['files'], message: 'Add between 1 and 8 files' });
+    }
+    walkthrough.steps.forEach((step, index) => {
+      if (!fileNames.includes(step.file)) {
+        context.addIssue({ code: 'custom', path: ['steps', index, 'file'], message: 'Step refers to a file that is not in the walkthrough' });
+      }
+      if (step.startLine !== undefined && step.endLine !== undefined && step.endLine < step.startLine) {
+        context.addIssue({ code: 'custom', path: ['steps', index, 'endLine'], message: 'End line must not be before start line' });
+      }
+    });
+  });
+
+export const lessonInteractiveSchema = z.object({
+  component: z.enum(LESSON_INTERACTIVE_KEYS),
+  title: singleLine(3, 160),
+  caption: z.string().trim().max(600).transform(cleanMultiline).default(''),
+});
+
 export const courseLessonSchema = z.object({
   key: slugSchema,
   slug: slugSchema,
@@ -110,10 +167,17 @@ export const courseLessonSchema = z.object({
       return id;
     })
     .default(''),
+  videoUrl: optionalAssetUrlSchema.default(''),
+  videoPosterUrl: optionalAssetUrlSchema.default(''),
   durationMinutes: z.number().int().min(1).max(480),
   learningObjectives: z.array(singleLine(3, 240)).min(1).max(12),
   concepts: z.array(singleLine(2, 80)).min(1).max(20),
   simulation: z.unknown().optional(),
+  interactive: lessonInteractiveSchema.optional(),
+  article: z.string().trim().max(60_000).transform(cleanMultiline).default(''),
+  codeWalkthrough: codeWalkthroughSchema.optional(),
+  resources: z.array(lessonResourceSchema).max(20).default([]),
+  exercises: z.array(lessonExerciseSchema).max(12).default([]),
   transcript: z.array(transcriptCueSchema).max(2_000).default([]),
   studyGuide: z.object({
     mentalModel: z.string().trim().max(4_000).transform(cleanMultiline).default(''),

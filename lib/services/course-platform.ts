@@ -146,10 +146,31 @@ export async function getPublishedLessonWorkspace(courseSlug: string, lessonSlug
   await connectDB();
   const course = (await Course.findOne({ slug: courseSlug, status: 'published' }).lean()) as unknown as CourseRecord | null;
   if (!course) return null;
+  return buildLessonWorkspace(course, lessonSlug, { includeUnpublished: false });
+}
 
+/**
+ * Admin-only preview of any lesson in any course status (draft included).
+ * Returns the quiz answer key separately so the preview can grade in the browser.
+ */
+export async function getLessonPreviewById(courseId: string, lessonSlug: string) {
+  await connectDB();
+  const course = (await Course.findById(courseId).lean()) as unknown as CourseRecord | null;
+  if (!course) return null;
+  const workspace = buildLessonWorkspace(course, lessonSlug, { includeUnpublished: true });
+  if (!workspace) return null;
+  const lesson = course.modules.flatMap((module) => module.lessons).find((item) => item.slug === lessonSlug);
+  const answerKey = Object.fromEntries(
+    (lesson?.quiz || []).map((question) => [question.key, { correctOption: question.correctOption, explanation: question.explanation }])
+  );
+  return { workspace, answerKey, status: course.status };
+}
+
+function buildLessonWorkspace(course: CourseRecord, lessonSlug: string, { includeUnpublished }: { includeUnpublished: boolean }) {
+  const visible = (lesson: ICourseLesson) => includeUnpublished || lesson.published;
   const orderedLessons: Array<ICourseLesson & { moduleKey: string; moduleTitle: string }> = [];
   course.modules.forEach((module) => {
-    module.lessons.filter((lesson) => lesson.published).forEach((lesson) => {
+    module.lessons.filter(visible).forEach((lesson) => {
       orderedLessons.push({ ...lesson, moduleKey: module.key, moduleTitle: module.title });
     });
   });
@@ -176,11 +197,18 @@ export async function getPublishedLessonWorkspace(courseSlug: string, lessonSlug
       moduleKey: lesson.moduleKey,
       moduleTitle: lesson.moduleTitle,
       durationMinutes: lesson.durationMinutes,
-      embedUrl: getYouTubeEmbedUrl(lesson.youtubeVideoId),
+      embedUrl: lesson.videoUrl ? '' : getYouTubeEmbedUrl(lesson.youtubeVideoId),
+      videoUrl: lesson.videoUrl || '',
+      videoPosterUrl: lesson.videoPosterUrl || '',
       learningObjectives: lesson.learningObjectives,
       concepts: lesson.concepts,
       visualization: lesson.visualization,
       simulation: lesson.simulation,
+      interactive: lesson.interactive?.component ? lesson.interactive : null,
+      article: lesson.article || '',
+      codeWalkthrough: lesson.codeWalkthrough || null,
+      resources: lesson.resources || [],
+      exercises: lesson.exercises || [],
       transcript: lesson.transcript,
       studyGuide: lesson.studyGuide,
       quiz: lesson.quiz.map((question) => ({
@@ -192,7 +220,7 @@ export async function getPublishedLessonWorkspace(courseSlug: string, lessonSlug
     curriculum: course.modules.map((module) => ({
       key: module.key,
       title: module.title,
-      lessons: module.lessons.filter((item) => item.published).map((item) => ({
+      lessons: module.lessons.filter(visible).map((item) => ({
         key: item.key,
         slug: item.slug,
         title: item.title,
