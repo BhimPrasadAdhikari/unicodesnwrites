@@ -1,0 +1,158 @@
+{
+  "key": "lab-write-reward-functions",
+  "slug": "lab-write-reward-functions",
+  "title": "Lab: write your own reward functions",
+  "summary": "Read, run and test a format reward and a correctness reward in the exact shape Hugging Face TRL expects, find a loophole in a reward that looks strict, and fix it. Runs on any CPU.",
+  "type": "concept",
+  "durationMinutes": 30,
+  "learningObjectives": [
+    "Write a reward function that takes a list of completions and returns one score per completion, in the shape TRL expects.",
+    "Read the three regular expressions used to check format, extract the answer and find numbers.",
+    "Write helpers that handle messy answers without crashing.",
+    "Explain why rewards should be lenient about decoration and strict about substance.",
+    "Find and fix a loophole by testing a reward on unusual inputs."
+  ],
+  "concepts": [
+    "reward function signature",
+    "regular expression",
+    "format reward",
+    "soft format reward",
+    "correctness reward",
+    "answer extraction",
+    "number parsing",
+    "**kwargs",
+    "reward loophole",
+    "testing rewards"
+  ],
+  "studyGuide": {
+    "mentalModel": "A reward function is a strict but fair exam marker who works through a pile of scripts and writes one mark on each. Before you hand them a real pile, you test them with trick scripts: blank ones, ones with two answers, ones with dollar signs. Every trick script they mark wrongly is a trick a student would eventually have found.",
+    "keyIdeas": [
+      "TRL reward functions take completions (and dataset columns as keyword arguments) and return a list of floats, one per completion.",
+      "Accept **kwargs so the function does not crash on the extra arguments TRL passes.",
+      "Completions can be plain strings or chat message lists; normalize them to text first.",
+      "Helpers should return None or 0 on messy answers instead of crashing a training run.",
+      "Grade the number, not the decoration: '$18.', '18.0' and '18' should all match 18.",
+      "The lazy pattern .+? can stretch over duplicate tags, so a strict-looking format reward let a duplicated answer block through; counting tags fixes it."
+    ],
+    "misconceptions": [
+      "\"If the regex looks strict, the reward is strict.\" The demo shows a duplicated answer block passing the strict format check.",
+      "\"Exact string matching is the safest correctness check.\" It wrongly fails '$18.' and '18.0'; parse numbers instead.",
+      "\"Reward functions only receive completions.\" TRL also passes prompts, dataset columns and more as keyword arguments.",
+      "\"You can only test rewards during training.\" Testing on hand-written answers first is faster, cheaper and catches loopholes before the model does."
+    ],
+    "recallPrompts": [
+      "What does a TRL reward function take in, and what must it return?",
+      "Why does every reward function accept **kwargs?",
+      "What does parse_number return for '$1,200.' and for 'no idea'?",
+      "Why did 'tags twice' pass the strict format reward?",
+      "Why compare numbers with a small tolerance instead of ==?",
+      "Name four unusual inputs worth testing on any reward function."
+    ],
+    "explainBackPrompt": "Explain to a friend how a short Python function can grade a model's answer to a maths word problem, and how you would check it cannot be fooled before you use it to train a model."
+  },
+  "quiz": [
+    {
+      "key": "return-shape",
+      "prompt": "TRL calls your reward function with 8 completions. What should it return?",
+      "options": [
+        "A single number for the whole batch",
+        "The best completion as a string",
+        "A list of 8 numbers, one per completion",
+        "True or False"
+      ],
+      "correctOption": 2,
+      "explanation": "GRPOTrainer expects one reward per completion, so a list with the same length as completions."
+    },
+    {
+      "key": "why-kwargs",
+      "prompt": "Why does format_reward accept **kwargs even though it only uses completions?",
+      "options": [
+        "TRL passes extra keyword arguments such as prompts and dataset columns, and the function would crash without it.",
+        "It makes the function run faster.",
+        "It turns on GPU acceleration.",
+        "Python requires it on every function."
+      ],
+      "correctOption": 0,
+      "explanation": "TRL calls reward functions with several keyword arguments. Accepting **kwargs lets your function ignore the ones it does not need."
+    },
+    {
+      "key": "parse-dollar",
+      "prompt": "What does parse_number('$1,200.') return in rewards.py?",
+      "options": [
+        "None",
+        "1.0",
+        "'1,200'",
+        "1200.0"
+      ],
+      "correctOption": 3,
+      "explanation": "It removes commas, finds all numbers and returns the last one as a float, so '$1,200.' becomes 1200.0. The dollar sign and full stop are ignored."
+    },
+    {
+      "key": "loophole",
+      "prompt": "Why did '<think>hmm</think><answer>18</answer><answer>18</answer>' get 1.0 from the strict format reward?",
+      "options": [
+        "The format reward ignores everything after the first tag.",
+        "The lazy .+? stretched over the extra tags so the whole pattern still matched to the end.",
+        "Two answer blocks are allowed by the TRL rules.",
+        "The correctness reward overwrote the format score."
+      ],
+      "correctOption": 1,
+      "explanation": "'As few characters as possible' still means 'as many as needed for the whole pattern to match'. To reach the end of the text, .+? swallowed '18</answer><answer>18'. Counting each tag exactly once closes the hole."
+    },
+    {
+      "key": "no-tags-score",
+      "prompt": "The model writes 'The answer is 18.' with no tags, and the gold answer is 18. What does correctness_reward give it?",
+      "options": [
+        "1.0, because 18 appears in the text",
+        "0.5 partial credit",
+        "0.0, because there is no answer block to grade",
+        "It raises an error"
+      ],
+      "correctOption": 2,
+      "explanation": "extract_answer returns None when the tags are missing, parse_number(None) returns None, and the score is 0. It does not crash, and it pushes the model toward using answer tags."
+    }
+  ],
+  "resources": [
+    {
+      "key": "rewards-notebook",
+      "title": "Rewards lab notebook",
+      "description": "Write and test format and correctness rewards on sample completions, then fix the duplicate-tag loophole. CPU only, under a minute.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/02-rewards-lab.ipynb"
+    },
+    {
+      "key": "rewards-cheatsheet",
+      "title": "Rewards cheat sheet",
+      "description": "The reward function shape, a pre-training checklist and reward hacking fixes on one page.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/rewards-cheatsheet.pdf"
+    },
+    {
+      "key": "trl-grpo-docs",
+      "title": "TRL GRPOTrainer documentation",
+      "description": "Official docs, including the section on custom reward functions.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/trl/main/en/grpo_trainer"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "strict-format-reward",
+      "title": "Close the duplicate-tag loophole",
+      "hints": [
+        "str.count(tag) tells you how many times a tag appears.",
+        "Keep the existing FORMAT_PATTERN check and add a new condition alongside it.",
+        "Decide whether whitespace-only thinking should pass, and test it."
+      ]
+    },
+    {
+      "key": "no-hedging",
+      "title": "Stop the model hedging its answer",
+      "hints": [
+        "Try '<answer>26 or 18</answer>' and '<answer>18 or 26</answer>' with the current correctness_reward.",
+        "NUMBER_PATTERN.findall gives you every number in a string.",
+        "Remember to remove commas before looking for numbers, as parse_number does."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "title": "Reading reinforce_bandit.py: learning from a score in 70 lines",
+  "files": ["reinforce_bandit.py"],
+  "steps": [
+    {
+      "title": "The whole world: one question, four answers",
+      "markdown": "Our \"model\" answers one question, *What is 3 + 4?*, by picking from four candidates. The score sheet gives 1.5 for `7` (1.0 for correct plus 0.5 for writing a number), 0.5 for the wrong numbers, and 0 for `no idea`. The policy never sees this table. It only sees the score of whatever it picked.",
+      "file": "reinforce_bandit.py",
+      "startLine": 1,
+      "endLine": 10
+    },
+    {
+      "title": "Softmax: scores into probabilities",
+      "markdown": "The policy keeps one raw score (a *logit*) per answer. `softmax` turns them into probabilities that add to 1: higher logit, higher chance. Subtracting the largest logit first changes nothing in the result but keeps `exp()` from overflowing.",
+      "file": "reinforce_bandit.py",
+      "startLine": 13,
+      "endLine": 17
+    },
+    {
+      "title": "Sample a batch and score it",
+      "markdown": "Each step, the policy picks `batch_size` answers at random according to its current probabilities, and we look up their scores. `bonus` lets us add the same points to every answer, which should not change what is best. We use it later to show why a baseline matters.",
+      "file": "reinforce_bandit.py",
+      "startLine": 20,
+      "endLine": 27
+    },
+    {
+      "title": "Advantage: better or worse than usual?",
+      "markdown": "With a mean baseline, each answer's *advantage* is its score minus the batch average. Above average means positive, below average means negative. Without a baseline, the raw score is used, so any answer with a positive score gets pushed up, even a bad one.",
+      "file": "reinforce_bandit.py",
+      "startLine": 28,
+      "endLine": 31
+    },
+    {
+      "title": "The nudge",
+      "markdown": "`onehot - probs` is the direction that makes answer `k` more likely: it raises `k`'s logit and lowers the others in proportion to how likely they already are. We scale that direction by the advantage, add it up over the batch, average, and take a step of size `lr`. This one line is REINFORCE (Williams, 1992). Tiny Adder and GRPO use exactly the same nudge.",
+      "file": "reinforce_bandit.py",
+      "startLine": 32,
+      "endLine": 36
+    },
+    {
+      "title": "The training loop",
+      "markdown": "Start from all-zero logits (every answer at 25%), repeat the step, and record the probability of the correct answer after each step. A fixed `seed` makes runs repeatable, so you and the article see the same numbers.",
+      "file": "reinforce_bandit.py",
+      "startLine": 39,
+      "endLine": 47
+    },
+    {
+      "title": "Many runs, not one",
+      "markdown": "A single run can be lucky or unlucky. `average_runs` repeats training with 20 different seeds and reports the average and the spread (standard deviation). A big spread means the method is unreliable, even if some runs look great.",
+      "file": "reinforce_bandit.py",
+      "startLine": 50,
+      "endLine": 53
+    },
+    {
+      "title": "The experiment",
+      "markdown": "The demo prints one step up close, then compares three setups: no baseline, no baseline with +10 points for everyone, and a mean baseline with the same +10. The +10 changes nothing about which answer is best, yet without a baseline it wrecks learning. With a baseline, the +10 cancels out completely.",
+      "file": "reinforce_bandit.py",
+      "startLine": 56,
+      "endLine": 71
+    }
+  ]
+}

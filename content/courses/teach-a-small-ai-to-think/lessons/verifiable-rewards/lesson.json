@@ -1,0 +1,155 @@
+{
+  "key": "verifiable-rewards",
+  "slug": "verifiable-rewards",
+  "title": "Verifiable rewards: grading without a teacher",
+  "summary": "What a reward is, what makes one verifiable, and how the two rewards behind R1-style training (format and correctness) work, including the design choices and blind spots hiding inside them.",
+  "type": "concept",
+  "durationMinutes": 18,
+  "learningObjectives": [
+    "Explain what a reward is in reinforcement learning and what the model does and does not get to see.",
+    "Decide whether a task has a verifiable reward and describe how you would check it.",
+    "Explain why rule-based rewards were preferred over reward models for training reasoning.",
+    "Describe the format reward and the correctness reward and why correctness should be worth more.",
+    "Explain why a group of attempts that all score the same gives the model nothing to learn from.",
+    "Name what verifiable rewards cannot see, such as lucky guesses and readability."
+  ],
+  "concepts": [
+    "reward",
+    "reward function",
+    "verifiable reward",
+    "RLVR",
+    "reward model",
+    "format reward",
+    "correctness reward",
+    "partial credit",
+    "reward weights",
+    "learning signal and contrast"
+  ],
+  "interactive": {
+    "component": "reward-grader",
+    "title": "Grade an answer yourself",
+    "caption": "Edit the model's answer and watch the format and correctness rewards update live. Try deleting a tag, writing \"18 or 26\", or emptying the think block, and predict each score first."
+  },
+  "studyGuide": {
+    "mentalModel": "Picture a teacher marking a huge pile of maths tests with only an answer key. They do not read the working; they check the boxed answer against the key and tick or cross. They also give a small mark for putting the answer in the box. The model is a student who never sees the key, only its marks, and slowly works out which habits earn ticks.",
+    "keyIdeas": [
+      "A reward is a number saying how good an attempt was. The model only ever sees the score, never the right answer.",
+      "A reward is verifiable when a short, reliable program can decide it, for example comparing a final number or running test cases.",
+      "Rule-based rewards are cheap and hard to fool, which is why DeepSeek-R1 used them for maths and code instead of a reward model.",
+      "The format reward checks the think and answer tags; the correctness reward checks the final answer. Correctness should be worth more.",
+      "Learning needs contrast: if every attempt at a question scores the same, there is nothing to learn from it.",
+      "Verifiable rewards grade the outcome, so they reward lucky guesses and ignore readability."
+    ],
+    "misconceptions": [
+      "\"The model is shown the right answer during RL.\" It only receives a score for its own attempt.",
+      "\"A verifiable reward checks that the reasoning is correct.\" It usually checks only the final answer and the format.",
+      "\"Stricter rewards are always better.\" Too strict and a beginner model scores zero everywhere, which gives it nothing to learn from.",
+      "\"The format reward is just cosmetic.\" It tells the grader where the answer is and gives the model an early, learnable signal."
+    ],
+    "recallPrompts": [
+      "In one sentence, what is a reward function?",
+      "Give two tasks with verifiable rewards and two without.",
+      "Why might a reward model be a risky grader for reasoning?",
+      "Why should correctness be worth more than format?",
+      "Why does a group of eight attempts that all score 0 teach the model nothing?",
+      "Name one thing a verifiable reward cannot see."
+    ],
+    "explainBackPrompt": "Explain to a friend how a computer can grade a maths word problem without a teacher, why that is so useful for training a reasoning model, and one way that kind of grading can miss the point."
+  },
+  "quiz": [
+    {
+      "key": "what-model-sees",
+      "prompt": "During reinforcement learning with a correctness reward, what does the model receive for each attempt?",
+      "options": [
+        "The full worked solution",
+        "Only a score for that attempt",
+        "The right answer and an explanation",
+        "A list of its mistakes"
+      ],
+      "correctOption": 1,
+      "explanation": "The model only gets a number. It never sees the gold answer. Over many attempts it learns to do more of whatever scored well."
+    },
+    {
+      "key": "which-verifiable",
+      "prompt": "Which task has the most clearly verifiable reward?",
+      "options": [
+        "Writing a moving poem about the sea",
+        "Giving good career advice",
+        "Writing a function that must pass a set of unit tests",
+        "Summarizing a novel in an engaging way"
+      ],
+      "correctOption": 2,
+      "explanation": "Unit tests give a clear pass or fail that code can check. Poems, advice and engaging summaries depend on taste, so no short program can grade them reliably."
+    },
+    {
+      "key": "weights",
+      "prompt": "You give format a weight of 2.0 and correctness a weight of 1.0. What is the risk?",
+      "options": [
+        "The model may learn that tidy but wrong answers are the fastest way to a high score.",
+        "Training will run out of GPU memory.",
+        "The model will stop using the think tags.",
+        "There is no risk; weights do not matter."
+      ],
+      "correctOption": 0,
+      "explanation": "With format worth more than correctness, a tidy wrong answer (2.0) beats a messy right one (1.0). Keep correctness worth more so being right always wins."
+    },
+    {
+      "key": "zero-contrast",
+      "prompt": "A model makes 8 attempts at a hard question and every one scores 0. What does it learn from that question?",
+      "options": [
+        "It learns to avoid all eight answers equally, which is very useful.",
+        "It learns the right answer from the zeros.",
+        "It learns to write shorter answers.",
+        "Nothing: no attempt scored better than another, so there is no contrast to learn from."
+      ],
+      "correctOption": 3,
+      "explanation": "Learning comes from some attempts beating others. When every score is the same, there is no signal. That is why format rewards and a well-matched dataset matter early on."
+    },
+    {
+      "key": "blind-spot",
+      "prompt": "A model writes nonsense working but its final number happens to be right. What does a correctness reward give it?",
+      "options": [
+        "Zero, because the working is wrong",
+        "Half marks",
+        "Full marks, because only the final answer is checked",
+        "A penalty for guessing"
+      ],
+      "correctOption": 2,
+      "explanation": "Verifiable rewards grade the outcome, not the reasoning. Over many questions lucky guesses mostly wash out, but it is a real blind spot."
+    }
+  ],
+  "resources": [
+    {
+      "key": "rewards-cheatsheet",
+      "title": "Rewards cheat sheet",
+      "description": "One page: format and correctness rewards, verifiable vs judged rewards, the TRL reward function shape, and a pre-training checklist.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/rewards-cheatsheet.pdf"
+    },
+    {
+      "key": "tulu3-paper",
+      "title": "Tülu 3 report (Lambert et al., 2024)",
+      "description": "The report that popularized the term reinforcement learning with verifiable rewards (RLVR).",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2411.15124"
+    },
+    {
+      "key": "r1-paper",
+      "title": "DeepSeek-R1 paper (DeepSeek-AI, 2025)",
+      "description": "See the R1-Zero section for the accuracy and format rewards.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2501.12948"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "design-a-verifier",
+      "title": "Design a verifier for three tasks",
+      "hints": [
+        "Ask: is there one right answer, and can a short program compare against it?",
+        "Decide what to be lenient about (decoration) and what to be strict about (substance).",
+        "For a task that is not verifiable, say which part of it could still be checked."
+      ]
+    }
+  ]
+}

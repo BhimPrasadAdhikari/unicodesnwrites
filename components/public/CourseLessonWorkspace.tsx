@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 
 import { AiNotesGenerator } from "@/components/public/AiNotesGenerator";
+import { LessonRichContent } from "@/components/public/LessonRichContent";
 import { LessonVideoPlayer } from "@/components/public/LessonVideoPlayer";
 import type { LessonWorkspaceDTO } from "@/lib/services/course-platform";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,13 @@ type LessonPersistence = {
   >;
 };
 
+/** Admin preview of draft lessons: nothing is saved and the quiz is graded in the browser. */
+export type LessonPreviewOptions = {
+  basePath: string;
+  overviewPath: string;
+  answerKey: Record<string, { correctOption: number; explanation: string }>;
+};
+
 function formatTime(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
@@ -71,11 +79,18 @@ export function CourseLessonWorkspace({
   workspace,
   initialCompletedLessons,
   initialPersistence,
+  preview,
 }: {
   workspace: LessonWorkspaceDTO;
   initialCompletedLessons: string[];
   initialPersistence: LessonPersistence;
+  preview?: LessonPreviewOptions;
 }) {
+  const lessonHref = (slug: string) =>
+    preview
+      ? `${preview.basePath}/${slug}`
+      : `/courses/${workspace.course.slug}/learn/${slug}`;
+  const overviewHref = preview?.overviewPath || `/courses/${workspace.course.slug}`;
   const router = useRouter();
   const { trackEvent } = useAnalytics();
   const notesKey = `course-notes:${workspace.course.slug}:${workspace.lesson.slug}`;
@@ -130,7 +145,7 @@ export function CourseLessonWorkspace({
   }, [initialPersistence.notes, notesKey]);
 
   useEffect(() => {
-    if (!persistenceReady) return;
+    if (!persistenceReady || preview) return;
     const payload = {
       notes: personalNotes,
       activeTab: tab,
@@ -165,6 +180,7 @@ export function CourseLessonWorkspace({
     notesKey,
     persistenceReady,
     personalNotes,
+    preview,
     saveRevision,
     tab,
     videoPosition,
@@ -221,6 +237,12 @@ export function CourseLessonWorkspace({
       ? [...new Set([...completedLessons, workspace.lesson.slug])]
       : completedLessons.filter((slug) => slug !== workspace.lesson.slug);
     setCompletedLessons(next);
+    if (preview) {
+      if (advance && willBeComplete && workspace.navigation.next) {
+        router.push(lessonHref(workspace.navigation.next.slug));
+      }
+      return;
+    }
     try {
       const response = await fetch(
         `/api/courses/${encodeURIComponent(workspace.course.slug)}/progress`,
@@ -245,9 +267,7 @@ export function CourseLessonWorkspace({
           lessonSlug: workspace.lesson.slug,
         });
         if (advance && willBeComplete && workspace.navigation.next) {
-          router.push(
-            `/courses/${workspace.course.slug}/learn/${workspace.navigation.next.slug}`,
-          );
+          router.push(lessonHref(workspace.navigation.next.slug));
         }
       }
     } catch {
@@ -259,6 +279,29 @@ export function CourseLessonWorkspace({
     setQuizError("");
     if (Object.keys(answers).length !== workspace.lesson.quiz.length) {
       setQuizError("Answer every question before checking your understanding.");
+      return;
+    }
+    if (preview) {
+      const results = workspace.lesson.quiz.map((question) => {
+        const key = preview.answerKey[question.key];
+        const selectedOption = answers[question.key] ?? null;
+        return {
+          questionKey: question.key,
+          correct: selectedOption === key?.correctOption,
+          selectedOption,
+          correctOption: key?.correctOption ?? -1,
+          explanation: key?.explanation || "",
+        };
+      });
+      const correctCount = results.filter((result) => result.correct).length;
+      setQuizResult({
+        score: results.length ? Math.round((correctCount / results.length) * 100) : 0,
+        passed: results.length > 0 && correctCount / results.length >= 0.7,
+        correctCount,
+        total: results.length,
+        results,
+      });
+      setQuizAttemptCount((count) => count + 1);
       return;
     }
     setSubmitting(true);
@@ -296,7 +339,7 @@ export function CourseLessonWorkspace({
     <div className="flex h-full flex-col">
       <div className="border-b border-border p-5">
         <Link
-          href={`/courses/${workspace.course.slug}`}
+          href={overviewHref}
           className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Course overview
@@ -327,7 +370,7 @@ export function CourseLessonWorkspace({
                 return (
                   <Link
                     key={lesson.key}
-                    href={`/courses/${workspace.course.slug}/learn/${lesson.slug}`}
+                    href={lessonHref(lesson.slug)}
                     onClick={() => setCurriculumOpen(false)}
                     className={cn(
                       "flex min-h-11 gap-3 rounded-lg px-3 py-3 transition",
@@ -399,9 +442,11 @@ export function CourseLessonWorkspace({
             </p>
           </div>
 
-          {Boolean(workspace.lesson.embedUrl) && (
+          {Boolean(workspace.lesson.embedUrl || workspace.lesson.videoUrl) && (
             <LessonVideoPlayer
               embedUrl={workspace.lesson.embedUrl}
+              videoUrl={workspace.lesson.videoUrl}
+              posterUrl={workspace.lesson.videoPosterUrl}
               title={workspace.lesson.title}
               initialPositionSeconds={initialPersistence.videoPositionSeconds}
               seekToSeconds={videoSeek}
@@ -440,10 +485,12 @@ export function CourseLessonWorkspace({
             </button>
           </div>
 
+          <LessonRichContent lesson={workspace.lesson} />
+
           <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6">
             {workspace.navigation.previous ? (
               <Link
-                href={`/courses/${workspace.course.slug}/learn/${workspace.navigation.previous.slug}`}
+                href={lessonHref(workspace.navigation.previous.slug)}
                 className="inline-flex min-h-11 min-w-0 items-center gap-2 text-sm font-semibold"
               >
                 <ArrowLeft className="h-4 w-4 shrink-0" />
@@ -456,7 +503,7 @@ export function CourseLessonWorkspace({
             )}
             {workspace.navigation.next ? (
               <Link
-                href={`/courses/${workspace.course.slug}/learn/${workspace.navigation.next.slug}`}
+                href={lessonHref(workspace.navigation.next.slug)}
                 className="inline-flex min-h-11 min-w-0 items-center gap-2 text-sm font-semibold"
               >
                 <span className="truncate">
@@ -466,7 +513,7 @@ export function CourseLessonWorkspace({
               </Link>
             ) : (
               <Link
-                href={`/courses/${workspace.course.slug}/complete`}
+                href={preview ? overviewHref : `/courses/${workspace.course.slug}/complete`}
                 className="inline-flex min-h-11 items-center text-sm font-semibold underline decoration-primary decoration-2 underline-offset-4"
               >
                 Finish course
@@ -670,10 +717,12 @@ export function CourseLessonWorkspace({
                     </ul>
                   </section>
                 ) : null}
-                <AiNotesGenerator
-                  courseSlug={workspace.course.slug}
-                  lessonSlug={workspace.lesson.slug}
-                />
+                {!preview && (
+                  <AiNotesGenerator
+                    courseSlug={workspace.course.slug}
+                    lessonSlug={workspace.lesson.slug}
+                  />
+                )}
                 {workspace.lesson.transcript?.length ? (
                   <section>
                     <label className="text-eyebrow text-muted-foreground">
@@ -798,7 +847,7 @@ export function CourseLessonWorkspace({
                     {quizResult.passed && workspace.navigation.next ? (
                       <button
                         type="button"
-                        onClick={() => router.push(`/courses/${workspace.course.slug}/learn/${workspace.navigation.next!.slug}`)}
+                        onClick={() => router.push(lessonHref(workspace.navigation.next!.slug))}
                         className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:bg-foreground/90"
                       >
                         Next lesson →

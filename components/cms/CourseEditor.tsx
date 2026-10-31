@@ -28,6 +28,7 @@ import {
 import ImageUploader from "@/components/cms/ImageUploader";
 import { YouTubePreview } from "@/components/cms/YouTubePreview";
 import { Button } from "@/components/ui/Button";
+import { LessonRichContentEditor } from "@/components/cms/LessonRichContentEditor";
 import { generateSlug } from "@/lib/utils/slug";
 import { formatTranscriptCues, parseTranscriptText } from "@/lib/utils/transcript";
 import {
@@ -97,6 +98,11 @@ function emptyLesson() {
     learningObjectives: [""],
     concepts: [""],
     simulation: undefined,
+    videoUrl: "",
+    videoPosterUrl: "",
+    article: "",
+    resources: [] as CourseInput["modules"][number]["lessons"][number]["resources"],
+    exercises: [] as CourseInput["modules"][number]["lessons"][number]["exercises"],
 
     transcript: [] as Array<{
       startSeconds: number;
@@ -1381,10 +1387,13 @@ export function CourseEditor({ initialData }: CourseEditorProps) {
                 </label>
               </div>
             </div>
+            <LessonRichContentEditor
+              key={activeLesson.key}
+              lesson={activeLesson}
+              onChange={(updater) => updateLesson(activeLesson.key, updater)}
+            />
           </div>
         )}
-
-
 
         {step === 3 && activeLesson && (
           <div>

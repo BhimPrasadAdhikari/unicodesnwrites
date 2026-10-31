@@ -1,0 +1,69 @@
+{
+  "title": "Distilling reasoning traces with TRL's SFTTrainer",
+  "files": ["sft_distill.py"],
+  "steps": [
+    {
+      "title": "The plan, and the pinned versions",
+      "markdown": "The docstring says what we're doing: fine-tune **Qwen2.5-0.5B-Instruct** (the student) on reasoning traces from **camel-ai/gsm8k_distilled** (MIT license), then measure GSM8K test accuracy before and after. The `pip install` line pins exact versions (TRL 1.16.0) so the script keeps working when libraries change. It needs a GPU; a free Colab T4 is enough.",
+      "file": "sft_distill.py",
+      "startLine": 1,
+      "endLine": 20
+    },
+    {
+      "title": "The knobs you'll actually change",
+      "markdown": "`N_TRAIN` is how many traces to learn from, `MAX_LENGTH` is the longest trace (in tokens) we keep, and `N_EVAL` is how many test problems we grade. The system prompt is the same `<think>`/`<answer>` instruction used in the GRPO labs, so the distilled model speaks the same format. The regular expressions find the thinking, the teacher's `\\boxed{}` answer, our `<answer>` tag, and plain numbers.",
+      "file": "sft_distill.py",
+      "startLine": 22,
+      "endLine": 37
+    },
+    {
+      "title": "Rewriting a teacher trace into our format",
+      "markdown": "Each row in the dataset has a `problem`, a `reasoning_solution` (a `<think>` block followed by a written answer with `\\boxed{}`), and a `boxed_answer_success` flag. `to_example` keeps only the thinking and the final number, and rebuilds the reply as `<think>…</think>` then `<answer>N</answer>`. It returns a **conversational prompt-completion** pair, a format TRL's `SFTTrainer` understands directly. Rows where the teacher's answer failed the check, or where something is missing, are marked `keep: False`.",
+      "file": "sft_distill.py",
+      "startLine": 51,
+      "endLine": 65
+    },
+    {
+      "title": "Filtering to traces that fit a T4",
+      "markdown": "Teacher traces can be long, and long sequences eat GPU memory. `build_train_set` shuffles the data (with a fixed seed, so you get the same subset every time), converts every row, drops failed ones, then drops any trace longer than `MAX_LENGTH` tokens once the chat template is applied. Finally it takes the first `N_TRAIN`. A side effect worth noticing: by keeping only shorter traces, we also teach the student a somewhat shorter thinking style.",
+      "file": "sft_distill.py",
+      "startLine": 68,
+      "endLine": 79
+    },
+    {
+      "title": "A fair grader",
+      "markdown": "The untrained student won't use our `<answer>` tag reliably, so grading only that tag would be unfair to the \"before\" run. `predicted_number` tries `<answer>` first, then `\\boxed{}`, then simply the last number in the reply. Correctness is measured the same way before and after; the separate `format` score tells you whether the tags are being used.",
+      "file": "sft_distill.py",
+      "startLine": 82,
+      "endLine": 88
+    },
+    {
+      "title": "Evaluation: accuracy, format and length",
+      "markdown": "`evaluate` generates **greedy** answers (`do_sample=False`, always the most likely token) in batches of 16, so before and after are directly comparable. Padding goes on the *left* for generation, so every prompt ends right where the answer starts. For each reply it records: is the number right, did it use `</think>` and `<answer>`, and how many tokens it wrote (non-padding tokens). It returns the three averages plus the first reply to read.",
+      "file": "sft_distill.py",
+      "startLine": 91,
+      "endLine": 110
+    },
+    {
+      "title": "Test set and the \"before\" score",
+      "markdown": "We take the first 200 problems from the GSM8K **test** split; the traces came from the training split, so the student has never seen these. The gold answer is the number after `####`. We load the untouched student in float16, grade it, then delete it and free GPU memory before training.",
+      "file": "sft_distill.py",
+      "startLine": 113,
+      "endLine": 125
+    },
+    {
+      "title": "Training: SFTConfig, LoRA and SFTTrainer",
+      "markdown": "This is plain next-token prediction on the teacher's text. Key settings:\n\n- `completion_only_loss=True`: only the teacher's reply is graded, not the question.\n- `per_device_train_batch_size=4` × `gradient_accumulation_steps=4` = 16 traces per update.\n- `learning_rate=2e-4`: LoRA trains only small add-on matrices, so it tolerates a higher rate than full fine-tuning.\n- `fp16=not bf16`: a T4 has no bfloat16, so we fall back to float16 mixed precision.\n- `LoraConfig(target_modules=\"all-linear\")` adds adapters to every linear layer.\n\nWe set padding back to the right before training, because `evaluate` switched it to the left.",
+      "file": "sft_distill.py",
+      "startLine": 127,
+      "endLine": 152
+    },
+    {
+      "title": "The \"after\" score and saving",
+      "markdown": "We grade the trained model (`trainer.model`, the student with its LoRA adapter) on the same 200 problems with the same settings, print a before/after table, and show the first answer so you can *read* what changed. Then we save the adapter, and upload it to the Hugging Face Hub if you set `HUB_MODEL_ID`.",
+      "file": "sft_distill.py",
+      "startLine": 154,
+      "endLine": 165
+    }
+  ]
+}

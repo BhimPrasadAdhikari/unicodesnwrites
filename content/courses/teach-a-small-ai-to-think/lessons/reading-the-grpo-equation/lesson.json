@@ -1,0 +1,151 @@
+{
+  "key": "reading-the-grpo-equation",
+  "slug": "reading-the-grpo-equation",
+  "title": "Reading the GRPO equation, line by line",
+  "summary": "Open the GRPO objective from the DeepSeekMath paper and translate every symbol into plain words and a line of the Tiny Adder code. Then see exactly which pieces DAPO and Dr. GRPO changed, and why.",
+  "type": "paper-walkthrough",
+  "durationMinutes": 20,
+  "learningObjectives": [
+    "Read each symbol of the GRPO objective aloud in plain words",
+    "Map every part of the equation to a line of grpo_tiny_adder.py",
+    "Explain how GRPO's per-token KL estimator works and why it is always non-negative",
+    "Explain the length bias of the 1/|o_i| average and how Dr. GRPO and DAPO change it"
+  ],
+  "concepts": [
+    "GRPO objective",
+    "policy, old policy and reference policy",
+    "per-token ratio",
+    "outcome supervision",
+    "k3 KL estimator",
+    "length normalization bias",
+    "loss_type and scale_rewards"
+  ],
+  "studyGuide": {
+    "mentalModel": "The equation is a recipe written in shorthand: average over questions and their sampled groups; inside, average over answers and over tokens; for each token, take the clipped ratio times the group-relative advantage; subtract beta times a KL estimate; then climb uphill. Every line has a twin in the Tiny Adder code.",
+    "keyIdeas": [
+      "E over q and {o_i} ~ pi_old means: sample questions and a group of G answers each from the model that is about to be updated.",
+      "(1/G) sum over i averages over the group; (1/|o_i|) sum over t averages over the tokens of one answer.",
+      "With outcome rewards, every token of an answer shares the same advantage (r_i - mean) / std.",
+      "GRPO subtracts beta times a per-token KL estimate, pi_ref/pi - log(pi_ref/pi) - 1, which is never negative.",
+      "Dr. GRPO and DAPO change the length average and the std division; TRL exposes them as loss_type and scale_rewards."
+    ],
+    "misconceptions": [
+      "pi_old is not the reference model: pi_old sampled the current batch, pi_ref is frozen from the start.",
+      "The KL term in GRPO is not added to the reward as in classic RLHF PPO; it is a separate term in the loss.",
+      "Dividing by answer length is not neutral: it weakens the per-token penalty on long wrong answers.",
+      "The changes in DAPO and Dr. GRPO do not replace GRPO's core idea; groups and relative advantages stay."
+    ],
+    "recallPrompts": [
+      "What is the difference between pi_theta, pi_theta_old and pi_ref?",
+      "Why does the token average do nothing in Tiny Adder?",
+      "Write the k3 KL estimate in words. What is it when the two probabilities are equal?",
+      "Which TRL setting chooses between the original GRPO, DAPO and Dr. GRPO loss aggregation?"
+    ],
+    "explainBackPrompt": "Explain to a friend what each part of the GRPO equation instructs the computer to do, using the Tiny Adder as the example, and name one part that later research changed."
+  },
+  "quiz": [
+    {
+      "key": "pi-old-vs-ref",
+      "prompt": "In the GRPO equation, what is the difference between pi_theta_old and pi_ref?",
+      "options": [
+        "They are two names for the same model",
+        "pi_theta_old is a bigger teacher model; pi_ref is the student",
+        "pi_ref is updated every step; pi_theta_old never changes",
+        "pi_theta_old is the model that sampled the current batch; pi_ref is the frozen starting model used for the KL penalty"
+      ],
+      "correctOption": 3,
+      "explanation": "The ratio compares against pi_theta_old (a moment ago), which is what clipping uses. The KL term compares against pi_ref (frozen at the start)."
+    },
+    {
+      "key": "outcome-advantage",
+      "prompt": "With outcome supervision (one reward per complete answer), what advantage does each token of answer o_i get?",
+      "options": [
+        "The same value for every token: (r_i - group mean) / group std",
+        "A different value per token, from a critic network",
+        "Zero for all tokens except the last one",
+        "The raw reward r_i"
+      ],
+      "correctOption": 0,
+      "explanation": "Every token of an answer shares the answer's group-normalized reward. Process supervision, a variant in the paper, gives per-step rewards instead."
+    },
+    {
+      "key": "k3-value",
+      "prompt": "GRPO estimates KL per token as pi_ref/pi_theta - log(pi_ref/pi_theta) - 1. What is this estimate when pi_ref and pi_theta give the token the same probability?",
+      "options": ["1", "Negative", "0", "Undefined"],
+      "correctOption": 2,
+      "explanation": "The ratio is 1, log(1) = 0, so 1 - 0 - 1 = 0. The estimate is never negative and grows as the two models disagree."
+    },
+    {
+      "key": "length-bias",
+      "prompt": "Why does the 1/|o_i| average in the original GRPO loss create a length bias?",
+      "options": [
+        "It makes long answers impossible to sample",
+        "It spreads each answer's advantage over its tokens, so long wrong answers get a weaker per-token penalty than short wrong ones",
+        "It doubles the reward of long answers",
+        "It removes the KL penalty for long answers"
+      ],
+      "correctOption": 1,
+      "explanation": "An advantage of -1 over 200 tokens is -0.005 per token, versus -0.02 over 50 tokens. Dr. GRPO and DAPO change this aggregation."
+    },
+    {
+      "key": "toy-token-average",
+      "prompt": "Why does the (1/|o_i|) sum over t part of the equation do nothing in Tiny Adder?",
+      "options": [
+        "Because Tiny Adder has no reward",
+        "Because beta is zero",
+        "Because the learning rate is 0.5",
+        "Because each Tiny Adder answer is a single token, so |o_i| = 1"
+      ],
+      "correctOption": 3,
+      "explanation": "An answer is one number, so averaging over its tokens averages over exactly one value."
+    }
+  ],
+  "resources": [
+    {
+      "key": "deepseekmath-paper",
+      "title": "DeepSeekMath (Shao et al., 2024)",
+      "description": "The original GRPO objective, outcome and process supervision, and the KL estimator.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2402.03300"
+    },
+    {
+      "key": "dr-grpo-paper",
+      "title": "Understanding R1-Zero-Like Training: A Critical Perspective (Liu et al., 2025)",
+      "description": "The Dr. GRPO paper: length and difficulty biases in GRPO and how to remove them.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.20783"
+    },
+    {
+      "key": "trl-grpo-docs",
+      "title": "TRL GRPO Trainer documentation",
+      "description": "How TRL implements the objective, including loss_type, scale_rewards, beta and epsilon_high.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/trl/main/en/grpo_trainer"
+    },
+    {
+      "key": "grpo-cheatsheet",
+      "title": "GRPO cheat sheet",
+      "description": "The equation, its symbols and the main knobs on one page.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/grpo-cheatsheet.pdf"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "equation-to-code",
+      "title": "Match the equation to the code",
+      "hints": [
+        "Work from the outside in: sampling first, the step last.",
+        "Some parts of the equation have no line in the toy. Say why."
+      ]
+    },
+    {
+      "key": "length-bias-numbers",
+      "title": "Put numbers on the length bias",
+      "hints": [
+        "Per-token push = advantage divided by the answer's length (original GRPO).",
+        "For a constant normalizer, divide by the same number for every answer."
+      ]
+    }
+  ]
+}
