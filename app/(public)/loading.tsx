@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 export default function Loading() {
   return (
     <Container className="py-12 sm:py-16" aria-busy="true" aria-label="Loading">
+      <p className="sr-only">Loading, one moment…</p>
       <Skeleton className="h-3 w-24" />
       <Skeleton className="mt-4 h-10 w-full max-w-2xl" />
       <Skeleton className="mt-3 h-10 w-2/3 max-w-xl" />

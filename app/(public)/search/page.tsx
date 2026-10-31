@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
-import { Glyph, type GlyphKind } from '@/components/ui/Glyph';
+import { SiteIcon, type SiteIconKind } from '@/components/ui/SiteIcon';
 import { Container } from '@/components/ui/Section';
 import { connectDB } from '@/lib/db/connection';
 import Course from '@/lib/models/Course';
@@ -22,7 +22,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   };
 }
 
-type Hit = { kind: GlyphKind; label: string; title: string; summary?: string; snippet?: string; href: string; rank: number };
+type Hit = { kind: SiteIconKind; label: string; title: string; summary?: string; snippet?: string; href: string; rank: number };
 
 /** Markdown to readable text for snippets: drops code, links' URLs, HTML and markup characters. */
 function plainText(markdown: string) {
@@ -76,8 +76,8 @@ async function search(term: string): Promise<Hit[]> {
       const inTitle = post.title.toLowerCase().includes(lower);
       const inMeta = inTitle || (post.excerpt || '').toLowerCase().includes(lower) || (post.tags || []).some((tag) => tag.toLowerCase().includes(lower));
       return {
-        kind: 'papers' as const,
-        label: post.category || 'Writing',
+        kind: 'articles' as const,
+        label: post.category || 'Article',
         title: post.title,
         summary: post.excerpt,
         // Show the passage only when the match is in the body, not already visible in the title or summary.
@@ -87,8 +87,8 @@ async function search(term: string): Promise<Hit[]> {
       };
     }),
     ...courses.map((course) => ({ kind: 'courses' as const, label: 'Course', title: course.title, summary: course.summary, href: `/courses/${course.slug}`, rank: 1 })),
-    ...products.map((product) => ({ kind: 'tools' as const, label: 'Tool', title: product.title, summary: product.shortDescription, href: `/products/${product.slug}`, rank: 1 })),
-    ...projects.map((project) => ({ kind: 'builds' as const, label: 'Build', title: project.title, summary: project.shortDescription, href: `/projects/${project.slug}`, rank: 1 })),
+    ...products.map((product) => ({ kind: 'shop' as const, label: 'Shop', title: product.title, summary: product.shortDescription, href: `/products/${product.slug}`, rank: 1 })),
+    ...projects.map((project) => ({ kind: 'projects' as const, label: 'Project', title: project.title, summary: project.shortDescription, href: `/projects/${project.slug}`, rank: 1 })),
   ].sort((a, b) => a.rank - b.rank);
 }
 
@@ -108,18 +108,18 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <Container className="max-w-3xl py-12 sm:py-16">
-      <p className="text-eyebrow text-primary">§ Search</p>
-      <h1 className="mt-3 text-title">Find anything in the notebook.</h1>
+      <p className="text-eyebrow text-primary">Search</p>
+      <h1 className="mt-3 text-title">Find anything on the site.</h1>
 
       <form action="/search" role="search" className="mt-8 flex gap-2">
-        <label htmlFor="site-search" className="sr-only">Search posts, courses, tools and builds</label>
+        <label htmlFor="site-search" className="sr-only">Search articles, courses, the shop and projects</label>
         <input
           id="site-search"
           name="q"
           type="search"
           defaultValue={term}
           autoFocus={!term}
-          placeholder="Try “attention”, “agents” or “entropy”"
+          placeholder="Try “chatbot”, “ChatGPT” or “neural network”"
           className="h-12 min-w-0 flex-1 rounded-lg border border-border bg-card px-4 text-[16px]"
         />
         <button type="submit" className="h-12 rounded-lg bg-foreground px-5 text-[15px] font-medium text-background hover:bg-foreground/90">Search</button>
@@ -137,7 +137,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               {hits.map((hit) => (
                 <li key={hit.href}>
                   <Link href={hit.href} className="group flex gap-4 py-5">
-                    <Glyph kind={hit.kind} size={22} className="mt-1 shrink-0 text-muted-foreground group-hover:text-primary" />
+                    <SiteIcon kind={hit.kind} size={22} className="mt-1 shrink-0 text-muted-foreground group-hover:text-primary" />
                     <span className="min-w-0">
                       <span className="block font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{hit.label}</span>
                       <span className="mt-1 block font-serif text-xl font-medium leading-snug group-hover:text-primary">{hit.title}</span>
@@ -155,7 +155,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             </ul>
           ) : (
             <p className="mt-4 text-muted-foreground">
-              Nothing matched. Try a broader word, or browse <Link href="/blog" className="underline decoration-primary decoration-2 underline-offset-4">all writing</Link>.
+              Nothing found. Try a simpler word, or see <Link href="/blog" className="underline decoration-primary decoration-2 underline-offset-4">all articles</Link>.
             </p>
           )}
         </section>

@@ -5,7 +5,7 @@ import { ArrowUpRight, BookOpen, Github, Lightbulb, Linkedin, ShoppingBag, Wrenc
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import ContactForm from '@/components/public/ContactForm';
 import { SocialLink } from '@/components/public/SocialLink';
-import { Glyph } from '@/components/ui/Glyph';
+import { SiteIcon } from '@/components/ui/SiteIcon';
 import { Container, Section } from '@/components/ui/Section';
 import { siteConfig } from '@/lib/config/site.config';
 import { businessConfig } from '@/lib/config/business';
@@ -14,14 +14,14 @@ import { BusinessDetails } from '@/components/public/LegalNav';
 export const metadata: Metadata = {
   title: 'Contact',
   alternates: { canonical: '/contact' },
-  description: 'Send feedback, a collaboration idea, or a product support question to unicodesnwrites.',
+  description: 'Get in touch with unicodesnwrites: ask a question, share feedback, get help with a purchase or suggest a topic you want explained.',
 };
 
 const conversationStarters = [
-  { icon: BookOpen, title: 'A note worth improving', detail: 'Corrections, counterexamples, or a concept that deserves a clearer explanation.' },
-  { icon: Lightbulb, title: 'An interactive idea', detail: 'A difficult AI or systems concept that would benefit from a hands-on visual lab.' },
-  { icon: Wrench, title: 'A thoughtful collaboration', detail: 'A focused build, research, or writing project with clear context and intent.' },
-  { icon: ShoppingBag, title: 'Product support', detail: 'A question about a product, purchase, download, or suggested improvement.' },
+  { icon: BookOpen, title: 'Fix or improve an article', detail: 'Spotted a mistake, or something that could be explained more clearly? Tell me.' },
+  { icon: Lightbulb, title: 'Suggest a topic', detail: 'An AI idea you find confusing and would like explained simply.' },
+  { icon: Wrench, title: 'Work together', detail: 'A project, article or idea you would like to build or write together.' },
+  { icon: ShoppingBag, title: 'Help with a purchase', detail: 'A question about something from the shop, a payment or a download.' },
 ];
 
 export default function ContactPage() {
@@ -31,27 +31,27 @@ export default function ContactPage() {
       <Section className="pb-24 pt-12 md:pt-16">
         <Container>
           <div className="max-w-4xl">
-            <p className="text-eyebrow text-primary">§ Contact</p>
-            <h1 className="mt-3 text-title">Send a useful signal.</h1>
+            <p className="text-eyebrow text-primary">Contact</p>
+            <h1 className="mt-3 text-title">Say hello.</h1>
             <p className="mt-5 max-w-2xl text-[17px] leading-[1.6] text-muted-foreground sm:text-lg">
-              Share feedback on a field note, suggest a concept lab, ask about a product, or propose a focused collaboration. Context makes a thoughtful reply much easier.
+              Ask a question, share feedback, get help with a purchase or suggest a topic. A little detail helps me reply faster.
             </p>
           </div>
 
           <div className="mt-12 grid max-w-6xl gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,0.75fr)] lg:gap-12">
             <div className="rounded-3xl border border-border bg-card p-5 sm:p-7">
               <div className="mb-6 flex items-start gap-3">
-                <Glyph kind="letters" size={30} className="mt-0.5 shrink-0" />
+                <SiteIcon kind="newsletter" size={30} className="mt-0.5 shrink-0" />
                 <div>
-                  <h2 className="font-serif text-2xl font-medium">Start the conversation</h2>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">A few specific sentences are usually enough.</p>
+                  <h2 className="font-serif text-2xl font-medium">Send me a message</h2>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">A few sentences is enough.</p>
                 </div>
               </div>
               <ContactForm />
             </div>
 
             <aside>
-              <p className="mb-4 text-eyebrow text-muted-foreground">Good reasons to write</p>
+              <p className="mb-4 text-eyebrow text-muted-foreground">Ways I can help</p>
               <div className="space-y-3">
                 {conversationStarters.map((item) => (
                   <div key={item.title} className="border-b border-border pb-4">
@@ -72,7 +72,7 @@ export default function ContactPage() {
 
               <div className="mt-8 border-t border-border pt-6">
                 <p className="text-sm leading-6 text-muted-foreground">
-                  Looking for biography, résumé, experience, or personal links? Those details now live in the dedicated portfolio.
+                  Want to know more about me, my CV or my work? It is all on the About page.
                 </p>
                 <Link href="/about" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-medium underline decoration-primary decoration-2 underline-offset-4 hover:text-primary">About me <ArrowUpRight className="h-4 w-4" /></Link>
               </div>

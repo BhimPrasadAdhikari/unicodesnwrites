@@ -10,11 +10,11 @@ export default function NotFound() {
     <StatusPage
       label="404 · PAGE NOT FOUND"
       title={<>This page was <span className="line-through decoration-primary decoration-[3px]">here</span>.</>}
-      description="It was struck from the notebook: the link may be old, or the page moved. Here is where to pick up again."
+      description="We couldn't find this page. The link may be old, or the page may have moved. Try one of these instead."
       actions={
         <>
           <Button size="lg" asChild><Link href="/">Back to home</Link></Button>
-          <Button size="lg" variant="outline" asChild><Link href="/blog">Browse the writing</Link></Button>
+          <Button size="lg" variant="outline" asChild><Link href="/blog">Read the articles</Link></Button>
         </>
       }
     />

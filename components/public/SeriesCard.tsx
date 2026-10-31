@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 
 import { CoverPlaceholder } from '@/components/ui/CoverPlaceholder';
-import { glyphFor } from '@/components/ui/Glyph';
+import { postIconFor } from '@/components/ui/SiteIcon';
 
 interface SeriesCardProps {
   series: {
@@ -32,7 +32,7 @@ export default function SeriesCard({ series }: SeriesCardProps) {
           {series.coverImage ? (
             <Image src={series.coverImage} alt="" fill sizes="(min-width: 640px) 200px, 100vw" className="object-cover" />
           ) : (
-            <CoverPlaceholder kind={glyphFor(`${series.title} ${series.description ?? ''}`)} label={`SERIES · ${parts}`} glyphSize={64} />
+            <CoverPlaceholder kind={postIconFor(`${series.title} ${series.description ?? ''}`)} label={`SERIES · ${parts}`} iconSize={64} />
           )}
         </div>
         <div className="flex flex-col gap-2.5 p-5 sm:p-6">

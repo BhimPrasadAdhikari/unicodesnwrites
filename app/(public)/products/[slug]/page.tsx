@@ -109,7 +109,7 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
         <Container>
           {/* Back Link */}
           <nav aria-label="Breadcrumb" className="font-mono text-[12px] tracking-[0.06em] text-muted-foreground">
-            <Link href="/products" className="inline-flex min-h-11 items-center hover:text-foreground">TOOLS</Link>
+            <Link href="/products" className="inline-flex min-h-11 items-center hover:text-foreground">SHOP</Link>
             <span aria-hidden="true"> / </span>
             <span>{product.productType.toUpperCase()}</span>
           </nav>
@@ -142,12 +142,12 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
                   <span className="font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">{product.licenseType} license</span>
                 </div>
 
-                <p className="mb-5 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">SECURE PAYMENT · PROTECTED DOWNLOAD · EMAIL DELIVERY</p>
+                <p className="mb-5 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">SAFE PAYMENT · DOWNLOAD RIGHT AWAY · LINK SENT BY EMAIL</p>
 
                 <div>
                   {checkout === 'cancelled' ? (
                     <p role="status" className="mb-3 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
-                      Checkout cancelled. You weren&apos;t charged; pick up again whenever you like.
+                      Payment cancelled. You weren&apos;t charged. You can try again any time.
                     </p>
                   ) : null}
                   <CheckoutButton productId={product._id} available={product.currency === 'INR' && product.price >= 100} email={buyerEmail} />
@@ -186,7 +186,7 @@ export default async function ProductPage(props: { params: Promise<{ slug: strin
             <div>
               <p className="text-eyebrow text-primary">Reviews</p>
               <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium tracking-[-0.02em] text-foreground">What readers say</h2>
-              <p className="mt-2 text-muted-foreground">Share feedback to help others choose with confidence.</p>
+              <p className="mt-2 text-muted-foreground">Bought this? Leave a review to help others decide.</p>
               <div className="mt-8">
                 <ReviewForm productId={product._id} />
               </div>

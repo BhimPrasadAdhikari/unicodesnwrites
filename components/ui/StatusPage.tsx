@@ -33,7 +33,6 @@ export function StatusPage({ label, title, description, actions, footnote }: Sta
       </header>
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center gap-8 px-6 py-16 md:flex-row md:items-center md:gap-14 md:px-8">
         <div className="dot-grid relative flex h-[180px] w-[180px] shrink-0 items-center justify-center rounded-3xl border border-border bg-card">
-          <span className="absolute left-3.5 top-3 font-mono text-[11px] text-muted-foreground">U+FFFD</span>
           <ReplacementGlyph />
           <span className="absolute bottom-3.5 right-3.5 h-2 w-2 rounded-full bg-[hsl(var(--ink-dot))]" />
         </div>

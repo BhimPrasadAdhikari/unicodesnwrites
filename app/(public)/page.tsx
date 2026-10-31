@@ -13,7 +13,7 @@ import Subscriber from '@/lib/models/Subscriber';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: { absolute: `${siteConfig.name} | AI Papers, Agents, ML Builds & Tools` },
+  title: { absolute: `${siteConfig.name} | Learn AI, explained simply` },
   alternates: { canonical: '/' },
   description: siteConfig.description,
   openGraph: {
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: `https://${siteConfig.domain}`,
     siteName: siteConfig.name,
-    title: `${siteConfig.name} | AI Papers, Agents, ML Builds & Tools`,
+    title: `${siteConfig.name} | Learn AI, explained simply`,
     description: siteConfig.description,
   },
   twitter: {

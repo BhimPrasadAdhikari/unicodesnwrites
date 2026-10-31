@@ -7,8 +7,8 @@ import ProductsFilterGrid from '@/components/public/ProductsFilterGrid';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Tools, kits and books',
-  description: 'Starter kits, AI applications, digital books and tools from the notebook, ready to own and run.',
+  title: 'Shop',
+  description: 'Shop ready-to-use AI guides, e-books, audiobooks, starter kits and apps. Download right after you pay and use them at your own pace.',
   alternates: { canonical: '/products' },
 };
 
@@ -35,12 +35,12 @@ export default async function ProductsPage() {
       <Section className="pb-24 pt-12 md:pt-16">
         <Container>
           <div className="mb-10 max-w-3xl md:mb-14">
-            <p className="text-eyebrow text-primary">§ Tools</p>
+            <p className="text-eyebrow text-primary">Shop</p>
             <h1 className="mt-3 text-title text-foreground">
-              Kits, books and tools from the notebook, ready to own.
+              Guides, books and kits, ready to use.
             </h1>
             <p className="mt-5 text-[17px] leading-[1.6] text-muted-foreground sm:text-lg">
-              Finished tools, starter kits, audiobooks, digital books and full-stack AI applications I&apos;ve built and packaged. Buy the asset, read or listen, inspect the code and run it in your own environment.
+              E-books, audiobooks, starter kits and AI apps I&apos;ve made. Buy once, download straight away, and read, listen or use them at your own pace.
             </p>
           </div>
 
@@ -48,9 +48,9 @@ export default async function ProductsPage() {
             <ProductsFilterGrid products={products} />
           ) : (
             <div className="py-16 text-center">
-              <h3 className="text-xl font-medium text-foreground">Products coming soon</h3>
+              <h3 className="text-xl font-medium text-foreground">New items coming soon</h3>
               <p className="mt-2 text-muted-foreground">
-                We are curating a focused catalog. Check back shortly for new releases.
+                I am getting the first guides ready. Please check back soon.
               </p>
             </div>
           )}

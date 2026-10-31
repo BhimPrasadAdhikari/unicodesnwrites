@@ -12,9 +12,9 @@ import { BookOpen } from 'lucide-react';
 import { livePostFilter } from '@/lib/utils/post-visibility';
 
 export const metadata = {
-  title: 'Blog & Breakdowns',
+  title: 'Articles',
   alternates: { canonical: '/blog' },
-  description: 'In-depth write-ups on machine learning systems, research paper math derived from scratch, and practical guides on autonomous agents.',
+  description: 'Easy-to-follow articles that explain how AI works: machine learning, large language models (LLMs), AI agents and research papers, broken into simple steps.',
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -44,15 +44,15 @@ export default async function BlogPage({
       <Section className="pt-16 md:pt-24">
         <Container>
           <div className="max-w-4xl">
-            <p className="text-eyebrow text-primary">§ Writing</p>
+            <p className="text-eyebrow text-primary">Articles</p>
             <h1 className="mt-3 text-title">
-              Papers taken apart, agents built, projects shipped.
+              Easy reads on how AI works.
             </h1>
             <div className="mt-12 rounded-3xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
               <BookOpen className="mx-auto h-7 w-7 text-primary" />
-              <h2 className="mt-4 text-xl font-medium">The archive is temporarily offline</h2>
+              <h2 className="mt-4 text-xl font-medium">Articles can&apos;t load right now</h2>
               <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
-                The reading experience is ready, but the sandbox content service is unavailable. Published notes will reappear automatically when it reconnects.
+                Something went wrong on our side. Please try again in a few minutes.
               </p>
             </div>
           </div>
@@ -155,15 +155,15 @@ export default async function BlogPage({
       <Section className="pb-12 pt-12 md:pb-16 md:pt-16">
         <Container>
           <div className="mb-10 max-w-3xl">
-            <p className="text-eyebrow text-primary">§ Writing</p>
+            <p className="text-eyebrow text-primary">Articles</p>
             <h1 className="mt-3 text-title text-foreground">
-              Papers taken apart, agents built, projects shipped.
+              Easy reads on how AI works.
             </h1>
             <p className="mt-4 text-[17px] leading-[1.6] text-muted-foreground">
-              In-depth write-ups on the machine learning systems I build, paper math derived from scratch, and guides on autonomous agents.
+              Short, clear articles that explain AI one step at a time. Start with any one that looks interesting, no background needed.
             </p>
             <p className="mt-5 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">
-              <AnimatedCounter value={totalArticles} /> ARTICLES · <AnimatedCounter value={augmentedSeries.length} /> SERIES · <AnimatedCounter value={normalizedCategories.length} /> CATEGORIES
+              <AnimatedCounter value={totalArticles} /> ARTICLES · <AnimatedCounter value={augmentedSeries.length} /> SERIES · <AnimatedCounter value={normalizedCategories.length} /> TOPICS
             </p>
           </div>
 
@@ -172,7 +172,7 @@ export default async function BlogPage({
               {/* Posts & Series Uncrowded Feed */}
               {pagedItems.length === 0 ? (
                 <div className="py-16 text-center text-muted-foreground">
-                  No articles matched your filters. Try a broader keyword or another category.
+                  No articles found. Try a different word or another topic.
                 </div>
               ) : (
                 <div className="mb-10 flex flex-col">

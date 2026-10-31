@@ -115,7 +115,7 @@ export function SkillsBentoGrid() {
     <Section>
       <Container>
         <div className="mb-12">
-          <p className="text-eyebrow text-primary">§ Stack</p>
+          <p className="text-eyebrow text-primary">Skills</p>
           <h2 className="mt-3 font-serif text-[clamp(1.875rem,4vw,3rem)] font-medium tracking-[-0.02em]">Skills and tools I use</h2>
         </div>
         

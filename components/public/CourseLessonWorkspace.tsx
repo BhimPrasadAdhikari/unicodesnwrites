@@ -578,9 +578,9 @@ export function CourseLessonWorkspace({
                 {workspace.lesson.studyGuide?.mentalModel ? (
                   <section>
                     <p className="flex items-center gap-2 text-eyebrow text-primary">
-                      <BrainCircuit className="h-4 w-4" /> Grounded study guide
+                      <BrainCircuit className="h-4 w-4" /> Study guide
                     </p>
-                    <h3 className="mt-3 text-lg font-medium">The mental model</h3>
+                    <h3 className="mt-3 text-lg font-medium">The big idea</h3>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {workspace.lesson.studyGuide.mentalModel}
                     </p>
@@ -602,7 +602,7 @@ export function CourseLessonWorkspace({
                 {workspace.lesson.studyGuide?.misconceptions?.length ? (
                   <section className="rounded-xl border border-warning/20 bg-warning/8 p-4">
                     <h3 className="text-xs font-medium text-warning">
-                      Misconception check
+                      Common mix-ups
                     </h3>
                     <ul className="mt-2 space-y-2 text-xs leading-5">
                       {workspace.lesson.studyGuide.misconceptions.map(
@@ -616,7 +616,7 @@ export function CourseLessonWorkspace({
                 {workspace.lesson.studyGuide?.recallPrompts?.length ? (
                   <section className="rounded-xl border border-border bg-card p-4">
                     <h3 className="flex items-center gap-2 text-eyebrow text-muted-foreground">
-                      <HelpCircle className="h-4 w-4" /> Active recall prompts
+                      <HelpCircle className="h-4 w-4" /> Test your memory
                     </h3>
                     <ul className="mt-2 space-y-2 text-xs leading-5">
                       {workspace.lesson.studyGuide.recallPrompts.map(
@@ -641,7 +641,7 @@ export function CourseLessonWorkspace({
                 {workspace.lesson.concepts?.length ? (
                   <section>
                     <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Core Concepts
+                      Key words
                     </h3>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {workspace.lesson.concepts.map((concept) => (
@@ -658,7 +658,7 @@ export function CourseLessonWorkspace({
                 {workspace.lesson.learningObjectives?.length ? (
                   <section className="rounded-xl bg-muted/40 p-4">
                     <h3 className="flex items-center gap-2 text-xs font-medium">
-                      <Target className="h-4 w-4 text-muted-foreground" /> Learning Objectives
+                      <Target className="h-4 w-4 text-muted-foreground" /> What you will learn
                     </h3>
                     <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
                       {workspace.lesson.learningObjectives.map((obj) => (
@@ -769,10 +769,10 @@ export function CourseLessonWorkspace({
                         Knowledge check
                       </p>
                       <h3 className="mt-2 text-lg font-medium">
-                        Can you reason with the concept?
+                        Did it make sense?
                       </h3>
                       <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                        Answers are graded on the server. A score of 70% completes
+                        Answer a few quick questions. Get 70% or more to finish
                         the lesson.
                       </p>
                       <p className="mt-2 text-2xs font-semibold uppercase tracking-wider text-muted-foreground">

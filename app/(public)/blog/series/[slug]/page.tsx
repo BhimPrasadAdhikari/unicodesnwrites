@@ -9,7 +9,8 @@ import { User } from '@/lib/models/User';
 import { Section, Container } from '@/components/ui/Section';
 import SeriesProgressSummary from '@/components/public/SeriesProgressSummary';
 import SeriesPartCompletion from '@/components/public/SeriesPartCompletion';
-import { GlyphCell, GLYPHS, glyphFor } from '@/components/ui/Glyph';
+import { glyphFor } from '@/components/ui/Glyph';
+import { iconForGlyph, PLAIN_TOPIC, SiteIconCell } from '@/components/ui/SiteIcon';
 import { format } from 'date-fns';
 import { livePostFilter } from '@/lib/utils/post-visibility';
 
@@ -69,7 +70,7 @@ export default async function SeriesHubPage({
       <Section className="pb-20 pt-12 md:pt-16">
         <Container>
           <nav aria-label="Breadcrumb" className="mb-8 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">
-            <Link href="/blog" className="inline-flex min-h-11 items-center hover:text-foreground">WRITING</Link>
+            <Link href="/blog" className="inline-flex min-h-11 items-center hover:text-foreground">ARTICLES</Link>
             <span aria-hidden="true"> / </span>
             <span>SERIES</span>
           </nav>
@@ -77,14 +78,14 @@ export default async function SeriesHubPage({
           <div className="mb-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-start">
             <div className="max-w-3xl">
               <p className="mb-3 font-mono text-[12px] uppercase tracking-[0.06em] text-primary">
-                Series · {GLYPHS[kind].name} · {posts.length} {posts.length === 1 ? 'part' : 'parts'}
+                Series · {PLAIN_TOPIC[kind]} · {posts.length} {posts.length === 1 ? 'part' : 'parts'}
               </p>
               <h1 className="text-title text-foreground">{series.title}</h1>
               {series.description && (
                 <p className="mt-5 font-serif text-[19px] leading-[1.55] text-muted-foreground sm:text-[21px]">{series.description}</p>
               )}
               <p className="mt-6 border-t border-border pt-4 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
-                ~{totalReadingTime} min total
+                About {totalReadingTime} min to read it all
                 {posts[0]?.publishedAt ? ` · started ${format(new Date(posts[0].publishedAt), 'MMM yyyy')}` : ''}
               </p>
               <SeriesProgressSummary postSlugs={posts.map((post) => post.slug)} />
@@ -93,7 +94,7 @@ export default async function SeriesHubPage({
               {series.coverImage ? (
                 <Image src={series.coverImage} alt="" fill sizes="220px" className="object-cover" priority />
               ) : (
-                <GlyphCell kind={kind} glyphSize={110} className="absolute inset-0" />
+                <SiteIconCell kind={iconForGlyph(kind)} iconSize={110} className="absolute inset-0" />
               )}
             </div>
           </div>
@@ -126,8 +127,8 @@ export default async function SeriesHubPage({
             })}
             {posts.length === 0 && (
               <li className="mt-6 rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center">
-                <p className="font-serif text-xl font-medium">This series is being assembled.</p>
-                <p className="mt-2 text-sm text-muted-foreground">Published parts will appear here in reading order.</p>
+                <p className="font-serif text-xl font-medium">This series is coming soon.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Parts will show up here in the order to read them.</p>
               </li>
             )}
           </ol>

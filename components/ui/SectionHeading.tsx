@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { SiteIcon, type SiteIconKind } from "@/components/ui/SiteIcon"
 import { cn } from "@/lib/utils"
 
 interface SectionHeadingProps {
@@ -11,14 +12,19 @@ interface SectionHeadingProps {
   className?: string
   /** Use "h1" when the heading opens a page */
   as?: "h1" | "h2"
+  /** Optional friendly icon shown beside the eyebrow */
+  icon?: SiteIconKind
 }
 
-/** Codepoint section head: red mono eyebrow, serif title, optional underlined "all" link. */
-export function SectionHeading({ eyebrow, title, description, href, linkLabel, className, as: Tag = "h2" }: SectionHeadingProps) {
+/** Section head: red mono eyebrow (with an optional icon), serif title, optional underlined "see all" link. */
+export function SectionHeading({ eyebrow, title, description, href, linkLabel, className, as: Tag = "h2", icon }: SectionHeadingProps) {
   return (
     <div className={cn("flex flex-wrap items-end justify-between gap-x-6 gap-y-4", className)}>
       <div className="flex max-w-2xl flex-col gap-2.5">
-        <p className="text-eyebrow text-primary">{eyebrow}</p>
+        <p className="flex items-center gap-2 text-eyebrow text-primary">
+          {icon ? <SiteIcon kind={icon} size={22} className="text-foreground" /> : null}
+          {eyebrow}
+        </p>
         <Tag className={cn("font-serif font-medium tracking-[-0.02em] text-foreground", Tag === "h1" ? "text-title" : "text-[clamp(1.875rem,4vw,3rem)] leading-[1.08]")}>
           {title}
         </Tag>

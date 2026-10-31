@@ -183,10 +183,10 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
             <Search className="h-4 w-4" />
             <input
               type="text"
-              aria-label="Search tools"
+              aria-label="Search the shop"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search products"
+              placeholder="Search the shop"
               className="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
           </label>
@@ -246,7 +246,7 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
 
         {hasActiveFilters && (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-            <span>Refine results to find the right fit.</span>
+            <span>Showing items that match your choices.</span>
             <button
               type="button"
               onClick={resetFilters}
@@ -269,9 +269,9 @@ export default function ProductsFilterGrid({ products }: { products: ProductList
         </div>
       ) : (
         <div className="py-16 text-center">
-          <h3 className="text-xl font-medium text-foreground">No matching products</h3>
+          <h3 className="text-xl font-medium text-foreground">Nothing matches</h3>
           <p className="mt-2 text-muted-foreground">
-            Try adjusting your filters or clearing the search to see all products.
+            Try fewer filters, or clear the search to see everything in the shop.
           </p>
           {hasActiveFilters && (
             <button

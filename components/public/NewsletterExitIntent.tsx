@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
+import { SiteIcon } from '@/components/ui/SiteIcon';
 import NewsletterSignupForm from './NewsletterSignupForm';
 
 /**
@@ -114,7 +115,7 @@ export default function NewsletterExitIntent() {
                     {/* Label */}
                     <div className="mb-5 flex items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                        <Sparkles className="h-5 w-5 text-foreground" />
+                        <SiteIcon kind="newsletter" size={24} className="text-foreground" />
                       </div>
                       <span className="text-eyebrow text-muted-foreground">
                         Before you go
@@ -123,11 +124,11 @@ export default function NewsletterExitIntent() {
 
                     {/* Heading */}
                     <h2 className="text-2xl font-medium tracking-tight text-foreground">
-                      Get ML insights in your inbox
+                      Get simple AI guides by email
                     </h2>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      Weekly notes on machine learning, engineering decisions, and
-                      things I&apos;m building — no fluff, no spam.
+                      New articles, courses and guides that explain AI in plain
+                      words. It&apos;s free, with no spam.
                     </p>
 
                     {/* Form — subscribe button uses site primary (blue) */}
@@ -144,7 +145,7 @@ export default function NewsletterExitIntent() {
                       onClick={dismiss}
                       className="mt-5 w-full cursor-pointer text-center text-xs font-medium text-muted-foreground underline underline-offset-4 decoration-muted-foreground/40 transition-colors hover:text-foreground hover:decoration-foreground/60"
                     >
-                      No thanks, I don&apos;t like great content
+                      No thanks
                     </button>
                   </>
                 )}

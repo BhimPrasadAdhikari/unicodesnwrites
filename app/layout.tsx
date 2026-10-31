@@ -9,11 +9,11 @@ import { siteConfig } from '@/lib/config/site.config';
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} | Visual notes for building useful AI`,
+    default: `${siteConfig.name} | Learn AI, explained simply`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: ['Applied AI', 'Machine Learning', 'Interactive Learning', 'Deep Learning', 'Product Engineering', 'Developer Tools'],
+  keywords: ['Learn AI', 'AI explained simply', 'Machine Learning', 'AI for beginners', 'Large language models', 'AI agents', 'AI courses', 'Deep Learning'],
   authors: [{ name: siteConfig.author.name }],
   creator: siteConfig.author.name,
   publisher: siteConfig.name,
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     types: { 'application/rss+xml': [{ url: '/feed.xml', title: `${siteConfig.name}` }] },
   },
   openGraph: {
-    title: `${siteConfig.name} | Visual notes for building useful AI`,
+    title: `${siteConfig.name} | Learn AI, explained simply`,
     description: siteConfig.description,
     url: `https://${siteConfig.domain}`,
     siteName: siteConfig.name,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${siteConfig.name} | Visual notes for building useful AI`,
+    title: `${siteConfig.name} | Learn AI, explained simply`,
     description: siteConfig.description,
     creator: '@unique_adhi',
   },

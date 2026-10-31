@@ -5,14 +5,14 @@ import dbConnect from '@/lib/db/connection';
 import Newsletter, { INewsletter } from '@/lib/models/Newsletter';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Glyph } from '@/components/ui/Glyph';
+import { SiteIcon } from '@/components/ui/SiteIcon';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
 
 export const metadata: Metadata = {
     title: 'Newsletter',
     alternates: { canonical: '/newsletter' },
-    description: 'A thoughtful dispatch about applied AI, machine learning, and building useful products.',
+    description: 'A free email newsletter about AI, explained simply. Get new articles, courses and guides in your inbox. Unsubscribe any time.',
 };
 
 export default async function NewsletterPage() {
@@ -37,14 +37,14 @@ export default async function NewsletterPage() {
                 <Container>
                     <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
                         <div className="flex gap-6">
-                            <Glyph kind="letters" size={72} className="hidden shrink-0 sm:block" />
+                            <SiteIcon kind="newsletter" size={72} className="hidden shrink-0 sm:block" />
                             <div>
-                                <p className="text-eyebrow text-primary">§ Letters</p>
+                                <p className="text-eyebrow text-primary">Free newsletter</p>
                                 <h1 className="mt-3 text-title text-foreground">
-                                    One useful email when there is something worth sharing.
+                                    Get one helpful email when there&apos;s something new.
                                 </h1>
                                 <p className="mt-5 max-w-2xl text-[17px] leading-[1.6] text-muted-foreground sm:text-lg">
-                                    New dissections, build logs, courses and tool releases. No schedule to fill, no filler.
+                                    New articles, courses and guides. No spam, no filler. It&apos;s free, and you can unsubscribe any time.
                                 </p>
                             </div>
                         </div>
@@ -59,12 +59,12 @@ export default async function NewsletterPage() {
             <Section className="py-12 md:py-16">
                 <Container>
                     <div className="mx-auto max-w-3xl">
-                        <p className="text-eyebrow text-primary">The archive</p>
-                        <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium tracking-[-0.02em] text-foreground">Every issue sent</h2>
+                        <p className="text-eyebrow text-primary">Past emails</p>
+                        <h2 className="mt-2 font-serif text-[clamp(1.75rem,3.5vw,2.5rem)] font-medium tracking-[-0.02em] text-foreground">Read past emails</h2>
 
                         {newsletters.length === 0 ? (
                             <div className="mt-8 rounded-xl border border-dashed border-border bg-card px-6 py-12">
-                                <p className="font-serif text-xl font-medium">No issues sent yet.</p>
+                                <p className="font-serif text-xl font-medium">No emails sent yet.</p>
                                 <p className="mt-2 text-muted-foreground">Subscribe above to get the first one.</p>
                             </div>
                         ) : (

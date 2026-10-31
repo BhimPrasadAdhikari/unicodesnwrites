@@ -16,7 +16,7 @@ import remarkBreaks from 'remark-breaks';
 import { ExternalLink, Github, Eye, AlertTriangle, Lightbulb, GitFork, Star, Code2 } from 'lucide-react';
 
 import { Button } from "@/components/ui/Button";
-import { GlyphCell } from "@/components/ui/Glyph";
+import { SiteIconCell } from "@/components/ui/SiteIcon";
 import { Section, Container } from "@/components/ui/Section";
 
 // Add styles for highlighting
@@ -66,7 +66,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
       <Section className="border-b border-border pb-12 pt-10 md:pb-16 md:pt-14">
          <Container>
             <nav aria-label="Breadcrumb" className="mb-6 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">
-               <Link href="/projects" className="inline-flex min-h-11 items-center hover:text-foreground">BUILDS</Link>
+               <Link href="/projects" className="inline-flex min-h-11 items-center hover:text-foreground">PROJECTS</Link>
                <span aria-hidden="true"> / </span>
                <span className="uppercase">{p.category}</span>
             </nav>
@@ -74,7 +74,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
             <div className="grid items-start gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
                <div>
                   <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[12px] uppercase tracking-[0.06em] text-muted-foreground">
-                     <span className="text-primary">Build log</span>
+                     <span className="text-primary">Project</span>
                      <span aria-hidden="true">·</span>
                      <span className={p.status === 'Completed' ? 'text-success' : 'text-warning'}>{p.status}</span>
                      <span aria-hidden="true">·</span>
@@ -91,14 +91,14 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                      {p.demoUrl && (
                         <Button asChild size="lg" className="gap-2">
                            <a href={p.demoUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4" /> Live demo
+                              <ExternalLink className="h-4 w-4" /> Try it live
                            </a>
                         </Button>
                      )}
                      {p.githubUrl && (
                         <Button variant="outline" size="lg" asChild className="gap-2">
                            <a href={p.githubUrl} target="_blank" rel="noopener noreferrer">
-                              <Github className="h-4 w-4" /> Source code
+                              <Github className="h-4 w-4" /> See the code
                            </a>
                         </Button>
                      )}
@@ -109,7 +109,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   {p.thumbnailImage ? (
                      <Image src={p.thumbnailImage} alt={p.title} fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" priority />
                   ) : (
-                     <GlyphCell kind="builds" glyphSize={110} className="absolute inset-0" />
+                     <SiteIconCell kind="projects" iconSize={110} className="absolute inset-0" />
                   )}
                </div>
             </div>
@@ -134,7 +134,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 
                   {/* About / Description */}
                   <div className="space-y-6">
-                     <h2 className="font-serif text-[clamp(1.75rem,3.5vw,2.25rem)] font-medium tracking-[-0.02em]">About this build</h2>
+                     <h2 className="font-serif text-[clamp(1.75rem,3.5vw,2.25rem)] font-medium tracking-[-0.02em]">About this project</h2>
                      <div className="prose prose-lg dark:prose-invert max-w-none 
                         prose-headings:font-serif prose-headings:font-medium prose-headings:tracking-tight prose-p:font-serif prose-p:text-[19px] prose-p:leading-[1.65] prose-p:text-foreground prose-li:font-serif prose-li:text-[19px] prose-a:text-foreground prose-a:decoration-primary prose-a:underline-offset-4 hover:prose-a:text-primary prose-img:rounded-xl prose-img:border prose-img:border-border prose-pre:bg-card
                      ">
@@ -213,7 +213,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                       
                       {/* Project Stats */}
                       <div>
-                         <h3 className="mb-4 text-eyebrow text-muted-foreground">Project Statistics</h3>
+                         <h3 className="mb-4 text-eyebrow text-muted-foreground">Project stats</h3>
                          <div className="grid grid-cols-2 gap-6">
                             <div>
                                <div className="mb-1 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">

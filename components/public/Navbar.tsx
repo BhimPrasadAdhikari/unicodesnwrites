@@ -8,23 +8,23 @@ import { ArrowUpRight, BookOpenCheck, LogIn, LogOut, Menu, Search, Settings, X }
 import { signOut, useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/Button';
-import { Glyph, type GlyphKind } from '@/components/ui/Glyph';
+import { SiteIcon, type SiteIconKind } from '@/components/ui/SiteIcon';
 import { Lockup } from '@/components/ui/Logo';
 import { Container } from '@/components/ui/Section';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { cn } from '@/lib/utils';
 
-const primaryLinks: { href: string; label: string; glyph: GlyphKind }[] = [
-  { href: '/blog', label: 'Writing', glyph: 'papers' },
-  { href: '/courses', label: 'Courses', glyph: 'courses' },
-  { href: '/projects', label: 'Builds', glyph: 'builds' },
-  { href: '/products', label: 'Tools', glyph: 'tools' },
+const primaryLinks: { href: string; label: string; icon: SiteIconKind }[] = [
+  { href: '/blog', label: 'Articles', icon: 'articles' },
+  { href: '/courses', label: 'Courses', icon: 'courses' },
+  { href: '/projects', label: 'Projects', icon: 'projects' },
+  { href: '/products', label: 'Shop', icon: 'shop' },
 ];
 
-const mobileLinks: { href: string; label: string; glyph?: GlyphKind }[] = [
+const mobileLinks: { href: string; label: string; icon?: SiteIconKind }[] = [
   ...primaryLinks,
-  { href: '/newsletter', label: 'Letters', glyph: 'letters' },
-  { href: '/about', label: 'About' },
+  { href: '/newsletter', label: 'Newsletter', icon: 'newsletter' },
+  { href: '/about', label: 'About', icon: 'about' },
 ];
 
 const isCurrentPath = (pathname: string, href: string) =>
@@ -139,7 +139,7 @@ export function Navbar() {
             className="fixed inset-0 top-16 z-40 bg-background lg:hidden"
           >
             <Container className="flex h-full flex-col overflow-y-auto pb-8 pt-8">
-              <p className="mb-5 text-eyebrow text-primary">The notebook</p>
+              <p className="mb-5 text-eyebrow text-primary">Menu</p>
               <nav className="flex flex-col" aria-label="Mobile navigation">
                 {mobileLinks.map((link, index) => {
                   const active = isCurrentPath(pathname, link.href);
@@ -156,7 +156,7 @@ export function Navbar() {
                         aria-current={active ? 'page' : undefined}
                         className="flex items-center gap-4 py-4 font-serif text-[28px] font-medium tracking-[-0.015em]"
                       >
-                        <span className="flex h-8 w-8 items-center justify-center text-muted-foreground">{link.glyph ? <Glyph kind={link.glyph} size={24} /> : null}</span>
+                        <span className="flex h-8 w-8 items-center justify-center text-muted-foreground">{link.icon ? <SiteIcon kind={link.icon} size={26} /> : null}</span>
                         <span className={cn('flex-1', active && 'underline decoration-primary decoration-2 underline-offset-8')}>{link.label}</span>
                         <ArrowUpRight className={cn('h-5 w-5', active ? 'text-primary' : 'text-muted-foreground')} />
                       </Link>
@@ -168,9 +168,9 @@ export function Navbar() {
                 <div className="mb-6 flex gap-3">
                   {status === 'authenticated' ? <><Button asChild variant="outline" className="flex-1"><Link href={session.user.role === 'admin' ? '/dashboard' : '/learn'}>{session.user.role === 'admin' ? 'Admin studio' : 'My learning'}</Link></Button><Button asChild variant="outline" size="icon" className="rounded-full"><Link href="/account" aria-label="Account settings"><Settings className="h-4 w-4" /></Link></Button><Button variant="outline" size="icon" onClick={() => signOut({ callbackUrl: '/' })} aria-label="Sign out" className="rounded-full"><LogOut className="h-4 w-4" /></Button></> : <><Button asChild variant="outline" className="flex-1"><Link href="/signup">Create account</Link></Button><Button asChild variant="ghost"><Link href="/login">Sign in</Link></Button></>}
                 </div>
-                <Button asChild variant="primary" className="mb-6 h-12 w-full"><Link href="/newsletter">Subscribe to Letters</Link></Button>
+                <Button asChild variant="primary" className="mb-6 h-12 w-full"><Link href="/newsletter">Subscribe to the newsletter</Link></Button>
                 <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-                  AI papers taken apart, agents built in the open, and the tools that come out of them.
+                  Easy-to-follow articles, courses and guides that explain how AI works.
                 </p>
               </div>
             </Container>

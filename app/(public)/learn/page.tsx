@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
-import { Glyph } from "@/components/ui/Glyph";
+import { SiteIcon } from "@/components/ui/SiteIcon";
 
 import { authOptions } from "@/lib/config/auth";
 import { listLearnerEnrollments } from "@/lib/services/course-enrollment";
@@ -11,7 +11,7 @@ import { Container } from "@/components/ui/Section";
 export const metadata = {
   title: "My learning",
   robots: { index: false, follow: false },
-  description: "Continue your enrolled AIML courses.",
+  description: "Carry on with the courses you have started.",
 };
 export const dynamic = "force-dynamic";
 
@@ -27,12 +27,12 @@ export default async function MyLearningPage() {
     <div className="pb-24">
       <section className="border-b border-border py-12 sm:py-16">
         <Container className="max-w-[1200px]">
-          <p className="text-eyebrow text-primary">Student &amp; member portal</p>
+          <p className="text-eyebrow text-primary">Your account</p>
           <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <h1 className="text-title">My learning</h1>
             <nav aria-label="Learner" className="flex gap-1 border-b border-border sm:border-0">
               <span aria-current="page" className="-mb-px inline-flex h-11 items-center border-b-2 border-primary px-3.5 text-[15px] font-semibold">Courses</span>
-              <Link href="/learn/notebook" className="-mb-px inline-flex h-11 items-center border-b-2 border-transparent px-3.5 text-[15px] font-medium text-muted-foreground hover:text-foreground">Notebook</Link>
+              <Link href="/learn/notebook" className="-mb-px inline-flex h-11 items-center border-b-2 border-transparent px-3.5 text-[15px] font-medium text-muted-foreground hover:text-foreground">Notes</Link>
               <Link href="/review" className="-mb-px inline-flex h-11 items-center border-b-2 border-transparent px-3.5 text-[15px] font-medium text-muted-foreground hover:text-foreground">Review</Link>
               <Link href="/account" className="-mb-px inline-flex h-11 items-center border-b-2 border-transparent px-3.5 text-[15px] font-medium text-muted-foreground hover:text-foreground">Account</Link>
             </nav>
@@ -58,7 +58,7 @@ export default async function MyLearningPage() {
                   )}
                 </div>
                 <div className="mt-4 flex items-start gap-4">
-                  <Glyph kind="courses" size={40} className="mt-1 shrink-0" />
+                  <SiteIcon kind="courses" size={40} className="mt-1 shrink-0" />
                   <h2 className="font-serif text-2xl font-medium leading-tight">{item.title}</h2>
                 </div>
                 <p className="mt-3 line-clamp-2 text-[15px] leading-6 text-muted-foreground">{item.summary}</p>
@@ -80,16 +80,16 @@ export default async function MyLearningPage() {
           </div>
         ) : (
           <div className="rounded-3xl border border-dashed border-border bg-card p-8 sm:p-10">
-            <Glyph kind="courses" size={48} />
-            <h2 className="mt-4 font-serif text-[28px] font-medium">Your learning path starts here.</h2>
+            <SiteIcon kind="learning" size={48} />
+            <h2 className="mt-4 font-serif text-[28px] font-medium">Start your first course.</h2>
             <p className="mt-3 max-w-md text-[15px] leading-6 text-muted-foreground">
-              Explore focused courses on language models, agents and the ideas behind modern AI systems.
+              Pick a free course and learn how AI works, one short lesson at a time.
             </p>
             <Link
               href="/courses"
               className="mt-6 inline-flex h-11 items-center rounded-lg bg-foreground px-5 text-[15px] font-medium text-background hover:bg-foreground/90"
             >
-              Browse courses
+              See the courses
             </Link>
           </div>
         )}

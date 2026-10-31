@@ -18,7 +18,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {project.thumbnailImage ? (
             <Image src={project.thumbnailImage} alt="" fill sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover" />
           ) : (
-            <CoverPlaceholder kind="builds" />
+            <CoverPlaceholder kind="projects" />
           )}
           <Badge
             variant={project.status === 'Completed' ? 'success' : project.status === 'In Progress' ? 'warning' : 'neutral'}

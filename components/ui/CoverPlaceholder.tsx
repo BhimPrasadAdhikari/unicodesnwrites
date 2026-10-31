@@ -1,14 +1,14 @@
-import { GlyphCell, type GlyphKind } from "@/components/ui/Glyph"
+import { SiteIconCell, type SiteIconKind } from "@/components/ui/SiteIcon"
 import { cn } from "@/lib/utils"
 
 interface CoverPlaceholderProps {
-  kind: GlyphKind
+  kind: SiteIconKind
   label?: string
   className?: string
-  glyphSize?: number
+  iconSize?: number
 }
 
-// Fills an image slot when a post, series or product has no cover: the content type's glyph in a chart cell.
-export function CoverPlaceholder({ kind, label, className, glyphSize = 72 }: CoverPlaceholderProps) {
-  return <GlyphCell kind={kind} label={label} glyphSize={glyphSize} className={cn("absolute inset-0", className)} />
+// Fills an image slot when a post, series or product has no cover: a friendly icon on the paper dot-grid.
+export function CoverPlaceholder({ kind, label, className, iconSize = 72 }: CoverPlaceholderProps) {
+  return <SiteIconCell kind={kind} label={label} iconSize={iconSize} className={cn("absolute inset-0", className)} />
 }

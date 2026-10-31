@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { CheckCircle2, Play } from 'lucide-react';
 
 import { Container } from '@/components/ui/Section';
-import { GlyphCell } from '@/components/ui/Glyph';
+import { SiteIconCell } from '@/components/ui/SiteIcon';
 import { getPublishedCourseBySlug } from '@/lib/services/course-platform';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/config/auth';
@@ -128,14 +128,14 @@ export default async function CourseDetailPage({ params }: PageProps) {
               <div className="mt-8 flex flex-wrap gap-3">
                 {course.firstLessonSlug ? <CourseEnrollmentAction slug={course.slug} firstLessonSlug={enrolled ? resumeLessonSlug : course.firstLessonSlug} authenticated={Boolean(session?.user?.id)} verified={Boolean(session?.user?.emailVerified || session?.user?.role === 'admin')} enrolled={enrolled} /> : null}
                 <a href="#curriculum" className="inline-flex h-12 items-center rounded-lg border border-foreground px-6 text-[15px] font-medium transition-colors hover:bg-secondary">
-                  View curriculum
+                  See the lessons
                 </a>
               </div>
               <p className="mt-5 text-xs text-muted-foreground">Created and taught by {course.instructorName}</p>
             </div>
 
             <div className="overflow-hidden rounded-3xl border border-border bg-card">
-              <GlyphCell kind="courses" label={`COURSE · ${course.level.toUpperCase()}`} glyphSize={96} className="min-h-[200px] sm:min-h-[240px]" />
+              <SiteIconCell kind="courses" label={`COURSE · ${course.level.toUpperCase()}`} iconSize={96} className="min-h-[200px] sm:min-h-[240px]" />
               <div className="grid grid-cols-3 divide-x divide-border border-t border-border">
                 <div className="p-4 text-center">
                   <p className="font-serif text-2xl font-medium">{course.lessonCount}</p>
@@ -143,11 +143,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
                 </div>
                 <div className="p-4 text-center">
                   <p className="font-serif text-2xl font-medium">{Math.max(1, Math.round(course.durationMinutes / 60))}h</p>
-                  <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Learning</p>
+                  <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">To finish</p>
                 </div>
                 <div className="p-4 text-center">
                   <p className="font-serif text-2xl font-medium">{course.quizCount}</p>
-                  <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Checks</p>
+                  <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Quizzes</p>
                 </div>
               </div>
             </div>
@@ -159,13 +159,13 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <div className="grid gap-12 lg:grid-cols-[0.72fr_1fr]">
           <div className="space-y-10">
             <section>
-              <p className="text-eyebrow text-primary">Why this path</p>
-              <h2 className="mt-3 text-3xl font-medium">Understanding before implementation</h2>
+              <p className="text-eyebrow text-primary">About this course</p>
+              <h2 className="mt-3 text-3xl font-medium">Understand it first, then use it</h2>
               <p className="mt-4 whitespace-pre-line text-sm leading-7 text-muted-foreground">{course.description}</p>
             </section>
             <section>
               <h2 className="font-serif text-2xl font-medium">
-                What you will understand
+                What you will learn
               </h2>
               <ul className="mt-5 space-y-3">
                 {course.learningOutcomes.map((outcome) => (
@@ -178,7 +178,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
             </section>
             {course.prerequisites.length ? (
               <section>
-                <h2 className="text-xl font-medium">Before you begin</h2>
+                <h2 className="text-xl font-medium">Helpful to know first</h2>
                 <ul className="mt-4 space-y-2 text-sm leading-6 text-muted-foreground">
                   {course.prerequisites.map((item) => (
                     <li key={item}>• {item}</li>
@@ -190,14 +190,14 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
           <section id="curriculum" className="scroll-mt-24">
             <div className="mb-6">
-              <p className="text-eyebrow text-primary">Curriculum</p>
-              <h2 className="mt-2 text-3xl font-medium">A guided sequence of ideas</h2>
+              <p className="text-eyebrow text-primary">Lessons</p>
+              <h2 className="mt-2 text-3xl font-medium">What&apos;s in the course, step by step</h2>
             </div>
             <div className="space-y-4">
               {course.modules.map((module, moduleIndex) => (
                 <div key={module.key} className="overflow-hidden rounded-xl border border-border bg-card">
                   <div className="border-b border-border bg-muted/35 p-5">
-                    <p className="text-eyebrow text-primary">Module {moduleIndex + 1}</p>
+                    <p className="text-eyebrow text-primary">Part {moduleIndex + 1}</p>
                     <h3 className="mt-1 text-lg font-medium">{module.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground">{module.description}</p>
                   </div>
