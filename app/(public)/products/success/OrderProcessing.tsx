@@ -37,7 +37,7 @@ export default function OrderProcessing() {
         </p>
         <div className="mt-7 flex flex-col justify-center gap-2 sm:flex-row">
           <button type="button" onClick={() => router.refresh()} className="inline-flex h-11 items-center justify-center rounded-lg bg-foreground px-5 text-[15px] font-medium text-background transition hover:bg-foreground/90">Check again</button>
-          <Link href="/products" className="inline-flex h-11 items-center justify-center rounded-lg border border-foreground px-5 text-[15px] font-medium transition hover:bg-secondary">Return to tools</Link>
+          <Link href="/products" className="inline-flex h-11 items-center justify-center rounded-lg border border-foreground px-5 text-[15px] font-medium transition hover:bg-secondary">Back to the shop</Link>
         </div>
       </div>
     </div>
