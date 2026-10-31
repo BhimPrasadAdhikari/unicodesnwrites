@@ -30,7 +30,7 @@ function InvalidOrder({ message }: { message: string }) {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-md text-center">
         <p className="mb-4 text-destructive">{message}</p>
-        <Link href="/products" className="font-medium underline decoration-primary decoration-2 underline-offset-4">Return to tools</Link>
+        <Link href="/products" className="font-medium underline decoration-primary decoration-2 underline-offset-4">Back to the shop</Link>
       </div>
     </div>
   );
@@ -99,7 +99,7 @@ export default async function SuccessPage(props: {
         <Container>
           <div className="mx-auto max-w-2xl">
             <p className="font-mono text-[12px] tracking-[0.08em] text-success">PAID · RECEIPT</p>
-            <h1 className="mt-3 text-title text-foreground">Your tool is ready.</h1>
+            <h1 className="mt-3 text-title text-foreground">Your purchase is ready.</h1>
             <p className="mt-4 font-serif text-[19px] leading-[1.55] text-muted-foreground sm:text-[21px]">
               Your purchase of <span className="text-foreground">{product.title}</span> went through.
             </p>
@@ -133,7 +133,7 @@ export default async function SuccessPage(props: {
                 </a>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/products">Browse more tools</Link>
+                <Link href="/products">Keep browsing the shop</Link>
               </Button>
             </div>
             <p className="pen-note mt-6 text-base">{linkHours ? `the link expires in ${linkHours} hour${linkHours === 1 ? '' : 's'}; ` : ''}<Link href="/products/download" className="underline">get a fresh one any time</Link></p>
