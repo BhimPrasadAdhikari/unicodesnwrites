@@ -20,9 +20,12 @@ import {
   UserRound,
 } from 'lucide-react';
 
+import { CertificateSettings } from '@/components/public/CertificateSettings';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { SiteIcon } from '@/components/ui/SiteIcon';
+import type { LearnerCertificate } from '@/lib/utils/certificate';
 
 type PurchaseItem = {
   id: string;
@@ -47,6 +50,8 @@ type AccountData = {
   joinedAt: string;
   emailVerified: boolean;
 };
+
+export type AccountTab = 'profile' | 'learning' | 'purchases' | 'security' | 'privacy';
 
 type StatsData = {
   purchasesCount: number;
@@ -76,14 +81,18 @@ export function AccountSettings({
   purchases,
   stats,
   isAdmin,
+  certificates = [],
+  initialTab = 'profile',
 }: {
   account: AccountData;
   purchases: PurchaseItem[];
   stats: StatsData;
   isAdmin: boolean;
+  certificates?: LearnerCertificate[];
+  initialTab?: AccountTab;
 }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'profile' | 'learning' | 'purchases' | 'security' | 'privacy'>('profile');
+  const [activeTab, setActiveTab] = useState<AccountTab>(initialTab);
 
   // Form states
   const [name, setName] = useState(account.name);
@@ -422,6 +431,17 @@ export function AccountSettings({
                   </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <SiteIcon kind="learning" size={40} />
+              <CardTitle>Your certificates</CardTitle>
+              <CardDescription>Share them, pick the name they show, or hide them.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CertificateSettings certificates={certificates} />
             </CardContent>
           </Card>
         </div>

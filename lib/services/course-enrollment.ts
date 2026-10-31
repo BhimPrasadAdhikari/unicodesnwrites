@@ -1,9 +1,11 @@
 import { connectDB } from '@/lib/db/connection';
+import Certificate from '@/lib/models/Certificate';
 import Course from '@/lib/models/Course';
 import CourseEnrollment from '@/lib/models/CourseEnrollment';
 import CourseQuizAttempt from '@/lib/models/CourseQuizAttempt';
 import LearnerLessonState from '@/lib/models/LearnerLessonState';
 import LearnerNotebookEntry from '@/lib/models/LearnerNotebookEntry';
+import { issueCertificateQuietly } from '@/lib/services/certificates';
 
 export async function getEnrollment(userId: string, courseSlug: string) {
   await connectDB();
@@ -50,6 +52,8 @@ export async function updateCourseProgress(userId: string, courseSlug: string, l
     const nextStatus = allComplete ? 'completed' : 'active';
     const nextCompletedAt = allComplete ? new Date() : null;
     await CourseEnrollment.updateOne({ _id: refreshed._id }, { $set: { status: nextStatus, completedAt: nextCompletedAt } });
+    // Finishing the course earns a certificate. Issuing never throws, so progress always saves.
+    if (allComplete) await issueCertificateQuietly(userId, String(refreshed.course));
     return { kind: 'ok' as const, completedLessonSlugs: refreshed.completedLessonSlugs, status: nextStatus };
   }
   return { kind: 'ok' as const, completedLessonSlugs: refreshed.completedLessonSlugs, status: refreshed.status };
@@ -93,20 +97,24 @@ export async function getAdminEnrollmentOverview() {
     user: { $in: recent.map((item) => item.user?._id || item.user).filter(Boolean) },
     course: { $in: recent.map((item) => item.course?._id || item.course).filter(Boolean) },
   };
-  const [learnerQuizRows, learnerStateRows] = await Promise.all([
+  const [learnerQuizRows, learnerStateRows, certificateRows] = await Promise.all([
     CourseQuizAttempt.aggregate([{ $match: recentScope }, { $group: { _id: { user: '$user', course: '$course' }, attempts: { $sum: 1 }, averageScore: { $avg: '$score' }, passed: { $sum: { $cond: ['$passed', 1, 0] } } } }]),
     LearnerLessonState.aggregate([{ $match: recentScope }, { $group: { _id: { user: '$user', course: '$course' }, lessonsVisited: { $sum: 1 }, notesCount: { $sum: { $cond: [{ $gt: [{ $strLenCP: { $ifNull: ['$notes', ''] } }, 0] }, 1, 0] } }, lastStudyAt: { $max: '$lastAccessedAt' } } }]),
+    Certificate.find(recentScope).select('user course code hidden revokedAt').lean(),
   ]);
   const quizSummary = quizSummaryRows[0] || { attempts: 0, averageScore: 0, passed: 0 };
   const keyFor = (user: unknown, course: unknown) => `${String(user)}:${String(course)}`;
   const quizByLearner = new Map(learnerQuizRows.map((row) => [keyFor(row._id.user, row._id.course), row]));
   const stateByLearner = new Map(learnerStateRows.map((row) => [keyFor(row._id.user, row._id.course), row]));
+  const certificateByLearner = new Map(certificateRows.map((row) => [keyFor(row.user, row.course), row]));
   const recentWithMetrics = recent.map((item) => {
     const key = keyFor(item.user?._id || item.user, item.course?._id || item.course);
     const quiz = quizByLearner.get(key);
     const state = stateByLearner.get(key);
+    const certificate = certificateByLearner.get(key);
     return {
       ...item,
+      certificate: certificate ? { id: certificate._id.toString(), code: certificate.code, hidden: Boolean(certificate.hidden), revoked: Boolean(certificate.revokedAt) } : null,
       metrics: {
         quizAttempts: quiz?.attempts || 0,
         averageQuizScore: quiz?.averageScore ? Math.round(quiz.averageScore) : null,

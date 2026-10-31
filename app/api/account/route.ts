@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LearnerAccessError, requireAuthenticatedSession } from '@/lib/auth/learner';
 import { consumeRateLimit, getClientAddress } from '@/lib/auth/security';
 import { connectDB } from '@/lib/db/connection';
+import Certificate from '@/lib/models/Certificate';
 import CourseEnrollment from '@/lib/models/CourseEnrollment';
 import EmailVerificationToken from '@/lib/models/EmailVerificationToken';
 import PasswordResetToken from '@/lib/models/PasswordResetToken';
@@ -61,6 +62,7 @@ export async function DELETE(request: NextRequest) {
       Purchase.updateMany({ customerEmail: user.email }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted customer' } }, { collation: { locale: 'en', strength: 2 } }),
       Review.updateMany({ customerEmail: user.email, emailConfirmed: { $ne: false } }, { $set: { customerEmail: redactedEmail, customerName: 'Deleted learner' } }),
       CourseEnrollment.deleteMany({ user: user._id }),
+      Certificate.deleteMany({ user: user._id }),
       LearnerLessonState.deleteMany({ user: user._id }),
       CourseQuizAttempt.deleteMany({ user: user._id }),
       LearnerNotebookEntry.deleteMany({ user: user._id }),

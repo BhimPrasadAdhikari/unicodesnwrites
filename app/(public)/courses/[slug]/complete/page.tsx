@@ -5,11 +5,13 @@ import { getServerSession } from 'next-auth';
 import { Types } from 'mongoose';
 import { CheckCircle2 } from 'lucide-react';
 
+import { CertificateActions } from '@/components/public/CertificateActions';
 import { SiteIcon } from '@/components/ui/SiteIcon';
 import { Container } from '@/components/ui/Section';
 import { authOptions } from '@/lib/config/auth';
 import { siteConfig } from '@/lib/config/site.config';
 import CourseQuizAttempt from '@/lib/models/CourseQuizAttempt';
+import { getLearnerCertificate } from '@/lib/services/certificates';
 import { getEnrollment } from '@/lib/services/course-enrollment';
 import { getPublishedCourseBySlug, listPublishedCourses } from '@/lib/services/course-platform';
 
@@ -44,6 +46,8 @@ export default async function CourseCompletePage({ params }: PageProps) {
   const courseUrl = `https://${siteConfig.domain}/courses/${slug}`;
   const shareText = `I just finished “${course.title}” on unicodesnwrites.`;
   const finished = remaining.length === 0;
+  // Learners who finished before certificates existed get theirs issued the first time they come back here.
+  const certificate = finished && enrollment.status === 'completed' ? await getLearnerCertificate(session.user.id, String(courseRecord._id)) : null;
 
   return (
     <Container className="max-w-3xl py-14 sm:py-20">
@@ -58,15 +62,33 @@ export default async function CourseCompletePage({ params }: PageProps) {
             {enrollment.completedAt ? ` on ${new Date(enrollment.completedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}` : ''}.
             {quiz?.attempts ? ` You averaged ${Math.round(quiz.average)}% across ${quiz.attempts} concept ${quiz.attempts === 1 ? 'check' : 'checks'}.` : ''}
           </p>
+          {certificate ? (
+            <section aria-labelledby="certificate-heading" className="mt-10 rounded-2xl border border-border bg-card p-6 sm:p-8">
+              <div className="flex items-start gap-5">
+                <SiteIcon kind="learning" size={56} className="shrink-0" />
+                <div>
+                  <h2 id="certificate-heading" className="font-serif text-2xl font-medium">Your certificate</h2>
+                  <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
+                    You finished the course! Here&apos;s your certificate. It shows the name <span className="font-medium text-foreground">{certificate.name}</span>.
+                    Add it to your LinkedIn profile, or send the link to anyone. You can change the name or hide it in{' '}
+                    <Link href="/account?tab=learning" className="font-medium text-foreground underline decoration-primary decoration-2 underline-offset-4">your account</Link>.
+                  </p>
+                </div>
+              </div>
+              <CertificateActions certificate={certificate} className="mt-6" />
+            </section>
+          ) : null}
           <div className="mt-8 flex flex-wrap gap-2">
-            <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(courseUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-11 items-center rounded-lg bg-foreground px-5 text-[15px] font-medium text-background hover:bg-foreground/90"
-            >
-              Share on LinkedIn
-            </a>
+            {certificate ? null : (
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(courseUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center rounded-lg bg-foreground px-5 text-[15px] font-medium text-background hover:bg-foreground/90"
+              >
+                Share on LinkedIn
+              </a>
+            )}
             <a
               href={`https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(courseUrl)}`}
               target="_blank"

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
-import { AccountSettings } from '@/components/public/AccountSettings';
+import { AccountSettings, type AccountTab } from '@/components/public/AccountSettings';
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Section';
 import { authOptions } from '@/lib/config/auth';
@@ -12,7 +12,9 @@ import LearnerNotebookEntry from '@/lib/models/LearnerNotebookEntry';
 import Product from '@/lib/models/Product';
 import Purchase from '@/lib/models/Purchase';
 import { User } from '@/lib/models/User';
+import { listLearnerCertificates } from '@/lib/services/certificates';
 import { countDueReviews } from '@/lib/services/review-queue';
+import type { LearnerCertificate } from '@/lib/utils/certificate';
 
 export const metadata = {
   title: 'Account and Profile settings',
@@ -22,7 +24,11 @@ export const metadata = {
 };
 export const dynamic = 'force-dynamic';
 
-export default async function AccountPage() {
+const ACCOUNT_TABS: AccountTab[] = ['profile', 'learning', 'purchases', 'security', 'privacy'];
+
+export default async function AccountPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab } = await searchParams;
+  const initialTab = ACCOUNT_TABS.find((item) => item === tab) ?? 'profile';
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || !session.user.sessionValid) redirect('/login?reauth=1&from=%2Faccount');
 
@@ -43,6 +49,7 @@ export default async function AccountPage() {
   let enrolledCount = 0;
   let notebookCount = 0;
   let reviewDueCount = 0;
+  let certificates: LearnerCertificate[] = [];
 
   try {
     await connectDB();
@@ -112,6 +119,12 @@ export default async function AccountPage() {
     console.error('Failed to count due review cards:', error);
   }
 
+  try {
+    certificates = await listLearnerCertificates(user._id.toString());
+  } catch (error) {
+    console.error('Failed to load certificates:', error);
+  }
+
   const joinedAtStr = user.createdAt
     ? new Date(user.createdAt).toISOString()
     : new Date().toISOString();
@@ -148,6 +161,8 @@ export default async function AccountPage() {
             reviewDueCount,
           }}
           isAdmin={user.role === 'admin'}
+          certificates={certificates}
+          initialTab={initialTab}
         />
       </Container>
     </div>
