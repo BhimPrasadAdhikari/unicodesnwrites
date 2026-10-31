@@ -62,6 +62,7 @@ export async function PATCH(
             if (subscriber.status !== 'unsubscribed') {
                 subscriber.status = 'unsubscribed';
                 subscriber.unsubscribedAt = new Date();
+                subscriber.welcomeNextAt = null;
                 subscriber.confirmationToken = undefined;
                 subscriber.confirmationTokenExpiry = undefined;
                 await subscriber.save();

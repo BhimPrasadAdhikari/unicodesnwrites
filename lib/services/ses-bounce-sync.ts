@@ -35,7 +35,7 @@ export async function suppressSubscriberEmails(emails: readonly string[], tag: s
     matched += await Subscriber.countDocuments({ email: { $in: chunk } });
     const active = await Subscriber.updateMany(
       { email: { $in: chunk }, status: { $ne: 'unsubscribed' } },
-      { $set: { status: 'unsubscribed', unsubscribedAt: new Date() }, $addToSet: { tags: tag } },
+      { $set: { status: 'unsubscribed', unsubscribedAt: new Date(), welcomeNextAt: null }, $addToSet: { tags: tag } },
     );
     const alreadyGone = await Subscriber.updateMany(
       { email: { $in: chunk }, status: 'unsubscribed', tags: { $ne: tag } },

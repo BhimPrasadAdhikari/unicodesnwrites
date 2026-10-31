@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
 
         subscriber.status = 'unsubscribed';
         subscriber.unsubscribedAt = new Date();
+        subscriber.welcomeNextAt = null; // a later re-subscribe starts clean, not mid-series
         await subscriber.save();
 
         // Send confirmation (optional, but good UX)

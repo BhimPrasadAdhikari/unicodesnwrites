@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const result = subscriberIds.length
       ? await Subscriber.updateMany(
           { _id: { $in: subscriberIds }, status: 'confirmed' },
-          { $set: { status: 'unsubscribed', unsubscribedAt: new Date() }, $addToSet: { tags: 'bounced' } },
+          { $set: { status: 'unsubscribed', unsubscribedAt: new Date(), welcomeNextAt: null }, $addToSet: { tags: 'bounced' } },
         )
       : { modifiedCount: 0 };
     return NextResponse.json({ unsubscribed: result.modifiedCount });

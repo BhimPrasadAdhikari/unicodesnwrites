@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
         $unset: { confirmationTokenExpiry: 1 },
         $pull: { tags: BOUNCED_TAG },
       },
-      { new: true },
+      { returnDocument: 'after' },
     );
     if (!confirmed) {
       return NextResponse.json({ message: 'You are already subscribed. New issues will arrive in your inbox.', source: subscriber.source }, { status: 200 });

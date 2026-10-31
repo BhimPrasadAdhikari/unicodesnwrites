@@ -3,9 +3,10 @@ import { Html, Head, Body, Container, Section, Text, Button, Hr, Link, Preview }
 
 interface WelcomeEmailProps {
   unsubscribeUrl: string;
+  postalAddress?: string;
 }
 
-export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ unsubscribeUrl }) => {
+export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ unsubscribeUrl, postalAddress }) => {
   return (
     <Html>
       <Head />
@@ -45,6 +46,7 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({ unsubscribeUrl }) =>
             <Text style={footerText}>
               <Link href={unsubscribeUrl} style={link}>Unsubscribe</Link>
             </Text>
+            {postalAddress ? <Text style={footerText}>{postalAddress}</Text> : null}
           </Section>
         </Container>
       </Body>
