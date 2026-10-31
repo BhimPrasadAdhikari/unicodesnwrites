@@ -146,7 +146,8 @@ export function LessonRichContent({ lesson }: { lesson: Lesson }) {
         <section aria-label="Lesson article">
           <SectionHeading icon={BookOpenText} eyebrow="Read" title="The lesson, written out" />
           <div className="rounded-xl border border-border bg-card px-5 py-6 sm:px-10 sm:py-10">
-            <LessonMarkdown className="mx-auto max-w-3xl">{lesson.article}</LessonMarkdown>
+            {/* The page already shows the lesson title, so drop a leading "# Title" line. */}
+            <LessonMarkdown className="mx-auto max-w-3xl">{lesson.article.replace(/^#\s[^\n]*\n+/, "")}</LessonMarkdown>
           </div>
         </section>
       )}

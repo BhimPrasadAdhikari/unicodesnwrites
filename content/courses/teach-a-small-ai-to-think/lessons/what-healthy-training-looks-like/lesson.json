@@ -1,0 +1,157 @@
+{
+  "key": "what-healthy-training-looks-like",
+  "slug": "what-healthy-training-looks-like",
+  "title": "What healthy training looks like",
+  "summary": "Learn the vital signs of a GRPO run: reward, reward spread and all-same groups, completion length, KL, entropy and clip ratio. See what each measures, what a healthy shape looks like, and which curves to read together.",
+  "type": "concept",
+  "durationMinutes": 18,
+  "learningObjectives": [
+    "Explain in plain words what each main GRPO metric in TRL measures",
+    "Describe the healthy shape of reward, length, KL, entropy, clip ratio and frac_reward_zero_std",
+    "Read curves together, using rolling averages, instead of judging one number",
+    "Explain why held-out accuracy must be checked alongside training reward"
+  ],
+  "concepts": [
+    "training curves",
+    "rolling average",
+    "frac_reward_zero_std",
+    "completion length and clipped ratio",
+    "KL to reference",
+    "entropy",
+    "clip ratio",
+    "held-out accuracy"
+  ],
+  "studyGuide": {
+    "mentalModel": "A doctor's chart. Reward is the headline, but it can lie on its own. Held-out accuracy confirms it, the fraction of all-same groups is the fuel gauge, length is the thinking budget, KL is distance from home, entropy is confidence, and clip ratio says how hard the brake is working. Health is when they tell the same story.",
+    "keyIdeas": [
+      "With small batches every point is noisy; read rolling averages and trends over tens of steps.",
+      "Healthy reward rises then flattens, and held-out accuracy rises with it.",
+      "frac_reward_zero_std near 1 means almost no learning signal; DAPO's dynamic sampling filters such groups.",
+      "Healthy entropy declines gently while reward rises; a sharp drop with flat reward is collapse.",
+      "With num_iterations = 1, clip ratio near zero is expected; KL should rise slowly and smoothly."
+    ],
+    "misconceptions": [
+      "A rising reward alone does not prove the model learned the task.",
+      "Falling entropy is not automatically bad; it is healthy when the model is becoming confidently right.",
+      "A clip ratio of zero is not a bug when TRL does one update per batch.",
+      "Longer answers are not automatically better reasoning; check accuracy and the cut-off share."
+    ],
+    "recallPrompts": [
+      "Which TRL metric tells you the share of groups that teach nothing?",
+      "What does healthy entropy look like, and what curve do you check alongside it?",
+      "Why is clip ratio near zero in a default TRL GRPO run?",
+      "What should you check when completion length keeps rising?"
+    ],
+    "explainBackPrompt": "Explain to a friend why you would never judge a training run by its reward curve alone, using two other curves as examples."
+  },
+  "quiz": [
+    {
+      "key": "fuel-gauge",
+      "prompt": "frac_reward_zero_std sits near 0.95 for the whole run. What does that tell you?",
+      "options": [
+        "The run is extremely healthy",
+        "Almost every group has all answers scoring the same, so there is almost no learning signal",
+        "The KL penalty is too low",
+        "The model is writing very long answers"
+      ],
+      "correctOption": 1,
+      "explanation": "All-same groups have zero advantage. At 0.95, 95% of groups teach nothing: the data is too hard or too easy for the model, or groups are too small."
+    },
+    {
+      "key": "entropy-healthy",
+      "prompt": "Which combination is the healthiest?",
+      "options": [
+        "Entropy falls sharply in the first 20 steps while reward stays flat",
+        "Entropy rises steadily while reward falls",
+        "Entropy declines gently while reward and held-out accuracy rise",
+        "Entropy stays exactly constant and reward stays exactly constant"
+      ],
+      "correctOption": 2,
+      "explanation": "Gentle decline with rising reward means the model is becoming confident because it is right. A sharp drop with flat reward is collapse; rising entropy often means garbled text."
+    },
+    {
+      "key": "clip-zero",
+      "prompt": "Your TRL run uses the default num_iterations = 1 and clip_ratio/region_mean is about 0 throughout. What should you do?",
+      "options": [
+        "Nothing: with one update per batch the ratio is about 1, so clipping rarely triggers",
+        "Stop the run, clipping is broken",
+        "Raise epsilon to 10",
+        "Set beta to 1.0"
+      ],
+      "correctOption": 0,
+      "explanation": "Clipping only acts when the policy has moved since sampling, which needs more than one update per batch."
+    },
+    {
+      "key": "noise",
+      "prompt": "Why does the notebook draw a rolling average over the reward curve?",
+      "options": [
+        "Because TRL logs rewards in the wrong units",
+        "To hide bad results",
+        "Because rolling averages make training faster",
+        "Because each step uses very few questions, so single points are noisy and the trend is what matters"
+      ],
+      "correctOption": 3,
+      "explanation": "With 2 questions per step, one easy or hard question swings the value. The rolling average shows the underlying trend."
+    },
+    {
+      "key": "length-check",
+      "prompt": "Completion length rises steadily and completions/clipped_ratio climbs toward 0.5, but held-out accuracy is flat. What is the best reading?",
+      "options": [
+        "Healthy: longer answers always mean better reasoning",
+        "The KL is too low",
+        "Suspicious: answers are growing and being cut off without any accuracy gain, so the model may be rambling",
+        "The learning rate is too low"
+      ],
+      "correctOption": 2,
+      "explanation": "Length growth is healthy only alongside accuracy gains. Half the answers hitting the limit means they are cut off mid-thought; see the next lesson for fixes."
+    }
+  ],
+  "interactive": {
+    "component": "training-run",
+    "title": "Watch a healthy run",
+    "caption": "Start with the healthy preset: notice the flat start, reward and accuracy rising together, and entropy falling as accuracy rises. Then compare with hacking, stuck and tight leash."
+  },
+  "resources": [
+    {
+      "key": "reading-curves-cheatsheet",
+      "title": "Reading training curves cheat sheet",
+      "description": "One page: each GRPO metric, healthy versus broken shapes, and the first fix to try.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/reading-training-curves.pdf"
+    },
+    {
+      "key": "trl-grpo-docs",
+      "title": "TRL GRPO Trainer documentation: logged metrics",
+      "description": "The official list of metrics GRPOTrainer logs and what they mean.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/trl/main/en/grpo_trainer"
+    },
+    {
+      "key": "dapo-paper",
+      "title": "DAPO (ByteDance Seed, 2025)",
+      "description": "Entropy collapse, clip-higher and dynamic sampling of all-same groups.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.14476"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "read-the-chart",
+      "title": "Diagnose three runs from their vital signs",
+      "hints": [
+        "Start with reward and held-out accuracy: do they agree?",
+        "Then check the fuel gauge (frac_reward_zero_std) and entropy.",
+        "Name the single most informative curve for each run."
+      ]
+    },
+    {
+      "key": "tiny-adder-vitals",
+      "title": "Measure the Tiny Adder's fuel gauge",
+      "hints": [
+        "Copy train() from grpo_tiny_adder.py and count groups whose rewards are all equal.",
+        "Record the fraction per step alongside reward.",
+        "Compare G = 8 with G = 2."
+      ]
+    }
+  ]
+}

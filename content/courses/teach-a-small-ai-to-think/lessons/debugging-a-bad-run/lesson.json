@@ -1,0 +1,176 @@
+{
+  "key": "debugging-a-bad-run",
+  "slug": "debugging-a-bad-run",
+  "title": "Debugging a bad run: collapse, hacking, stuck at zero",
+  "summary": "Four case studies of broken GRPO runs: stuck at zero, reward hacking, collapse and a too-tight KL leash. Learn the symptoms on the curves, the usual causes and the fixes to try in order, plus a triage routine for any run.",
+  "type": "case-study",
+  "durationMinutes": 22,
+  "learningObjectives": [
+    "Follow a triage routine that starts with reading completions and testing the grader",
+    "Recognize stuck-at-zero, reward hacking, collapse and over-tight KL from their curves",
+    "Choose the first fix for each failure and change one knob at a time",
+    "Explain how DAPO and Dr. GRPO changes address collapse, silent groups and length problems"
+  ],
+  "concepts": [
+    "triage routine",
+    "stuck at zero",
+    "reward hacking",
+    "entropy collapse",
+    "over-tight KL",
+    "dynamic sampling",
+    "clip-higher",
+    "overlong answers"
+  ],
+  "studyGuide": {
+    "mentalModel": "Four patients with different charts. Stuck: no fuel, nothing moves. Hacking: the reward says great, the held-out test says no. Collapse: the model becomes certain without becoming right, and groups stop disagreeing. Tight leash: there is fuel, but the KL brake cancels most of each step. Read completions first, then match the chart to the patient.",
+    "keyIdeas": [
+      "Most bugs show up in raw completions and in hand-testing the reward functions.",
+      "Stuck at zero: frac_reward_zero_std near 1. Fix the grader, the length limit, the difficulty, or raise num_generations; DAPO's dynamic sampling drops silent groups.",
+      "Reward hacking: reward up, held-out accuracy flat or down. Tighten and re-weight the grader, cap shaping bonuses.",
+      "Collapse: entropy crashes, groups become identical. Lower the learning rate, use epsilon_high, keep temperature up, restart from a checkpoint.",
+      "Tight leash: slow progress with tiny KL. Lower or zero beta."
+    ],
+    "misconceptions": [
+      "A run stuck at zero is not always a hard task; often the grader simply never fires.",
+      "Reward hacking is not the algorithm failing; GRPO optimizes exactly the reward you wrote.",
+      "Falling entropy alone is not collapse; collapse is falling entropy with stalled reward and identical groups.",
+      "Waiting rarely rescues a collapsed run; once groups stop disagreeing there is no signal left."
+    ],
+    "recallPrompts": [
+      "What are the first two steps of the triage routine?",
+      "Which curve pair reveals reward hacking?",
+      "Name three fixes for collapse, in the order you would try them.",
+      "How do you tell a too-tight leash from a run that is stuck at zero?"
+    ],
+    "explainBackPrompt": "Explain to a friend how you would tell, from the curves and a few sample answers, whether a bad run is stuck, hacking or collapsing, and what you would change first in each case."
+  },
+  "quiz": [
+    {
+      "key": "first-step",
+      "prompt": "Your run's reward has been exactly 0 for 40 steps. What should you do first?",
+      "options": [
+        "Double the learning rate",
+        "Wait another hour",
+        "Read some completions and run the reward functions by hand on examples",
+        "Switch to a bigger model"
+      ],
+      "correctOption": 2,
+      "explanation": "The most common cause is a grader that never fires (for example a tag or number-parsing mismatch). You find it in minutes by reading completions and testing the rewards."
+    },
+    {
+      "key": "hacking-curves",
+      "prompt": "Which pattern most strongly suggests reward hacking?",
+      "options": [
+        "Training reward rises while held-out accuracy stays flat or falls",
+        "Reward and held-out accuracy both rise",
+        "KL rises slowly and smoothly",
+        "frac_reward_zero_std stays near 0.4"
+      ],
+      "correctOption": 0,
+      "explanation": "Hacking means the model satisfies the grader without improving at the real task, so the two measures split apart. The Tiny Adder hacking preset shows reward 0.81 with accuracy 0.05."
+    },
+    {
+      "key": "collapse-signs",
+      "prompt": "Which combination describes collapse?",
+      "options": [
+        "Entropy declines gently while held-out accuracy rises",
+        "KL stays near zero and reward rises slowly",
+        "Reward is 0 and the completions contain no answer tags",
+        "Entropy drops sharply early, the answers in each group become nearly identical, and reward stalls"
+      ],
+      "correctOption": 3,
+      "explanation": "Collapse is confidence without competence: exploration dies, groups stop disagreeing (frac_reward_zero_std rises), and learning stops."
+    },
+    {
+      "key": "collapse-fix",
+      "prompt": "Which change is a reasonable first fix for collapse?",
+      "options": [
+        "Raise the learning rate",
+        "Lower the learning rate and use clip-higher (epsilon_high above epsilon), restarting from a healthy checkpoint",
+        "Lower the sampling temperature to make groups more similar",
+        "Remove the held-out evaluation"
+      ],
+      "correctOption": 1,
+      "explanation": "Smaller steps reduce overcommitment, and clip-higher (from DAPO) lets rare tokens grow, which helps keep diversity."
+    },
+    {
+      "key": "tight-vs-stuck",
+      "prompt": "A run shows slow but steady reward growth, groups that often disagree (frac_reward_zero_std around 0.3), and a KL that stays tiny. What is the most likely issue?",
+      "options": [
+        "The grader never fires",
+        "Reward hacking",
+        "The KL leash is too tight: lower or remove beta",
+        "Collapse"
+      ],
+      "correctOption": 2,
+      "explanation": "There is learning signal (groups disagree), but the KL penalty is cancelling much of each step. Stuck-at-zero would show frac_reward_zero_std near 1."
+    },
+    {
+      "key": "dynamic-sampling",
+      "prompt": "What does DAPO's dynamic sampling do?",
+      "options": [
+        "Drops groups whose answers all scored the same and samples more questions until the batch is full of informative groups",
+        "Changes the learning rate every step",
+        "Samples answers from a larger teacher model",
+        "Removes the reward function"
+      ],
+      "correctOption": 0,
+      "explanation": "All-same groups have zero advantage, so filtering them keeps every training step full of real signal, at the cost of extra generation."
+    }
+  ],
+  "interactive": {
+    "component": "training-run",
+    "title": "Diagnose three broken runs",
+    "caption": "Run the stuck, hacking and tight leash presets and name the giveaway curve for each. Compare every one with the healthy preset."
+  },
+  "resources": [
+    {
+      "key": "reading-curves-cheatsheet",
+      "title": "Reading training curves cheat sheet",
+      "description": "Symptom-to-fix table and triage routine on one page.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/reading-training-curves.pdf"
+    },
+    {
+      "key": "dapo-paper",
+      "title": "DAPO (ByteDance Seed, 2025)",
+      "description": "Clip-higher, dynamic sampling, token-level loss and overlong reward shaping.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.14476"
+    },
+    {
+      "key": "dr-grpo-paper",
+      "title": "Understanding R1-Zero-Like Training (Liu et al., 2025)",
+      "description": "The Dr. GRPO paper on length and difficulty biases.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.20783"
+    },
+    {
+      "key": "grpo-from-scratch-notebook",
+      "title": "GRPO from scratch notebook (CPU)",
+      "description": "Reproduce the stuck, hacking and tight leash presets in Python.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/04-grpo-from-scratch.ipynb"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "find-the-grader-bug",
+      "title": "Find the bug that keeps reward at zero",
+      "hints": [
+        "Run the reward on a completion you know is correct.",
+        "Look closely at the regular expression: case, spaces, and what it expects inside the tags.",
+        "Test your fix on at least four hand-written completions."
+      ]
+    },
+    {
+      "key": "harden-the-grader",
+      "title": "Close three reward-hacking loopholes",
+      "hints": [
+        "Count the <answer> tags; more than one should score zero.",
+        "Require the content of <answer> to be a single number, not a sentence with many numbers.",
+        "Require some minimum amount of thinking, but keep the rule simple."
+      ]
+    }
+  ]
+}

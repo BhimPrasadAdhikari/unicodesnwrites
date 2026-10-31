@@ -1,0 +1,173 @@
+{
+  "key": "when-rewards-go-wrong",
+  "slug": "when-rewards-go-wrong",
+  "title": "When rewards go wrong: reward hacking",
+  "summary": "Models optimize exactly what you reward, not what you meant. See reward hacking in a boat-racing game, in Tiny Adder with a buggy grader, in judge models and coding tests, and in your own GSM8K rewards, plus the warning signs and fixes.",
+  "type": "case-study",
+  "durationMinutes": 20,
+  "learningObjectives": [
+    "Define reward hacking (specification gaming) and explain why it is a gap in the reward, not malice in the model.",
+    "Explain Goodhart's law in plain words and connect it to training.",
+    "Describe what happens to reward and accuracy when Tiny Adder is trained with the buggy even-number reward.",
+    "Explain why learned reward models are easier to hack than rule-based checks.",
+    "Spot the warning signs of reward hacking in a training run.",
+    "Choose fixes: tighten the check, rebalance weights, keep an independent evaluation."
+  ],
+  "concepts": [
+    "reward hacking",
+    "specification gaming",
+    "Goodhart's law",
+    "proxy reward",
+    "buggy reward",
+    "reward model overoptimization",
+    "held-out evaluation",
+    "reading samples",
+    "KL penalty"
+  ],
+  "interactive": {
+    "component": "training-run",
+    "title": "Watch Tiny Adder hack a buggy grader",
+    "caption": "Switch on the buggy reward (or pick the hacking preset) and press run. Compare the reward line with the accuracy line, then run the healthy preset and see if you could tell them apart without accuracy."
+  },
+  "studyGuide": {
+    "mentalModel": "Imagine a shop that pays staff by the number of customer smiles counted on camera. Staff soon learn to tell jokes at the door and skip actual service. Nobody is evil; the pay rule rewards smiles, not service. Your reward function is the pay rule. The model is a very fast, very literal employee who will find any gap between what you count and what you want.",
+    "keyIdeas": [
+      "Reward hacking is when a model raises its reward without doing what you wanted; the model only sees the score.",
+      "Goodhart's law: when a measure becomes a target, it ceases to be a good measure.",
+      "With the buggy even-number reward, Tiny Adder's reward climbed to about 0.8 while accuracy stayed near chance (1 in 19).",
+      "Reward models can be over-optimized: the proxy score keeps rising while true quality eventually falls (Gao et al., 2022).",
+      "Rule-based rewards are harder to hack but not immune: coding rewards have been gamed by making tests report success (Baker et al., 2025).",
+      "Track held-out accuracy with an independent check and read real samples regularly."
+    ],
+    "misconceptions": [
+      "\"If the reward is going up, training is working.\" A hacked run can show the same rising reward as a healthy one.",
+      "\"Reward hacking means the model is trying to cheat.\" It has no idea what you meant; it finds the cheapest way to raise the score.",
+      "\"Rule-based rewards cannot be hacked.\" They are harder to hack, but loopholes like duplicate tags or hedged answers still exist.",
+      "\"Punishing the model for writing about hacks fixes the problem.\" Baker et al. (2025) found this mostly taught the model to hide its intent; fix the reward instead."
+    ],
+    "recallPrompts": [
+      "What did the CoastRunners boat do, and why?",
+      "State Goodhart's law in your own words.",
+      "In the buggy Tiny Adder run, what happened to reward and to accuracy?",
+      "Why are learned reward models especially easy to over-optimize?",
+      "Name three warning signs of reward hacking in a training run.",
+      "Name three fixes, and say which one you would try first."
+    ],
+    "explainBackPrompt": "Explain to a friend how an AI can get a high score while completely failing at the task you wanted, using the boat game or Tiny Adder as an example, and how you would catch it happening."
+  },
+  "quiz": [
+    {
+      "key": "define-hacking",
+      "prompt": "Which best describes reward hacking?",
+      "options": [
+        "Someone breaks into the training server and changes the rewards.",
+        "The model raises its reward through a shortcut that does not do what you actually wanted.",
+        "The reward function crashes during training.",
+        "The model refuses to answer questions."
+      ],
+      "correctOption": 1,
+      "explanation": "Reward hacking (specification gaming) is the model meeting the letter of the reward, not its spirit. It is a gap in the reward, not an outside attack."
+    },
+    {
+      "key": "buggy-adder",
+      "prompt": "Tiny Adder is trained with a buggy reward that gives 1 to any even number. What do the curves show?",
+      "options": [
+        "Reward and accuracy both rise together.",
+        "Reward stays at zero and accuracy rises.",
+        "Both stay flat because the reward is broken.",
+        "Reward climbs while accuracy stays near chance."
+      ],
+      "correctOption": 3,
+      "explanation": "The model learns to answer even numbers, which the grader loves, but it never learns to add. In the run quoted in the article, reward reached about 0.8 while accuracy stayed at about 0.05."
+    },
+    {
+      "key": "goodhart",
+      "prompt": "Which statement is Goodhart's law?",
+      "options": [
+        "When a measure becomes a target, it ceases to be a good measure.",
+        "Larger models always need larger rewards.",
+        "Every reward function eventually crashes.",
+        "Rewards should always be between 0 and 1."
+      ],
+      "correctOption": 0,
+      "explanation": "Your reward measures what you want. Training makes it the target, and pressure on the target opens a gap between the measure and the goal."
+    },
+    {
+      "key": "overoptimization",
+      "prompt": "Gao et al. (2022) trained models against a learned reward model for longer and longer. What happened to true quality?",
+      "options": [
+        "It rose forever along with the reward model's score.",
+        "It never changed.",
+        "It rose at first, then levelled off and fell, even as the reward model's score kept rising.",
+        "It fell from the very first step."
+      ],
+      "correctOption": 2,
+      "explanation": "Pushing hard against a learned judge first improves answers, then starts exploiting the judge's quirks. The proxy keeps rising while real quality drops."
+    },
+    {
+      "key": "best-check",
+      "prompt": "What is the single best habit for catching reward hacking during a real run?",
+      "options": [
+        "Raise the learning rate when reward stalls.",
+        "Only look at the total reward curve.",
+        "Train for twice as many steps.",
+        "Track accuracy on held-out questions with an independent check, and read real samples."
+      ],
+      "correctOption": 3,
+      "explanation": "A hacked run can look healthy on the reward curve. A separate accuracy check on questions the model never trains on, plus reading actual answers, reveals the gap."
+    },
+    {
+      "key": "short-answers",
+      "prompt": "During GRPO on GSM8K, answers shrink to '<think>.</think><answer>18</answer>' and format reward hits 1.0 while correctness stays flat. What is the most likely cause?",
+      "options": [
+        "The GPU is running out of memory.",
+        "The format reward is easy to satisfy with minimal thinking and may be weighted too high.",
+        "The model has become too good at maths.",
+        "GSM8K answers are all wrong."
+      ],
+      "correctOption": 1,
+      "explanation": "The model found the cheap reward: the format. Reject near-empty thinking, and keep correctness worth more than format so the shape alone cannot win."
+    }
+  ],
+  "resources": [
+    {
+      "key": "rewards-cheatsheet",
+      "title": "Rewards cheat sheet",
+      "description": "Includes a table of reward hacking signs and fixes.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/rewards-cheatsheet.pdf"
+    },
+    {
+      "key": "rm-overoptimization",
+      "title": "Scaling Laws for Reward Model Overoptimization (Gao et al., 2022)",
+      "description": "How pushing against a learned judge first helps, then hurts.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2210.10760"
+    },
+    {
+      "key": "monitoring-reasoning",
+      "title": "Monitoring Reasoning Models for Misbehavior (Baker et al., 2025)",
+      "description": "Reward hacking in coding tasks, and why punishing bad thoughts can backfire.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.11926"
+    },
+    {
+      "key": "concrete-problems",
+      "title": "Concrete Problems in AI Safety (Amodei et al., 2016)",
+      "description": "An early, readable overview that includes reward hacking.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/1606.06565"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "diagnose-the-hack",
+      "title": "Diagnose three suspicious runs",
+      "hints": [
+        "For each run, compare what the reward measures with what you actually want.",
+        "Ask: what is the cheapest behavior that would produce these exact numbers?",
+        "A good fix changes the reward or the evaluation, not just the learning rate."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "key": "shorter-thinking",
+  "slug": "shorter-thinking",
+  "title": "Making thinking shorter (and cheaper)",
+  "summary": "Length costs time and money, so you'll build three reward functions that pay a model for being right and concise: a length penalty, a token budget and DAPO's soft overlong punishment. Then you'll see how each one changes GRPO's advantages.",
+  "type": "concept",
+  "durationMinutes": 22,
+  "learningObjectives": [
+    "Explain why generated length is a cost, and why a model should think briefly on easy problems and longer on hard ones.",
+    "State the golden rule of length rewards: never let a short wrong answer beat a long right one.",
+    "Write a length penalty, a token budget reward and DAPO's soft overlong punishment as TRL-style reward functions.",
+    "Predict how a length reward changes GRPO advantages within a group, including when a correct answer gets pushed down.",
+    "Use TRL's max_completion_length, mask_truncated_completions, loss_type and reward_weights alongside length rewards."
+  ],
+  "concepts": [
+    "inference cost",
+    "overthinking",
+    "length penalty",
+    "token budget",
+    "overlong shaping",
+    "DAPO",
+    "group-relative length",
+    "reward_weights",
+    "mask_truncated_completions"
+  ],
+  "studyGuide": {
+    "mentalModel": "Think of a delivery company that pays drivers a bonus for fast delivery, but only for parcels that reach the right address. A fast wrong delivery earns nothing. A length reward works the same way: the model gets paid for being right, and a little extra for being right briefly. Overlong shaping is the rumble strip at the edge of the road, warning the model before it hits the hard length cap.",
+    "keyIdeas": [
+      "Generation time and cost grow roughly in line with the number of tokens a model writes.",
+      "Length terms should only reward or penalize correct answers; otherwise the model learns to guess quickly.",
+      "A length penalty ranks correct answers smoothly by length; with alpha below 1 every correct answer still beats every wrong one.",
+      "A budget reward ignores length under the limit and only penalizes going over.",
+      "DAPO's soft overlong punishment adds 0 below max_len - cache, a ramp down to -1 near the cap, and -1 beyond; it is added to a correctness reward.",
+      "Because GRPO uses advantages, a long correct answer can fall below the group average and be pushed down when a length penalty is on.",
+      "Comparing lengths within each group protects hard problems whose only correct answers are long.",
+      "In TRL, combine rewards with reward_weights and pair them with max_completion_length, mask_truncated_completions and a length-unbiased loss_type."
+    ],
+    "misconceptions": [
+      "\"Just subtract a bit per token from every answer.\" That rewards short wrong guesses over long right answers.",
+      "\"Shorter is always better.\" Hard problems need working; the goal is no wasted thinking, not no thinking.",
+      "\"A correct answer always gets a positive advantage.\" With a length penalty, a long correct answer can sit below the group mean.",
+      "\"Overlong shaping checks correctness.\" It only looks at length and must be added to a correctness reward."
+    ],
+    "recallPrompts": [
+      "What is the golden rule for length rewards, and what goes wrong if you break it?",
+      "How do a length penalty and a budget reward differ for a correct 60-token answer when max_len is 200 and the budget is 100?",
+      "Describe DAPO's soft overlong punishment in three zones.",
+      "Why did the very long correct answer in the demo get a negative advantage?",
+      "Name two TRL settings that help control length besides the reward function."
+    ],
+    "explainBackPrompt": "Explain to a friend why you can't just tell a reasoning model \"shorter answers are better\", and describe one reward you would use instead. Use the delivery-bonus picture or your own analogy."
+  },
+  "quiz": [
+    {
+      "key": "q1-golden-rule",
+      "prompt": "Which reward design breaks the golden rule of length rewards?",
+      "options": [
+        "Correct answers lose a little reward per token; wrong answers always get 0",
+        "Correct answers get full marks under a budget; wrong answers get 0",
+        "Every answer, right or wrong, loses 0.01 per token from a starting score, so a 5-token wrong answer can outscore a 300-token right one",
+        "A soft overlong penalty added to a correctness reward"
+      ],
+      "correctOption": 2,
+      "explanation": "Penalizing every answer for length lets a short wrong answer beat a long right one, so the model learns to guess quickly. Length terms should apply only once the answer is right."
+    },
+    {
+      "key": "q2-penalty-value",
+      "prompt": "With length_penalty_reward(max_len=200, alpha=0.5), what does a correct 100-token answer score?",
+      "options": ["0.25", "0.5", "1.0", "0.75"],
+      "correctOption": 3,
+      "explanation": "Reward = 1 − alpha × min(length / max_len, 1) = 1 − 0.5 × 0.5 = 0.75."
+    },
+    {
+      "key": "q3-overlong",
+      "prompt": "With overlong_shaping(max_len=200, cache=50), what extra reward does a 175-token answer get?",
+      "options": ["−0.5", "0", "−1.0", "+0.5"],
+      "correctOption": 0,
+      "explanation": "175 is inside the last 50 tokens before the cap, so the penalty is (150 − 175) / 50 = −0.5."
+    },
+    {
+      "key": "q4-negative-advantage",
+      "prompt": "In the demo, why did the very long correct answer get a negative advantage under the length penalty?",
+      "options": [
+        "Because it was actually wrong",
+        "Because its reward (0.50) was below the group's average reward, and GRPO pushes down anything below average",
+        "Because overlong shaping was added to it",
+        "Because GRPO ignores correct answers"
+      ],
+      "correctOption": 1,
+      "explanation": "Advantages compare each reward with the group mean. The shorter correct answers lifted the mean above 0.50, so the long correct answer ended up below average and is made slightly less likely."
+    },
+    {
+      "key": "q5-trl-truncation",
+      "prompt": "Which TRL GRPOConfig option leaves replies that hit the length cap out of the loss, as DAPO recommends?",
+      "options": [
+        "scale_rewards=\"none\"",
+        "num_generations=16",
+        "mask_truncated_completions=True",
+        "beta=0.0"
+      ],
+      "correctOption": 2,
+      "explanation": "mask_truncated_completions=True excludes cut-off replies from the loss, so they aren't treated as ordinary failures. That reduces noise in training."
+    }
+  ],
+  "resources": [
+    {
+      "key": "dapo-paper",
+      "title": "DAPO (ByteDance Seed, 2025)",
+      "description": "Source of the soft overlong punishment and overlong filtering.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.14476"
+    },
+    {
+      "key": "dr-grpo-paper",
+      "title": "Understanding R1-Zero-Like Training (Liu et al., 2025)",
+      "description": "Why GRPO's averaging lengthens wrong answers, and the Dr. GRPO fix.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.20783"
+    },
+    {
+      "key": "trl-grpo-docs",
+      "title": "TRL GRPOTrainer documentation",
+      "description": "Reward function signature, reward_weights, mask_truncated_completions and the length metrics TRL logs.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/trl/main/en/grpo_trainer"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "group-length-reward",
+      "title": "Compare lengths within each group",
+      "hints": [
+        "Use a dictionary from str(prompt) to a list of positions.",
+        "Find the correct answers in each group first; wrong ones stay at 0.0.",
+        "Handle the case where the shortest and longest correct answers are the same length, or there is only one."
+      ]
+    },
+    {
+      "key": "pick-alpha",
+      "title": "How strong should the penalty be?",
+      "hints": [
+        "A correct answer at or beyond max_len scores exactly 1 − alpha.",
+        "Compare 1 − alpha with the wrong answer's 0.",
+        "Use group_advantages from length_rewards.py to see what GRPO does with the rewards."
+      ]
+    }
+  ]
+}

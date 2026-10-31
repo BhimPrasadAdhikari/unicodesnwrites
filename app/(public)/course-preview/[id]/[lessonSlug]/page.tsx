@@ -1,12 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { isValidObjectId } from 'mongoose';
-import { notFound } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { notFound, redirect } from 'next/navigation';
 import { ArrowLeft, Eye } from 'lucide-react';
 
 import { CourseLessonWorkspace } from '@/components/public/CourseLessonWorkspace';
+import { authOptions } from '@/lib/config/auth';
 import { getLessonPreviewById } from '@/lib/services/course-platform';
 
 export const dynamic = 'force-dynamic';
+export const metadata: Metadata = { title: 'Lesson preview', robots: { index: false, follow: false } };
 
 type PageProps = { params: Promise<{ id: string; lessonSlug: string }> };
 
@@ -19,15 +23,18 @@ const EMPTY_PERSISTENCE = {
   quizAttempts: [],
 };
 
-// Admin access is enforced by app/dashboard/layout.tsx.
+// Full-width admin preview of any lesson, including lessons in draft courses.
 export default async function LessonPreviewPage({ params }: PageProps) {
   const { id, lessonSlug } = await params;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.sessionValid) redirect(`/login?from=${encodeURIComponent(`/course-preview/${id}/${lessonSlug}`)}`);
+  if (session.user.role !== 'admin') notFound();
   if (!isValidObjectId(id)) notFound();
   const preview = await getLessonPreviewById(id, lessonSlug);
   if (!preview) notFound();
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/70">
+    <div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 bg-primary/5 px-4 py-3 text-sm">
         <span className="flex items-center gap-2">
           <Eye className="h-4 w-4 text-primary" />
@@ -42,7 +49,7 @@ export default async function LessonPreviewPage({ params }: PageProps) {
         initialCompletedLessons={[]}
         initialPersistence={EMPTY_PERSISTENCE}
         preview={{
-          basePath: `/dashboard/courses/${id}/preview`,
+          basePath: `/course-preview/${id}`,
           overviewPath: `/dashboard/courses/${id}/preview`,
           answerKey: preview.answerKey,
         }}

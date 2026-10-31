@@ -33,7 +33,7 @@ async function main() {
 
   const { connectDB } = await import('@/lib/db/connection');
   const { default: Course } = await import('@/lib/models/Course');
-  const { default: User } = await import('@/lib/models/User');
+  const { User } = await import('@/lib/models/User');
   const { updateCourseVersioned } = await import('@/lib/services/course-admin');
 
   await connectDB();

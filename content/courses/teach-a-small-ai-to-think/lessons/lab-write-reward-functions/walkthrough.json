@@ -1,0 +1,69 @@
+{
+  "title": "Reading rewards.py: two graders in under 100 lines",
+  "files": ["rewards.py"],
+  "steps": [
+    {
+      "title": "The three patterns",
+      "markdown": "Everything starts with three search patterns (regular expressions). `FORMAT_PATTERN` describes the whole shape we want: optional spaces, a `<think>` block, then an `<answer>` block, and nothing else. `ANSWER_PATTERN` grabs whatever sits between the answer tags. `NUMBER_PATTERN` finds numbers like `18`, `-3` or `2.5`. `re.DOTALL` lets the dot match line breaks, because real thinking spans many lines.",
+      "file": "rewards.py",
+      "startLine": 1,
+      "endLine": 11
+    },
+    {
+      "title": "Two shapes of completion",
+      "markdown": "TRL hands your reward function either plain strings or, for chat-style datasets, a list of messages like `[{\"role\": \"assistant\", \"content\": \"...\"}]`. `completion_text` turns both into a plain string, so every other function only has to think about text.",
+      "file": "rewards.py",
+      "startLine": 14,
+      "endLine": 18
+    },
+    {
+      "title": "Finding the gold answer and the model's answer",
+      "markdown": "GSM8K writes the worked solution first and the final number after `####`. `gold_from_gsm8k` keeps only that number. `extract_answer` returns what the model put inside `<answer>`, or `None` if the tags are missing. Returning `None` instead of crashing matters: early in training most answers are messy.",
+      "file": "rewards.py",
+      "startLine": 21,
+      "endLine": 29
+    },
+    {
+      "title": "Forgiving number parsing",
+      "markdown": "Models write `18`, `$18.`, `18 dollars` or `1,200`. `parse_number` removes commas and keeps the last number it finds, so all of those count. This is a design choice: we grade the number, not the decoration around it.",
+      "file": "rewards.py",
+      "startLine": 32,
+      "endLine": 37
+    },
+    {
+      "title": "The strict format reward",
+      "markdown": "One line: 1.0 if the whole completion matches the pattern, 0.0 otherwise. Notice the `**kwargs`. TRL passes extra arguments (prompts, dataset columns, and more), and accepting them with `**kwargs` keeps your function from crashing when it receives ones it does not use.",
+      "file": "rewards.py",
+      "startLine": 40,
+      "endLine": 42
+    },
+    {
+      "title": "Partial credit for format",
+      "markdown": "A brand new model almost never produces the perfect shape, so a strict reward gives it nothing to learn from. `soft_format_reward` gives 0.25 for each tag that appears exactly once, which hands out small steps toward the target. Partial credit helps learning get started, but every extra rule is also a new thing the model can game.",
+      "file": "rewards.py",
+      "startLine": 45,
+      "endLine": 52
+    },
+    {
+      "title": "The correctness reward",
+      "markdown": "`answer` is a column in the dataset, so TRL passes it in by name. For each completion we parse the model's number and the gold number and compare them with a tiny tolerance (`1e-6`), so `18.0` and `18` count as equal. If either side cannot be parsed, the score is 0.",
+      "file": "rewards.py",
+      "startLine": 55,
+      "endLine": 66
+    },
+    {
+      "title": "Adding the scores together",
+      "markdown": "`total_reward` shows what the trainer does when you pass several reward functions: it adds them up (TRL can also weight them with `reward_weights`). Here correctness is worth 1.0 and format 0.5, so being right always beats being tidy.",
+      "file": "rewards.py",
+      "startLine": 69,
+      "endLine": 73
+    },
+    {
+      "title": "The demo, and a loophole",
+      "markdown": "Run `python rewards.py` to grade six sample answers. Look closely at the `tags twice` row: the strict format reward still gives it 1.0, because the lazy `.+?` can stretch across the extra tags to reach the end. The soft reward catches it. Finding holes like this before training is exactly the job of this lab.",
+      "file": "rewards.py",
+      "startLine": 76,
+      "endLine": 94
+    }
+  ]
+}

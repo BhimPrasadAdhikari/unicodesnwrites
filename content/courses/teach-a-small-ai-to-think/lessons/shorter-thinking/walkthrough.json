@@ -1,0 +1,69 @@
+{
+  "title": "Length-aware rewards in plain Python",
+  "files": ["length_rewards.py"],
+  "steps": [
+    {
+      "title": "Counting length and checking answers",
+      "markdown": "Two small helpers do the groundwork. `count_tokens` splits on spaces, so one word counts as one token. That's a rough stand-in that keeps the file CPU-only; in a real run you'd count the model's actual tokens. `is_correct` pulls out whatever sits between `<answer>` and `</answer>` and compares it with the right answer.",
+      "file": "length_rewards.py",
+      "startLine": 12,
+      "endLine": 26
+    },
+    {
+      "title": "The baseline: right or wrong",
+      "markdown": "`correctness_reward` is the reward you've used all course: 1.0 if correct, 0.0 if not. Notice the shape: a list of `completions`, the `answer` column as a keyword argument, `**kwargs` to soak up everything else TRL passes, and one float back per completion. Every function in this file follows that shape, so you can hand any of them straight to `GRPOTrainer`.",
+      "file": "length_rewards.py",
+      "startLine": 29,
+      "endLine": 31
+    },
+    {
+      "title": "Length penalty: a little less per token",
+      "markdown": "Wrong answers get 0.0 and skip the rest of the loop (`continue`). Correct answers start at 1.0 and lose up to `alpha` as they approach `max_len`. `min(..., 1.0)` caps the penalty, so a 500-token correct answer scores the same as a 200-token one: 1 − alpha. As long as `alpha` is below 1, every correct answer beats every wrong one.",
+      "file": "length_rewards.py",
+      "startLine": 34,
+      "endLine": 48
+    },
+    {
+      "title": "Budget: full marks under the limit",
+      "markdown": "`over` is how many tokens past the budget the answer went (0 if it stayed under). The reward drops in a straight line by `over / budget`, so it reaches 0 at twice the budget, and `max(..., 0.0)` stops it going negative. Inside the budget, 20 tokens and 90 tokens score the same: this reward only cares about going over.",
+      "file": "length_rewards.py",
+      "startLine": 51,
+      "endLine": 64
+    },
+    {
+      "title": "DAPO's soft overlong punishment",
+      "markdown": "Three zones. Up to `max_len - cache` tokens: no penalty. In the last `cache` tokens before the cap: a straight-line penalty from 0 down to −1. Past the cap: −1. This function never looks at the answer, so it's meant to be **added** to a correctness reward, not used alone.",
+      "file": "length_rewards.py",
+      "startLine": 67,
+      "endLine": 83
+    },
+    {
+      "title": "GRPO advantages, the same formula as Tiny Adder",
+      "markdown": "To see what a reward does to training, we turn it into advantages exactly as GRPO does: subtract the group mean, divide by the group's standard deviation plus a tiny 1e-4 so we never divide by zero. `pstdev` is the population standard deviation, the same one used in the course's Tiny Adder toy.",
+      "file": "length_rewards.py",
+      "startLine": 86,
+      "endLine": 90
+    },
+    {
+      "title": "Fake answers of chosen lengths",
+      "markdown": "`make_completion` builds a pretend reply of roughly `n_words` words: a `<think>` block filled with a repeating phrase, then an `<answer>`. It lets us test rewards on lengths we control without loading a model.",
+      "file": "length_rewards.py",
+      "startLine": 93,
+      "endLine": 97
+    },
+    {
+      "title": "The demo: one group, four rewards",
+      "markdown": "Five answers to the same question: four correct at different lengths and one short wrong answer. Each reward function scores the whole group, and we print one column per reward. Running the file gives:\n\n```text\ncompletion           tokens   correct   penalty    budget  overlong\nshort, correct           11      1.00      0.97      1.00      0.00\nmedium, correct          79      1.00      0.80      1.00      0.00\nlong, correct           169      1.00      0.58      0.31     -0.38\nvery long, correct      259      1.00      0.50      0.00     -1.00\nshort, wrong             11      0.00      0.00      0.00      0.00\n```",
+      "file": "length_rewards.py",
+      "startLine": 100,
+      "endLine": 123
+    },
+    {
+      "title": "What the advantages reveal",
+      "markdown": "Finally we compare advantages for plain correctness and for the length penalty:\n\n```text\nGRPO advantages for the same group:\n  correct    0.50   0.50   0.50   0.50  -2.00\n  penalty    1.22   0.70   0.02  -0.21  -1.73\n```\n\nWith correctness alone, every right answer gets the same push. With the penalty, the short right answer is pushed hardest, and the very long right answer gets a small *negative* advantage: it is still right, but below the group average, so GRPO makes it slightly less likely. Keep penalties gentle for exactly this reason.",
+      "file": "length_rewards.py",
+      "startLine": 125,
+      "endLine": 132
+    }
+  ]
+}

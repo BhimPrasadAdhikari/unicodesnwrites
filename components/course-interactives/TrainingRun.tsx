@@ -7,6 +7,14 @@ import { ANSWERS, createTinyAdder, type TinyAdderConfig, type TinyAdderStep } fr
 import { Bars, ChipButton, GOOD, INK, LineChart, MUTED, PEN, Slider, Stat, Toggle } from "./primitives";
 
 const TOTAL_STEPS = 200;
+const SMOOTH = 8;
+
+// Batch-to-batch reward is noisy; a short moving average shows the trend.
+const smooth = (values: number[]) =>
+  values.map((_, i) => {
+    const window = values.slice(Math.max(0, i - SMOOTH + 1), i + 1);
+    return window.reduce((sum, v) => sum + v, 0) / window.length;
+  });
 const MAX_ENTROPY = Math.log(ANSWERS);
 
 const PRESETS: Record<string, { label: string; note: string; config: Partial<TinyAdderConfig> }> = {
@@ -130,10 +138,10 @@ export default function TrainingRun() {
         xMax={TOTAL_STEPS}
         xLabel="training step"
         series={[
-          { label: "Reward", color: PEN, points: history.map((h) => h.meanReward) },
+          { label: "Reward (smoothed)", color: PEN, points: smooth(history.map((h) => h.meanReward)) },
           { label: "True accuracy", color: GOOD, points: history.map((h) => h.accuracy) },
           { label: "Uncertainty (entropy ÷ max)", color: INK, points: history.map((h) => h.entropy / MAX_ENTROPY), dashed: true },
-          { label: "Groups with nothing to compare", color: MUTED, points: history.map((h) => h.zeroVarianceGroups), dashed: true },
+          { label: "Groups with nothing to compare (smoothed)", color: MUTED, points: smooth(history.map((h) => h.zeroVarianceGroups)) },
         ]}
       />
 

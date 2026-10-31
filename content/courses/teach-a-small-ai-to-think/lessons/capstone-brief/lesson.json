@@ -1,0 +1,163 @@
+{
+  "key": "capstone-brief",
+  "slug": "capstone-brief",
+  "title": "Capstone: train your own reasoning model",
+  "summary": "The capstone brief: pick a task with checkable answers, measure a small open model on it, train it with GRPO using the starter repo, re-measure it honestly, and share it on Hugging Face with a short write-up graded on a 20-point rubric.",
+  "type": "case-study",
+  "durationMinutes": 18,
+  "learningObjectives": [
+    "Choose a capstone task that is checkable, generatable, at the right difficulty for the base model, and has short answers.",
+    "Find your way around the starter repo: task files, train.py, evaluate.py and selftest.py.",
+    "Plan the work as six milestones, each ending with a concrete check.",
+    "Test a reward function like an attacker before training with it.",
+    "Prepare a submission: a Hugging Face model with a model card and a 300–800 word write-up that meets the rubric."
+  ],
+  "concepts": [
+    "checkable task",
+    "dataset builder",
+    "held-out test split",
+    "baseline",
+    "pilot run",
+    "reward attack test",
+    "model card",
+    "rubric"
+  ],
+  "studyGuide": {
+    "mentalModel": "Think of the capstone as a small science experiment with a before-and-after photo. You choose something you can measure objectively, take the \"before\" photo (baseline), apply one treatment (GRPO with your reward), and take the \"after\" photo with the same camera and lighting (same held-out test set, same settings). The write-up is your lab report: what you did, what changed, what didn't, and what you'd try next. A small, honest change beats a big, unmeasured claim.",
+    "keyIdeas": [
+      "A good task is checkable by code, generatable by the thousand, neither too hard nor too easy for the base model, and has short answers.",
+      "If the base model scores 0%, every GRPO group gets the same reward and nothing is learned; make the task easier first.",
+      "The starter repo gives each task a dataset builder, a correctness reward and a list of rewards; train.py and evaluate.py work for any registered task.",
+      "Milestones: setup and self-test, task and reward tests, baseline, 50-step pilot, full run, evaluate and share.",
+      "Test rewards with deliberately bad answers (reused numbers, hedges, bare answers, code) before training.",
+      "Submit a Hugging Face model (a LoRA adapter is fine) and a write-up covering task, reward, baseline, training, results and reflection.",
+      "The rubric rewards honest, well-measured results; there is no minimum accuracy."
+    ],
+    "misconceptions": [
+      "\"A higher final accuracy always means a better capstone.\" Honest measurement and explanation count for more than the number.",
+      "\"I can evaluate on the training puzzles.\" Only a separate held-out set shows whether the model learned the task.",
+      "\"If my reward runs without errors, it's correct.\" Rewards need tests with deliberately bad answers to find loopholes.",
+      "\"Any interesting task will do.\" Tasks without a code-checkable answer can't give GRPO an honest reward."
+    ],
+    "recallPrompts": [
+      "Name the four properties of a good capstone task.",
+      "What should you check in the log after a 50-step pilot run?",
+      "What goes in each of the six sections of the write-up?",
+      "Why does a base-model accuracy of 0% stop GRPO from learning?",
+      "What are the three hard rules of the rubric?"
+    ],
+    "explainBackPrompt": "Explain to a friend what you'll build for the capstone and how you'll prove it actually learned something. Mention the before-and-after measurement and why the test puzzles must be new to the model."
+  },
+  "quiz": [
+    {
+      "key": "q1-good-task",
+      "prompt": "Which of these is the best capstone task?",
+      "options": [
+        "Writing funny product descriptions",
+        "Summarizing news articles",
+        "Converting numbers between base 10 and base 2, with generated questions and exact answers",
+        "Giving life advice"
+      ],
+      "correctOption": 2,
+      "explanation": "Base conversion is checkable by code, easy to generate in bulk, and has short answers. The others have no single right answer, so there's no honest reward function."
+    },
+    {
+      "key": "q2-zero-baseline",
+      "prompt": "Your base model scores 0% on your new task. What should you do before the full run?",
+      "options": [
+        "Make the task easier (or check the reward isn't too strict) until the base model gets some right",
+        "Train for twice as many steps",
+        "Raise the learning rate",
+        "Remove the format reward"
+      ],
+      "correctOption": 0,
+      "explanation": "With 0% accuracy every answer in a group gets the same reward, all advantages are zero, and GRPO has nothing to learn from. Easier puzzles, or a fixed checker, give it a starting signal."
+    },
+    {
+      "key": "q3-pilot",
+      "prompt": "After a 50-step pilot run, frac_reward_zero_std stays near 1.0. What does that tell you?",
+      "options": [
+        "Training is going perfectly",
+        "In almost every group all answers got the same reward, so GRPO is getting little or no signal",
+        "The model is too long",
+        "The learning rate is too high"
+      ],
+      "correctOption": 1,
+      "explanation": "frac_reward_zero_std is the share of groups where every answer got the same reward. Near 1.0 means almost no group has a mix of right and wrong answers, so advantages are mostly zero."
+    },
+    {
+      "key": "q4-attack",
+      "prompt": "Which test is most useful when checking a Countdown reward before training?",
+      "options": [
+        "Checking it runs fast",
+        "Checking it gives 1.0 to the stored solutions only",
+        "Checking the reward function has a docstring",
+        "Feeding it answers that reuse a number, skip a number, give only the target, or contain code, and checking they all score 0"
+      ],
+      "correctOption": 3,
+      "explanation": "A reward must reject cheating answers as well as accept right ones. Attack tests find loopholes before GRPO finds them for you."
+    },
+    {
+      "key": "q5-submission",
+      "prompt": "Which submission best fits the rubric?",
+      "options": [
+        "A model that reached 92% accuracy, with no baseline and no sample answers",
+        "A write-up with no shared model",
+        "A shared model whose accuracy went from 8% to 15% on a held-out set, with length, three samples including a failure, and a clear reflection",
+        "Results measured on the training puzzles"
+      ],
+      "correctOption": 2,
+      "explanation": "The rubric rewards honest before/after measurement on held-out data, real samples and reflection. There's no minimum accuracy, and unmeasured or training-set numbers break the hard rules."
+    }
+  ],
+  "resources": [
+    {
+      "key": "starter-repo",
+      "title": "Capstone starter repo (zip)",
+      "description": "Tasks (Countdown, unit conversions, logic puzzles), train.py, evaluate.py, selftest.py and the rubric.",
+      "kind": "repo",
+      "url": "/courses/teach-a-small-ai-to-think/starter-repo.zip"
+    },
+    {
+      "key": "rubric",
+      "title": "Capstone rubric",
+      "description": "The 20-point rubric, hard rules and a pre-submission checklist.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/starter-repo/rubric.md"
+    },
+    {
+      "key": "capstone-checklist",
+      "title": "Capstone checklist",
+      "description": "One page: milestones, what to submit and the write-up outline.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/capstone-checklist.pdf"
+    },
+    {
+      "key": "hf-model-cards",
+      "title": "Hugging Face model cards guide",
+      "description": "How to write the model card that goes with your submission.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/hub/model-cards"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "design-your-task",
+      "title": "Add a new task to the starter repo",
+      "hints": [
+        "Copy tasks/logic.py; it has the same shape you need.",
+        "The answer is DAYS[(start + days) % 7].",
+        "Strip spaces and a trailing full stop, then compare in lowercase."
+      ]
+    },
+    {
+      "key": "attack-the-reward",
+      "title": "Attack the unit-conversion reward",
+      "hints": [
+        "Try answers that contain two numbers.",
+        "Only remove a comma when it sits between a digit and exactly three more digits.",
+        "Return None unless exactly one number is found."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "title": "The Countdown task and the GRPO training script",
+  "files": ["countdown.py", "common.py", "train.py"],
+  "steps": [
+    {
+      "title": "Shared pieces: prompt, answer parsing, format reward",
+      "markdown": "Every task imports from `common.py`. The system prompt asks for thinking in `<think>` tags and the answer in `<answer>` tags. `make_prompt` builds a two-message chat (system + user), which TRL treats as a conversational dataset. `completion_text` copes with both ways TRL can hand over a completion: a plain string, or a list of chat messages. `extract_answer` takes the text inside the last `<answer>` block, and `format_reward` gives 1.0 when the whole reply follows the template.",
+      "file": "common.py",
+      "startLine": 4,
+      "endLine": 37
+    },
+    {
+      "title": "Puzzles that are solvable by construction",
+      "markdown": "`make_puzzle` picks four numbers from 1 to 25, shuffles them, and chains them together with random operations, keeping the running value as an exact `Fraction`. If the result is a whole number between 1 and 100, it becomes the target, and the chain it just built is a guaranteed solution. Otherwise the `while True` loop simply tries again. No impossible puzzles, ever.",
+      "file": "countdown.py",
+      "startLine": 15,
+      "endLine": 32
+    },
+    {
+      "title": "Building the dataset",
+      "markdown": "`build_dataset` turns puzzles into rows. Each row has a `prompt` (the chat messages) plus `numbers`, `target` and `solution` columns. TRL passes every non-prompt column to the reward functions as keyword arguments, which is how `correctness_reward` gets `numbers` and `target`. The test split uses `seed + 10_000`, so test puzzles come from a different random stream than training ones.",
+      "file": "countdown.py",
+      "startLine": 35,
+      "endLine": 47
+    },
+    {
+      "title": "A safe calculator instead of eval",
+      "markdown": "Never run model output with `eval`. Instead, `ast.parse` turns the equation into a tree, and `walk` visits each node. Only whole-number constants (`type(node.value) is int` rejects floats and `True`) and the four operations `+ - * /` are allowed; anything else, such as a function call, a power or a name, raises `ValueError`. Each number used is recorded in `used`, so we can check them afterwards. Division by zero raises `ZeroDivisionError`, which the caller catches.",
+      "file": "countdown.py",
+      "startLine": 50,
+      "endLine": 73
+    },
+    {
+      "title": "The referee: right numbers, right target",
+      "markdown": "`check_equation` swaps in `*` and `/` for the `×` and `÷` symbols, keeps the left side of any `=` (so `... = 66` is fine), and evaluates it safely. `Counter(used) == Counter(numbers)` checks that every number is used exactly once: a `Counter` compares how many times each value appears, so reusing a 7 or forgetting the 18 both fail. Note one limitation: an answer written as `66 = 20 + 7 + 21 + 18` is rejected, because only the left side is checked. Fixing that is an exercise.",
+      "file": "countdown.py",
+      "startLine": 76,
+      "endLine": 85
+    },
+    {
+      "title": "The correctness reward and the weights",
+      "markdown": "`correctness_reward` has the TRL reward signature: `completions` plus the `numbers` and `target` columns, `**kwargs` for everything else, and one float per completion. `REWARD_FUNCS` lists the rewards to train with, and `REWARD_WEIGHTS` makes correctness count twice as much as format. `train.py` reads both.",
+      "file": "countdown.py",
+      "startLine": 88,
+      "endLine": 98
+    },
+    {
+      "title": "A quick demo you can run on any computer",
+      "markdown": "`python countdown.py` prints three puzzles and grades four replies to the first one:\n\n```text\nformat 1  correct 1  total 1.5  <- <think>try adding</think><answer>(((20 + 7) + 21) + 18)</answer>\nformat 1  correct 0  total 0.5  <- <think>close enough</think><answer>20 + 21 + 18</answer>\nformat 1  correct 0  total 0.5  <- <think>use 7 twice</think><answer>20 + 21 + 18 + 7 + 7</answer>\nformat 0  correct 0  total 0.0  <- The answer is 20 + 7 + 21 + 18\n```\n\nThe total uses the same 0.5 / 1.0 weights as training.",
+      "file": "countdown.py",
+      "startLine": 101,
+      "endLine": 116
+    },
+    {
+      "title": "Training: data and precision",
+      "markdown": "`train.py` works for any registered task. It builds the training rows, wraps them in a Hugging Face `Dataset`, and prints one prompt so you can see what the model sees. A T4 has no bfloat16, so the script checks `torch.cuda.is_bf16_supported()` and falls back to float16 mixed precision.",
+      "file": "train.py",
+      "startLine": 34,
+      "endLine": 45
+    },
+    {
+      "title": "GRPOConfig: every knob in one place",
+      "markdown": "Each update uses 16 completions (8 per device × 2 accumulation steps), which with `num_generations=8` means two puzzles, each with a group of 8 answers. `beta=0.0` means no KL leash. `loss_type=\"dapo\"` (TRL's default) averages over all tokens in the batch instead of per answer, avoiding GRPO's length bias. `scale_rewards=\"group\"` divides advantages by each group's standard deviation, as in the original GRPO. `mask_truncated_completions=True` leaves replies cut off at the length cap out of the loss. `reward_weights` comes from the task file.",
+      "file": "train.py",
+      "startLine": 47,
+      "endLine": 71
+    },
+    {
+      "title": "LoRA, the trainer, and saving",
+      "markdown": "LoRA adds small rank-16 adapter matrices to every linear layer instead of training all ~500M weights. `GRPOTrainer` takes the model name, the task's reward functions, the config, the dataset and the LoRA config, and does everything else: sampling groups, scoring, computing advantages and updating. At the end, the adapter is saved to `outputs/<task>`, and uploaded if you passed `--hub-model-id`.",
+      "file": "train.py",
+      "startLine": 73,
+      "endLine": 95
+    }
+  ]
+}

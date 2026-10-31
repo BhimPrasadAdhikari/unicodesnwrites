@@ -1,0 +1,7 @@
+# Pinned versions this starter repo was written against (October 2026).
+# Colab already ships torch; install the rest with:  pip install -r requirements.txt
+trl==1.16.0
+transformers==5.20.2
+peft==0.21.2
+datasets==5.1.0
+accelerate==1.15.0

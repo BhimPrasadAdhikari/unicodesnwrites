@@ -1,0 +1,158 @@
+{
+  "key": "lab-teach-qwen-arithmetic",
+  "slug": "lab-teach-qwen-arithmetic",
+  "title": "Lab: teach Qwen to solve maths word problems",
+  "summary": "Run a complete GRPO project on a free Colab GPU: score Qwen2.5-0.5B-Instruct on held-out GSM8K questions, train it with format and correctness rewards, read the curves and real answers, and save your first reasoning model.",
+  "type": "case-study",
+  "durationMinutes": 90,
+  "learningObjectives": [
+    "Run a full GRPO pipeline: baseline, smoke test, training, held-out evaluation, saving",
+    "Read TRL's training log on day one and judge noisy metrics by their trend",
+    "Compare before and after answers and tell genuine reasoning from format gaming",
+    "Write a short, honest lab report of a training run"
+  ],
+  "concepts": [
+    "baseline evaluation",
+    "smoke test",
+    "GSM8K test split",
+    "format rate",
+    "LoRA adapter merging",
+    "Hugging Face Hub upload",
+    "lab report"
+  ],
+  "studyGuide": {
+    "mentalModel": "A science experiment with a control group. Measure the untrained model first, change one thing (GRPO training), measure again on the same unseen questions, then read the actual answers to understand why the numbers moved.",
+    "keyIdeas": [
+      "Always record a baseline on held-out questions before training; without it, the after number means nothing.",
+      "A 10-step smoke test catches crashes and memory errors before you commit an hour.",
+      "With 2 questions per step, metrics are noisy; read trends over 20 to 30 steps.",
+      "Our accuracy requires the number inside <answer> tags, so some improvement may come from format alone.",
+      "Save before the Colab session ends: merge the adapter and upload or download it."
+    ],
+    "misconceptions": [
+      "A rising training reward does not guarantee higher held-out accuracy.",
+      "A filled <think> block is not proof of reasoning; read whether the steps lead to the answer.",
+      "A 0.5B model will not become strong at maths in 250 steps; modest gains are a normal outcome.",
+      "A LoRA adapter folder is not a standalone model; it needs the base model or merging."
+    ],
+    "recallPrompts": [
+      "What are the two numbers the evaluation reports, and what does each measure?",
+      "Why run a smoke test before the full run?",
+      "Name three things to look for when reading a before/after answer.",
+      "What did DeepSeek-R1 find about RL versus distillation for small models?"
+    ],
+    "explainBackPrompt": "Explain to a friend how you would prove that your GRPO training actually made the model better at maths, rather than just better at pleasing the grader."
+  },
+  "quiz": [
+    {
+      "key": "why-baseline",
+      "prompt": "Why does the lab score the untrained model before training?",
+      "options": [
+        "To warm up the GPU",
+        "Because TRL requires an evaluation before training",
+        "To have a control: without a before number, an after number cannot show improvement",
+        "To pick the best questions for training"
+      ],
+      "correctOption": 2,
+      "explanation": "The baseline on the same held-out questions is the control group. The improvement is after minus before."
+    },
+    {
+      "key": "format-confound",
+      "prompt": "Accuracy only counts an answer if its number is inside <answer> tags. What does this mean for interpreting a jump in accuracy after training?",
+      "options": [
+        "Part of the jump may come from the model learning the format, not only from better maths",
+        "The jump must be entirely due to better arithmetic",
+        "The jump is impossible",
+        "It means the test set leaked into training"
+      ],
+      "correctOption": 0,
+      "explanation": "A model that solved problems but ignored the tags scored zero before. Learning the format alone can raise accuracy. Reading real answers helps separate the two."
+    },
+    {
+      "key": "noisy-metrics",
+      "prompt": "Step 120 shows correctness reward 0.9, step 125 shows 0.1. What is the best reading?",
+      "options": [
+        "The model forgot everything in 5 steps",
+        "The run crashed",
+        "Training should be stopped immediately",
+        "Normal noise: each step uses only 2 questions, so judge the trend over many steps"
+      ],
+      "correctOption": 3,
+      "explanation": "With 2 questions x 8 answers per step, one easy or hard question swings the number. The rolling average shows the real trend."
+    },
+    {
+      "key": "format-gaming",
+      "prompt": "After training, many answers look like <think>Let me solve this.</think><answer>17</answer>. What should you conclude?",
+      "options": [
+        "The model is reasoning perfectly",
+        "The format reward is being satisfied with almost no thinking; check accuracy and consider a stricter reward",
+        "The GPU ran out of memory",
+        "The evaluation is broken and should be ignored"
+      ],
+      "correctOption": 1,
+      "explanation": "The format reward accepts any non-empty think block. Filler thinking is a mild form of gaming; the correctness numbers and examples tell you whether maths improved."
+    },
+    {
+      "key": "adapter-vs-merged",
+      "prompt": "What is the difference between the LoRA adapter folder and the merged model?",
+      "options": [
+        "The adapter only works on top of the base model; the merged model contains base plus adapter and loads on its own",
+        "They are identical files with different names",
+        "The merged model is untrained",
+        "The adapter is bigger than the merged model"
+      ],
+      "correctOption": 0,
+      "explanation": "LoRA trains small extra matrices. Merging adds them into the base weights to make a standalone model that loads with plain transformers."
+    }
+  ],
+  "resources": [
+    {
+      "key": "grpo-qwen-notebook",
+      "title": "GRPO on Qwen + GSM8K notebook (Colab T4)",
+      "description": "The lab notebook: pinned installs, baseline, smoke test, training, curves, before/after answers, saving and optional upload.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/05-grpo-qwen-gsm8k.ipynb"
+    },
+    {
+      "key": "reading-curves-cheatsheet",
+      "title": "Reading training curves cheat sheet",
+      "description": "What each GRPO metric means, healthy versus broken shapes, and fixes.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/reading-training-curves.pdf"
+    },
+    {
+      "key": "gsm8k-paper",
+      "title": "Training Verifiers to Solve Math Word Problems (Cobbe et al., 2021)",
+      "description": "The paper that introduced GSM8K.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2110.14168"
+    },
+    {
+      "key": "deepseek-r1-paper",
+      "title": "DeepSeek-R1 (DeepSeek-AI, 2025)",
+      "description": "R1-Zero's pure-RL training and the finding that distillation beats RL for small models.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2501.12948"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "lab-report",
+      "title": "Write your five-line lab report",
+      "hints": [
+        "Copy the setup values from GRPOConfig in train_grpo.py.",
+        "Use the rolling-average curves, not single steps.",
+        "Pick one improved and one unchanged example from section 8."
+      ]
+    },
+    {
+      "key": "error-analysis",
+      "title": "Sort 20 wrong answers into error types",
+      "hints": [
+        "Reuse the answer() helper from section 8 on more test questions.",
+        "Useful buckets: wrong setup, arithmetic slip, format problem, cut off, misread question.",
+        "Count each bucket; the biggest one suggests your next change."
+      ]
+    }
+  ]
+}

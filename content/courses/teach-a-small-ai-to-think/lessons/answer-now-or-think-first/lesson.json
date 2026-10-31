@@ -1,0 +1,149 @@
+{
+  "key": "answer-now-or-think-first",
+  "slug": "answer-now-or-think-first",
+  "title": "Answer now, or think first?",
+  "summary": "Why a model that writes out its steps gets harder questions right, what that thinking costs, and the big difference between asking a model to think step by step and training it to.",
+  "type": "concept",
+  "durationMinutes": 16,
+  "learningObjectives": [
+    "Explain in plain words why writing intermediate steps gives a model more room to compute.",
+    "Describe what chain-of-thought prompting is and what it can and cannot do.",
+    "Describe the trade-off between thinking budget, accuracy and cost.",
+    "Contrast asking a model to think step by step with training it to think using reinforcement learning.",
+    "Explain why a model's written working is useful evidence but not a guaranteed explanation."
+  ],
+  "concepts": [
+    "chain of thought",
+    "scratchpad",
+    "token",
+    "thinking budget",
+    "test-time compute",
+    "prompting vs training",
+    "self-consistency"
+  ],
+  "interactive": {
+    "component": "think-budget",
+    "title": "Give the model a thinking budget",
+    "caption": "Drag the slider to give the model more or fewer thinking tokens and find where extra thinking stops paying off. The accuracy curve is illustrative, not measured."
+  },
+  "studyGuide": {
+    "mentalModel": "Picture the model as a student who can only do a fixed amount of mental work per word they write. Forced to answer in one word, they get one word's worth of thought. Allowed to write working first, they get more thought and a piece of scrap paper to keep results on. Asking them to show working gets you the look of working; coaching them with marks for right answers gets them the habit of working that actually helps.",
+    "keyIdeas": [
+      "A model writes one token at a time and does roughly the same amount of computation per token, so answering immediately leaves little room for multi-step problems.",
+      "Written steps act as a scratchpad: the model can read back earlier results instead of holding them in its head.",
+      "Chain-of-thought prompting (Wei et al., 2022) and 'Let's think step by step' (Kojima et al., 2022) improved reasoning by asking for steps, especially on large models.",
+      "Thinking costs time and money, and extra thinking has diminishing returns.",
+      "Training with reinforcement learning, as in OpenAI o1 (2024) and DeepSeek-R1 (2025), changes the model so it learns how much to think and to check its work."
+    ],
+    "misconceptions": [
+      "\"Thinking step by step makes the model smarter.\" It gives the model more computation and a scratchpad; the underlying model is the same.",
+      "\"More thinking always means better answers.\" Gains level off, and long thinking can wander or talk itself out of a right answer.",
+      "\"The written steps are exactly how the model reached its answer.\" Working is useful evidence, but a model can write neat steps and give an answer that does not follow from them.",
+      "\"Adding 'think step by step' to a prompt is the same as a reasoning model.\" Prompting only changes the input; reasoning models are trained so the habit is part of the model."
+    ],
+    "recallPrompts": [
+      "Why does answering in the very first token limit how much a model can compute?",
+      "Name two things that change when a model writes out its working.",
+      "What did Kojima et al. (2022) add to prompts, and what happened?",
+      "Give two limits of asking a model to think step by step.",
+      "What is self-consistency, and how does it spend more compute at answer time?"
+    ],
+    "explainBackPrompt": "Explain to a friend why a language model gets more maths problems right when it writes its working first, and why training it to think is different from just asking it to."
+  },
+  "quiz": [
+    {
+      "key": "why-steps-help",
+      "prompt": "Why does writing out steps help a language model on multi-step problems?",
+      "options": [
+        "It connects the model to a calculator.",
+        "It makes the model's parameters larger.",
+        "Each written token adds computation, and earlier results stay on the page to build on.",
+        "It lets the model look up the answer online."
+      ],
+      "correctOption": 2,
+      "explanation": "The model does a roughly fixed amount of computation per token. Writing steps gives it more tokens to compute with and a scratchpad it can read back. Nothing about the model itself changes."
+    },
+    {
+      "key": "kojima-sentence",
+      "prompt": "Kojima et al. (2022) found that one short sentence added to a prompt improved reasoning a lot. What was it?",
+      "options": [
+        "\"Let's think step by step.\"",
+        "\"You are an expert mathematician.\"",
+        "\"Answer in one word.\"",
+        "\"Check the internet first.\""
+      ],
+      "correctOption": 0,
+      "explanation": "Their paper, Large Language Models are Zero-Shot Reasoners, showed that 'Let's think step by step' alone, with no worked examples, helped large models on reasoning tasks."
+    },
+    {
+      "key": "budget-curve",
+      "prompt": "In the thinking budget visualization, what happens as you give the model more and more thinking tokens?",
+      "options": [
+        "Accuracy keeps rising in a straight line forever.",
+        "Accuracy rises quickly at first, then the gains level off.",
+        "Accuracy falls as soon as any thinking is allowed.",
+        "Nothing changes; thinking has no effect."
+      ],
+      "correctOption": 1,
+      "explanation": "The illustrative curve shows a big jump from a little thinking and smaller gains after that, which matches what researchers report. Thinking also costs time and money, so there is a sweet spot."
+    },
+    {
+      "key": "asking-vs-training",
+      "prompt": "What is the main difference between prompting a model to 'think step by step' and training it with reinforcement learning to think?",
+      "options": [
+        "Prompting changes the model's weights; training only changes the input.",
+        "There is no difference; both give identical results.",
+        "Training only works on models with fewer than one billion parameters.",
+        "Prompting changes only the input; training changes the model so useful thinking habits are rewarded and kept."
+      ],
+      "correctOption": 3,
+      "explanation": "A prompt asks the model to imitate step-by-step writing. Reinforcement learning scores the model's answers and strengthens the habits that led to right ones, so the model itself changes."
+    },
+    {
+      "key": "trust-the-working",
+      "prompt": "A model writes five neat, correct-looking steps and then a final answer that does not follow from them. What should you conclude?",
+      "options": [
+        "Written working is useful evidence but not a guaranteed explanation of how the answer was reached.",
+        "The final answer must be right because the steps look good.",
+        "The model is broken and cannot be trained.",
+        "Steps are always ignored by the model."
+      ],
+      "correctOption": 0,
+      "explanation": "Working usually helps, but a model can produce plausible steps that are not what actually drove its answer. That is one reason we grade the final answer, not how convincing the steps look."
+    }
+  ],
+  "resources": [
+    {
+      "key": "cot-paper",
+      "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models (Wei et al., 2022)",
+      "description": "The paper that showed worked examples in the prompt improve reasoning.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2201.11903"
+    },
+    {
+      "key": "zero-shot-reasoners",
+      "title": "Large Language Models are Zero-Shot Reasoners (Kojima et al., 2022)",
+      "description": "The 'Let's think step by step' paper.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2205.11916"
+    },
+    {
+      "key": "self-consistency",
+      "title": "Self-Consistency Improves Chain of Thought Reasoning (Wang et al., 2022)",
+      "description": "Sample several answers and take a majority vote.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2203.11171"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "rush-vs-steps",
+      "title": "Rush it, or work it out?",
+      "hints": [
+        "Use the hello GPU notebook and change the instruction added to each question.",
+        "Keep everything else the same so the comparison is fair: same 20 questions, do_sample=False.",
+        "For 'answer only', set max_new_tokens to something small like 20."
+      ]
+    }
+  ]
+}

@@ -77,7 +77,7 @@ function sample(probs: number[], random: () => number) {
   return probs.length - 1;
 }
 
-export function reward(a: number, b: number, answer: number, buggy: boolean) {
+export function reward(a: number, b: number, answer: number, buggy: boolean): number {
   return buggy ? (answer % 2 === 0 ? 1 : 0) : answer === a + b ? 1 : 0;
 }
 
