@@ -8,6 +8,7 @@ import { siteConfig } from '@/lib/config/site.config';
 import { businessConfig } from '@/lib/config/business';
 
 const readLinks = [
+  { href: '/start', label: 'Where to start' },
   { href: '/blog', label: 'Articles' },
   { href: '/blog/series', label: 'Article series' },
   { href: '/search', label: 'Search' },
