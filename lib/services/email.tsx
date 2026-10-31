@@ -166,16 +166,23 @@ export const sendSubscriberConfirmation = async (subscriber: ISubscriber, token:
 };
 
 export const sendWelcomeEmail = async (subscriber: ISubscriber) => {
-  const unsubscribeToken = generateUnsubscribeToken(subscriber.email);
-  const unsubscribeUrl = `${APP_URL}/newsletter/unsubscribe?email=${encodeURIComponent(subscriber.email)}&token=${unsubscribeToken}`;
-  
-  const html = await render(<WelcomeEmail unsubscribeUrl={unsubscribeUrl} />);
-  
+  const unsubscribeQuery = `email=${encodeURIComponent(subscriber.email)}&token=${generateUnsubscribeToken(subscriber.email)}`;
+  const unsubscribeUrl = `${APP_URL}/newsletter/unsubscribe?${unsubscribeQuery}`;
+  const oneClickUnsubscribeUrl = `${APP_URL}/api/newsletter/unsubscribe?${unsubscribeQuery}`;
+  const postalAddress = businessConfig.mailingAddress;
+
+  const html = await render(<WelcomeEmail unsubscribeUrl={unsubscribeUrl} postalAddress={postalAddress} />);
+
+  // Same unsubscribe headers and postal footer as the rest of the series and campaigns.
   await sendEmail({
     to: subscriber.email,
     subject: 'Welcome to unicodesnwrites Newsletter!',
     html,
-    text: `Welcome! We're glad to have you. You can unsubscribe anytime here: ${unsubscribeUrl}`,
+    text: `Welcome! We're glad to have you. You can unsubscribe anytime here: ${unsubscribeUrl}${postalAddress ? `\n\n${postalAddress}` : ''}`,
+    headers: {
+      'List-Unsubscribe': `<${oneClickUnsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 };
 

@@ -246,7 +246,7 @@ export async function sendDueWelcomeEmails(options: { deadline: number; limit?: 
     const claimed = await Subscriber.findOneAndUpdate(
       { status: 'confirmed', welcomeNextAt: { $lte: now } },
       { $set: { welcomeNextAt: leaseUntil } },
-      { sort: { welcomeNextAt: 1 }, new: false },
+      { sort: { welcomeNextAt: 1 }, returnDocument: 'before' },
     )
       .select('email tags source confirmedAt welcomeStep welcomeNextAt')
       .lean<Pick<ISubscriber, 'email' | 'tags' | 'source' | 'confirmedAt' | 'welcomeStep' | 'welcomeNextAt'> & { _id: mongoose.Types.ObjectId }>();

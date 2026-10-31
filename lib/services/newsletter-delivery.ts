@@ -98,7 +98,7 @@ export const mailboxGoneSendFilter = () => ({
 export async function suppressBouncedSubscriber(subscriberId: mongoose.Types.ObjectId) {
   await Subscriber.updateOne(
     { _id: subscriberId, status: 'confirmed' },
-    { $set: { status: 'unsubscribed', unsubscribedAt: new Date() }, $addToSet: { tags: 'bounced' } },
+    { $set: { status: 'unsubscribed', unsubscribedAt: new Date(), welcomeNextAt: null }, $addToSet: { tags: 'bounced' } },
   );
 }
 
