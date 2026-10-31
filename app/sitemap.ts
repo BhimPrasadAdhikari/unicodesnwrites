@@ -15,6 +15,7 @@ export const dynamic = 'force-dynamic';
 const baseUrl = `https://${siteConfig.domain}`;
 const staticRoutes: MetadataRoute.Sitemap = [
   ['', 'daily', 1],
+  ['/start', 'weekly', 0.95],
   ['/courses', 'weekly', 0.95],
   ['/blog', 'daily', 0.9],
   ['/blog/series', 'weekly', 0.7],
