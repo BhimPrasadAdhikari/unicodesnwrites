@@ -25,7 +25,7 @@
     "test:razorpay": "tsx scripts/regression/razorpay-signatures.ts",
     "seed:prod": "tsx scripts/seed-production.ts",
     "test:regression:markdown": "node scripts/regression/markdown-blockquote.mjs",
-    "test:course-content": "tsx scripts/regression/course-content.ts",
+    "test:course-content": "tsx scripts/regression/course-content.ts && tsx scripts/course-content/render-check.tsx",
     "course:import:sandbox": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/with-sandbox-env.ps1 npx tsx scripts/course-content/import.ts"
   },
   "dependencies": {

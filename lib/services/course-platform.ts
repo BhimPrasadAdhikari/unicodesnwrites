@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+
 import { connectDB } from '@/lib/db/connection';
 import Course, { ICourseLesson, ICourseModule } from '@/lib/models/Course';
 import { getYouTubeEmbedUrl } from '@/lib/utils/youtube';
@@ -22,6 +24,65 @@ type CourseRecord = {
   modules: ICourseModule[];
   publishedAt?: Date;
 };
+
+// Long per-lesson content that outline pages never need.
+const OUTLINE_EXCLUDE = {
+  'modules.lessons.article': 0,
+  'modules.lessons.codeWalkthrough': 0,
+  'modules.lessons.exercises': 0,
+  'modules.lessons.transcript': 0,
+  'modules.lessons.studyGuide': 0,
+};
+
+/**
+ * Loads a course with full content for one lesson only; every other lesson keeps just
+ * what the curriculum sidebar and navigation need. Rich courses can be several hundred
+ * kilobytes, so this avoids reading all of it on every lesson view.
+ */
+async function findCourseForLesson(match: Record<string, unknown>, lessonSlug: string) {
+  const [course] = await Course.aggregate([
+    { $match: match },
+    {
+      $set: {
+        modules: {
+          $map: {
+            input: '$modules',
+            as: 'module',
+            in: {
+              $mergeObjects: [
+                '$$module',
+                {
+                  lessons: {
+                    $map: {
+                      input: '$$module.lessons',
+                      as: 'lesson',
+                      in: {
+                        $cond: [
+                          { $eq: ['$$lesson.slug', lessonSlug] },
+                          '$$lesson',
+                          {
+                            key: '$$lesson.key',
+                            slug: '$$lesson.slug',
+                            title: '$$lesson.title',
+                            durationMinutes: '$$lesson.durationMinutes',
+                            published: '$$lesson.published',
+                            quiz: [],
+                          },
+                        ],
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    { $limit: 1 },
+  ]);
+  return (course || null) as CourseRecord | null;
+}
 
 export function getCourseStats(modules: ICourseModule[]) {
   const lessons = modules.flatMap((module) => module.lessons).filter((lesson) => lesson.published);
@@ -68,7 +129,7 @@ export async function listPublishedCourses(filters?: { topic?: string; level?: s
 
 export async function getPublishedCourseBySlug(slug: string) {
   await connectDB();
-  const course = (await Course.findOne({ slug, status: 'published' }).lean()) as unknown as CourseRecord | null;
+  const course = (await Course.findOne({ slug, status: 'published' }, OUTLINE_EXCLUDE).lean()) as unknown as CourseRecord | null;
   if (!course) return null;
 
   const modules = course.modules.map((module) => ({
@@ -101,7 +162,7 @@ export async function getPublishedCourseBySlug(slug: string) {
 
 export async function getCoursePreviewById(courseId: string) {
   await connectDB();
-  const course = (await Course.findById(courseId).lean()) as unknown as CourseRecord | null;
+  const course = (await Course.findById(courseId, OUTLINE_EXCLUDE).lean()) as unknown as CourseRecord | null;
   if (!course) return null;
   const lessons = course.modules.flatMap((module) => module.lessons);
   return {
@@ -144,7 +205,7 @@ export async function getCoursePreviewById(courseId: string) {
 
 export async function getPublishedLessonWorkspace(courseSlug: string, lessonSlug: string) {
   await connectDB();
-  const course = (await Course.findOne({ slug: courseSlug, status: 'published' }).lean()) as unknown as CourseRecord | null;
+  const course = await findCourseForLesson({ slug: courseSlug, status: 'published' }, lessonSlug);
   if (!course) return null;
   return buildLessonWorkspace(course, lessonSlug, { includeUnpublished: false });
 }
@@ -155,7 +216,8 @@ export async function getPublishedLessonWorkspace(courseSlug: string, lessonSlug
  */
 export async function getLessonPreviewById(courseId: string, lessonSlug: string) {
   await connectDB();
-  const course = (await Course.findById(courseId).lean()) as unknown as CourseRecord | null;
+  if (!mongoose.isValidObjectId(courseId)) return null;
+  const course = await findCourseForLesson({ _id: new mongoose.Types.ObjectId(courseId) }, lessonSlug);
   if (!course) return null;
   const workspace = buildLessonWorkspace(course, lessonSlug, { includeUnpublished: true });
   if (!workspace) return null;
