@@ -40,9 +40,32 @@ const securityHeaders = [
       media-src 'self' blob: https://*.public.blob.vercel-storage.com;
       connect-src 'self' https://*.razorpay.com https://*.sentry.io https://vitals.vercel-insights.com https://vercel.com/api/blob/;
       frame-src https://*.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com;
+      worker-src 'self';
     `.replace(/\s{2,}/g, ' ').trim()
   }
 ];
+
+// "Run this code" on Python blocks (components/public/RunPythonButton.tsx)
+// runs Pyodide inside public/workers/pyodide-worker.js. A same-origin worker
+// is governed by the CSP sent with the worker script's own response, not the
+// page's, so the worker gets its own policy below and the page policy above
+// only gains `worker-src 'self'` (which is what script-src already allowed
+// for workers by fallback; it just stops workers loading from anywhere else).
+// Keep the version in sync with PYODIDE_VERSION in the worker.
+const PYODIDE_CDN = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+
+const pyodideWorkerCsp = [
+  // Nothing is allowed unless listed below.
+  "default-src 'none'",
+  // importScripts() of pyodide.js and pyodide.asm.js from the pinned folder.
+  // 'wasm-unsafe-eval' lets the worker compile WebAssembly (Python itself and
+  // packages like numpy) without allowing JavaScript eval().
+  `script-src ${PYODIDE_CDN} 'wasm-unsafe-eval'`,
+  // fetch() of pyodide.asm.wasm, python_stdlib.zip, pyodide-lock.json and
+  // package wheels, all from the same pinned folder. This also means Python
+  // run here cannot send data anywhere else.
+  `connect-src ${PYODIDE_CDN}`,
+].join('; ');
 
 const nextConfig: NextConfig = {
   // Enable React strict mode for development
@@ -90,6 +113,11 @@ const nextConfig: NextConfig = {
       {
         source: '/:path*',
         headers: securityHeaders,
+      },
+      {
+        // Must come after '/:path*': for the same header key, the later entry wins.
+        source: '/workers/pyodide-worker.js',
+        headers: [{ key: 'Content-Security-Policy', value: pyodideWorkerCsp }],
       },
     ];
   },
