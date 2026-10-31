@@ -9,6 +9,7 @@ import {
   Users,
 } from 'lucide-react';
 
+import { AdminRowActions } from '@/components/cms/AdminRowActions';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
@@ -67,19 +68,37 @@ export default async function EnrollmentsPage() {
       <section className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border p-5"><h2 className="font-semibold">Learner progress</h2><p className="mt-1 text-xs text-muted-foreground">Recent student enrollment status and progress metrics.</p></div>
         <div className="overflow-x-auto">
-          <Table className="min-w-[900px]">
-            <TableHeader><tr><TableHead>Learner</TableHead><TableHead>Course</TableHead><TableHead>Progress</TableHead><TableHead>Engagement</TableHead><TableHead>Quiz</TableHead><TableHead>Last study</TableHead></tr></TableHeader>
+          <Table className="min-w-[1040px]">
+            <TableHeader><tr><TableHead>Learner</TableHead><TableHead>Course</TableHead><TableHead>Progress</TableHead><TableHead>Engagement</TableHead><TableHead>Quiz</TableHead><TableHead>Certificate</TableHead><TableHead>Last study</TableHead></tr></TableHeader>
             <TableBody>
               {overview.recent.map((item) => {
                 const user = item.user as unknown as { name?: string; email?: string } | null;
                 const course = item.course as unknown as { title?: string; slug?: string } | null;
-                return <TableRow key={item._id.toString()}><TableCell><p className="font-semibold">{user?.name || 'Deleted user'}</p><p className="text-xs text-muted-foreground">{user?.email || '—'}</p></TableCell><TableCell>{course?.title || 'Deleted course'}</TableCell><TableCell><Badge variant={item.status === 'completed' ? 'success' : 'neutral'} className="capitalize">{item.status}</Badge><p className="mt-2 text-2xs text-muted-foreground">{item.completedLessonSlugs.length} lessons complete</p></TableCell><TableCell className="text-xs"><p>{item.metrics.lessonsVisited} lessons opened</p><p className="mt-1 text-muted-foreground">{item.metrics.notesCount} with notes</p></TableCell><TableCell className="text-xs">{item.metrics.quizAttempts ? <><p>{item.metrics.averageQuizScore}% average</p><p className="mt-1 text-muted-foreground">{item.metrics.quizAttempts} attempts</p></> : <span className="text-muted-foreground">No attempts</span>}</TableCell><TableCell className="text-xs text-muted-foreground">{new Date(item.metrics.lastStudyAt).toLocaleString()}</TableCell></TableRow>;
+                return <TableRow key={item._id.toString()}><TableCell><p className="font-semibold">{user?.name || 'Deleted user'}</p><p className="text-xs text-muted-foreground">{user?.email || '—'}</p></TableCell><TableCell>{course?.title || 'Deleted course'}</TableCell><TableCell><Badge variant={item.status === 'completed' ? 'success' : 'neutral'} className="capitalize">{item.status}</Badge><p className="mt-2 text-2xs text-muted-foreground">{item.completedLessonSlugs.length} lessons complete</p></TableCell><TableCell className="text-xs"><p>{item.metrics.lessonsVisited} lessons opened</p><p className="mt-1 text-muted-foreground">{item.metrics.notesCount} with notes</p></TableCell><TableCell className="text-xs">{item.metrics.quizAttempts ? <><p>{item.metrics.averageQuizScore}% average</p><p className="mt-1 text-muted-foreground">{item.metrics.quizAttempts} attempts</p></> : <span className="text-muted-foreground">No attempts</span>}</TableCell><TableCell className="text-xs"><CertificateCell certificate={item.certificate} /></TableCell><TableCell className="text-xs text-muted-foreground">{new Date(item.metrics.lastStudyAt).toLocaleString()}</TableCell></TableRow>;
               })}
             </TableBody>
           </Table>
         </div>
         {!overview.recent.length && <div className="p-10 text-center"><GraduationCap className="mx-auto h-7 w-7 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">No learners yet.</p></div>}
       </section>
+    </div>
+  );
+}
+
+/** Link to a completed learner's certificate, with revoke/restore (audit-logged by the API). */
+function CertificateCell({ certificate }: { certificate: { id: string; code: string; hidden: boolean; revoked: boolean } | null }) {
+  if (!certificate) return <span className="text-muted-foreground">—</span>;
+  return (
+    <div className="space-y-1.5">
+      {certificate.revoked
+        ? <p className="font-mono text-muted-foreground line-through">{certificate.code}</p>
+        : <Link href={`/certificates/${certificate.code}`} target="_blank" className="font-mono hover:text-primary">{certificate.code}</Link>}
+      {certificate.revoked ? <Badge variant="destructive">Revoked</Badge> : certificate.hidden ? <Badge variant="neutral">Hidden by learner</Badge> : null}
+      <AdminRowActions
+        actions={[certificate.revoked
+          ? { label: 'Restore', url: `/api/admin/certificates/${certificate.id}`, method: 'PATCH', body: { revoked: false } }
+          : { label: 'Revoke', url: `/api/admin/certificates/${certificate.id}`, method: 'PATCH', body: { revoked: true }, tone: 'danger', confirm: 'Confirm revoke' }]}
+      />
     </div>
   );
 }
