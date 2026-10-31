@@ -59,3 +59,35 @@ export function cleanPythonError(message: string): string {
   return cleaned || message.trim();
 }
 
+/**
+ * Libraries that can't run in a browser (GPU frameworks, network clients, web
+ * servers). Examples that import them don't get a Run button at all, rather
+ * than a button that can only fail.
+ */
+const BROWSER_UNAVAILABLE = [
+  'torch', 'tensorflow', 'jax', 'keras', 'transformers', 'datasets', 'accelerate',
+  'openai', 'anthropic', 'groq', 'google', 'langchain', 'llama_index', 'requests', 'httpx', 'aiohttp',
+  'fastapi', 'flask', 'django', 'uvicorn', 'mcp', 'dotenv', 'boto3', 'pinecone', 'chromadb',
+];
+
+/** The top-level modules a Python snippet imports. */
+export function importedModules(code: string): string[] {
+  const modules = new Set<string>();
+  for (const match of code.matchAll(/^[ \t]*(?:from[ \t]+([\w.]+)[ \t]+import\b.*|import[ \t]+([\w., \t]+?))[ \t]*(?:#.*)?$/gm)) {
+    const names = match[1] ? [match[1]] : match[2].split(',').map((part) => part.trim().split(/\s+as\s+/)[0]);
+    for (const name of names) if (name) modules.add(name.split('.')[0]);
+  }
+  return [...modules];
+}
+
+/** False when the snippet needs a library a browser can't provide. */
+export function canRunInBrowser(code: string): boolean {
+  return !importedModules(code).some((name) => BROWSER_UNAVAILABLE.includes(name));
+}
+
+/** "No module named 'x'" in plain words; other errors pass through unchanged. */
+export function friendlyPythonError(message: string): string {
+  const missing = /No module named '([\w.]+)'/.exec(message);
+  if (!missing) return message;
+  return `This example needs the "${missing[1].split('.')[0]}" library, which can't run in your browser. Try it on your own computer instead.`;
+}

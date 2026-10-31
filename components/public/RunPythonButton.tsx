@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { Loader2, Play } from "lucide-react"
 import { isPythonReady, runPython, type PythonStream } from "@/lib/python-runner"
-import { cleanPythonError } from "@/lib/utils/python-run"
+import { cleanPythonError, friendlyPythonError } from "@/lib/utils/python-run"
 
 type OutputChunk = { stream: PythonStream; text: string }
 
@@ -75,7 +75,7 @@ export function RunnablePythonBlock({ code, children }: { code: string; children
     if (frame.current !== null) cancelAnimationFrame(frame.current)
     flushPending()
 
-    if (result.status === "error") setOutcome({ kind: "error", message: cleanPythonError(result.message) })
+    if (result.status === "error") setOutcome({ kind: "error", message: friendlyPythonError(cleanPythonError(result.message)) })
     else if (result.status === "load-failed") setOutcome({ kind: "load-failed" })
     else setOutcome({ kind: result.status })
     setState("idle")

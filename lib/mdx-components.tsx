@@ -23,7 +23,7 @@ import CodeWalkthrough from '@/components/ui/CodeWalkthrough';
 import MermaidDiagram from '@/components/ui/MermaidDiagram';
 import { CopyCodeButton } from '@/components/public/CopyCodeButton';
 import { RunnablePythonBlock } from '@/components/public/RunPythonButton';
-import { isPythonCodeClass } from '@/lib/utils/python-run';
+import { canRunInBrowser, isPythonCodeClass } from '@/lib/utils/python-run';
 import type { Components } from 'react-markdown';
 import React from 'react';
 
@@ -256,14 +256,14 @@ const pre: Components['pre'] = ({ children, ...props }) => {
 
   // Python blocks get a "Run this code" button and output panel underneath.
   // The wrapper takes over the outer margin so the spacing stays the same.
-  const runnable = isPythonCodeClass(className) && rawCodeText.trim() !== '';
+  const runnable = isPythonCodeClass(className) && rawCodeText.trim() !== '' && canRunInBrowser(rawCodeText);
 
   const preElement = (
     <pre
       className={`group relative ${runnable ? 'my-0' : 'my-7'} overflow-x-auto rounded-xl border border-border bg-card p-4 pr-12 font-mono text-[14px] leading-[1.7] sm:text-[15px]`}
       {...props}
     >
-      {codeText && <CopyCodeButton code={codeText} />}
+      {codeText && <CopyCodeButton code={rawCodeText || codeText} />}
       {children}
     </pre>
   );
