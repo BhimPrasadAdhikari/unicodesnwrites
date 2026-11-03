@@ -54,6 +54,7 @@ const SPLIT_MIN = 35;
 const SPLIT_MAX = 72;
 const SPLIT_KEY = "course-workspace:split";
 const RAIL_KEY = "course-workspace:rail";
+const PANEL_KEY = "course-workspace:panel";
 type QuizResult = {
   attemptId?: string;
   attemptedAt?: string;
@@ -119,6 +120,7 @@ export function CourseLessonWorkspace({
   const [view, setView] = useState<View>("lesson");
   const [curriculumOpen, setCurriculumOpen] = useState(false);
   const [railOpen, setRailOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(true);
   const [split, setSplit] = useState(SPLIT_DEFAULT);
   const videoRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -131,6 +133,8 @@ export function CourseLessonWorkspace({
     try {
       const savedRail = localStorage.getItem(RAIL_KEY);
       if (savedRail) setRailOpen(savedRail === "open");
+      const savedPanel = localStorage.getItem(PANEL_KEY);
+      if (savedPanel) setPanelOpen(savedPanel === "open");
       const savedSplit = Number(localStorage.getItem(SPLIT_KEY));
       if (savedSplit >= SPLIT_MIN && savedSplit <= SPLIT_MAX) setSplit(savedSplit);
     } catch {}
@@ -140,6 +144,15 @@ export function CourseLessonWorkspace({
     setRailOpen((open) => {
       try {
         localStorage.setItem(RAIL_KEY, open ? "closed" : "open");
+      } catch {}
+      return !open;
+    });
+  };
+
+  const togglePanel = () => {
+    setPanelOpen((open) => {
+      try {
+        localStorage.setItem(PANEL_KEY, open ? "closed" : "open");
       } catch {}
       return !open;
     });
@@ -639,11 +652,37 @@ export function CourseLessonWorkspace({
         <aside
           aria-label="Course lessons"
           className={cn(
-            "hidden shrink-0 overflow-hidden border-border bg-card transition-[width] duration-200 lg:block",
-            railOpen ? "w-72 border-r" : "w-0",
+            "relative hidden shrink-0 border-r border-border bg-card transition-[width] duration-200 lg:block",
+            railOpen ? "w-72" : "w-11",
           )}
         >
-          <div className="h-full w-72">{curriculum}</div>
+          {railOpen ? (
+            <>
+              <div className="h-full w-72 overflow-hidden">{curriculum}</div>
+              <button
+                type="button"
+                onClick={toggleRail}
+                aria-label="Hide the lesson list"
+                title="Hide the lesson list"
+                className="absolute -right-3 top-1/2 z-20 flex h-12 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition-colors hover:border-primary hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={toggleRail}
+              aria-label="Show the lesson list"
+              title="Show the lesson list"
+              className="flex h-full w-full flex-col items-center gap-3 pt-4 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <ChevronRight className="h-4 w-4" />
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em] [writing-mode:vertical-rl]">
+                Lessons · {completedCount}/{totalLessons}
+              </span>
+            </button>
+          )}
         </aside>
 
         <div
@@ -654,9 +693,9 @@ export function CourseLessonWorkspace({
           {hasVideo && (
             <section
               aria-label="Video"
-              className="shrink-0 lg:h-full lg:w-[var(--split)] lg:overflow-y-auto"
+              className={cn("shrink-0 lg:h-full lg:overflow-y-auto", panelOpen ? "lg:w-[var(--split)]" : "lg:min-w-0 lg:flex-1")}
             >
-              <div className="space-y-5 p-4 sm:p-6">
+              <div className={cn("space-y-5 p-4 sm:p-6", !panelOpen && "lg:mx-auto lg:max-w-5xl")}>
                 <div ref={videoRef} className="scroll-mt-32">
                   <LessonVideoPlayer
                     embedUrl={workspace.lesson.embedUrl}
@@ -674,7 +713,7 @@ export function CourseLessonWorkspace({
             </section>
           )}
 
-          {hasVideo && (
+          {hasVideo && panelOpen && (
             <div
               role="separator"
               aria-orientation="vertical"
@@ -692,10 +731,35 @@ export function CourseLessonWorkspace({
               className="group relative hidden w-2 shrink-0 cursor-col-resize items-center justify-center bg-border/40 outline-none hover:bg-primary/20 focus-visible:bg-primary/30 lg:flex"
             >
               <span className="h-10 w-0.5 rounded-full bg-muted-foreground/40 group-hover:bg-primary" />
+              <button
+                type="button"
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={togglePanel}
+                aria-label="Hide the lesson panel"
+                title="Hide the lesson panel"
+                className="absolute left-1/2 top-1/2 z-20 flex h-12 w-6 -translate-x-1/2 translate-y-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition-colors hover:border-primary hover:text-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
           )}
 
-          <section aria-label="Lesson" className="@container flex min-w-0 flex-1 flex-col lg:h-full">
+          {hasVideo && !panelOpen && (
+            <button
+              type="button"
+              onClick={togglePanel}
+              aria-label="Show the lesson panel"
+              title="Show the lesson panel"
+              className="hidden w-11 shrink-0 flex-col items-center gap-3 border-l border-border bg-card pt-4 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:flex"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em] [writing-mode:vertical-rl]">
+                Lesson, transcript, quiz
+              </span>
+            </button>
+          )}
+
+          <section aria-label="Lesson" className={cn("@container flex min-w-0 flex-1 flex-col lg:h-full", hasVideo && !panelOpen && "lg:hidden")}>
             <div
               ref={tabsRef}
               className="sticky top-[7.125rem] z-30 shrink-0 scroll-mt-28 border-b border-border bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4 lg:static"
