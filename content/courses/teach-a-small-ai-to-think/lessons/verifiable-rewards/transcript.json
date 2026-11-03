@@ -1,0 +1,282 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 5,
+    "text": "This teacher has three hundred maths tests to mark before lunch."
+  },
+  {
+    "startSeconds": 5,
+    "endSeconds": 8,
+    "text": "Three hundred?! She’ll be there all week."
+  },
+  {
+    "startSeconds": 8,
+    "endSeconds": 18,
+    "text": "Not her. She doesn’t read a single line of working. The answer key says eighteen. Student wrote eighteen? Tick. Anything else? Cross."
+  },
+  {
+    "startSeconds": 18,
+    "endSeconds": 21,
+    "text": "Wait, that’s it? That feels like cheating."
+  },
+  {
+    "startSeconds": 21,
+    "endSeconds": 28,
+    "text": "It’s the secret ingredient of reasoning models. It let DeepSeek grade millions of attempts, with no human in the loop."
+  },
+  {
+    "startSeconds": 28,
+    "endSeconds": 34,
+    "text": "By the end of this video, you’ll know how to grade without a teacher, and where that kind of grading goes blind."
+  },
+  {
+    "startSeconds": 35,
+    "endSeconds": 39,
+    "text": "Verifiable rewards. Episode one."
+  },
+  {
+    "startSeconds": 40,
+    "endSeconds": 47,
+    "text": "First, what is a reward? It’s just a number that says how good an attempt was. And it’s all the model ever gets."
+  },
+  {
+    "startSeconds": 47,
+    "endSeconds": 52,
+    "text": "Like the game hot and cold! I hide something, and you only hear warmer, or colder."
+  },
+  {
+    "startSeconds": 52,
+    "endSeconds": 57,
+    "text": "Exactly. Tiny never sees where the prize is. Just... colder."
+  },
+  {
+    "startSeconds": 57,
+    "endSeconds": 59,
+    "text": "Warmer! Warmer! Hot!"
+  },
+  {
+    "startSeconds": 59,
+    "endSeconds": 68,
+    "text": "As long as the answers are honest and consistent, that’s enough to find it. The little program that hands out those numbers is called a reward function."
+  },
+  {
+    "startSeconds": 69,
+    "endSeconds": 76,
+    "text": "A reward is verifiable when a short, reliable program can decide the score. No human. No other AI."
+  },
+  {
+    "startSeconds": 76,
+    "endSeconds": 79,
+    "text": "Okay, let’s sort some. Maths word problems?"
+  },
+  {
+    "startSeconds": 79,
+    "endSeconds": 89,
+    "text": "Verifiable. Compare the final number. Code? Mostly. Run the tests. Sudoku? Check the rows, columns and boxes."
+  },
+  {
+    "startSeconds": 89,
+    "endSeconds": 91,
+    "text": "And a poem?"
+  },
+  {
+    "startSeconds": 91,
+    "endSeconds": 98,
+    "text": "Nope. Good is a matter of taste. Same for life advice. There’s no single right answer to compare with."
+  },
+  {
+    "startSeconds": 98,
+    "endSeconds": 107,
+    "text": "In papers, training with checkable rewards is called reinforcement learning with verifiable rewards. It’s what R1 used for maths and code."
+  },
+  {
+    "startSeconds": 108,
+    "endSeconds": 114,
+    "text": "For our maths problems, we use two rewards. First, we ask the model to answer in a fixed shape."
+  },
+  {
+    "startSeconds": 114,
+    "endSeconds": 119,
+    "text": "Working inside think tags. The final answer inside answer tags."
+  },
+  {
+    "startSeconds": 119,
+    "endSeconds": 124,
+    "text": "The format reward checks that shape. Get it right, and you earn half a point."
+  },
+  {
+    "startSeconds": 124,
+    "endSeconds": 132,
+    "text": "The correctness reward pulls out the answer, turns it into a number, and compares it with the answer key. Right? One whole point."
+  },
+  {
+    "startSeconds": 132,
+    "endSeconds": 135,
+    "text": "So a tidy, right answer gets one and a half."
+  },
+  {
+    "startSeconds": 134,
+    "endSeconds": 143,
+    "text": "And the shape pays off. The grader always knows where to look, and a beginner gets the shape right long before the maths, so it has something to learn from on day one."
+  },
+  {
+    "startSeconds": 144,
+    "endSeconds": 146,
+    "text": "Now, here are two answers."
+  },
+  {
+    "startSeconds": 146,
+    "endSeconds": 153,
+    "text": "One has the right number, but no tags at all. The other is tidy, but the number is wrong. Which scores more?"
+  },
+  {
+    "startSeconds": 153,
+    "endSeconds": 156,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 162,
+    "endSeconds": 165,
+    "text": "A, obviously! Being right has to beat being tidy."
+  },
+  {
+    "startSeconds": 165,
+    "endSeconds": 173,
+    "text": "You’d think so. But it’s B. Tidy and wrong scores half a point. Right with no tags scores zero."
+  },
+  {
+    "startSeconds": 173,
+    "endSeconds": 176,
+    "text": "Zero?! But it got the answer right!"
+  },
+  {
+    "startSeconds": 176,
+    "endSeconds": 184,
+    "text": "Our grader looks for the answer inside the answer tags. No tags, no answer to check. So correctness is zero too."
+  },
+  {
+    "startSeconds": 184,
+    "endSeconds": 190,
+    "text": "That’s strict on purpose. Clear rules are hard to cheat, and the model picks up the shape quickly."
+  },
+  {
+    "startSeconds": 190,
+    "endSeconds": 197,
+    "text": "And notice: among tidy answers, right always beats wrong. One and a half, against a half."
+  },
+  {
+    "startSeconds": 197,
+    "endSeconds": 200,
+    "text": "Oh, so if tidy were worth more than right..."
+  },
+  {
+    "startSeconds": 200,
+    "endSeconds": 204,
+    "text": "Then the fastest way to a high score would be tidy nonsense."
+  },
+  {
+    "startSeconds": 205,
+    "endSeconds": 211,
+    "text": "Even comparing two numbers hides decisions. What about dollar eighteen, with a full stop?"
+  },
+  {
+    "startSeconds": 210,
+    "endSeconds": 214,
+    "text": "Or eighteen point zero. Or eighteen dollars."
+  },
+  {
+    "startSeconds": 214,
+    "endSeconds": 217,
+    "text": "All of those should count as eighteen."
+  },
+  {
+    "startSeconds": 217,
+    "endSeconds": 220,
+    "text": "Okay. What about, eighteen or twenty-six?"
+  },
+  {
+    "startSeconds": 220,
+    "endSeconds": 226,
+    "text": "No. Two answers aren’t one answer. And empty thinking doesn’t count as thinking."
+  },
+  {
+    "startSeconds": 226,
+    "endSeconds": 232,
+    "text": "The rule of thumb: be lenient about decoration, and strict about substance."
+  },
+  {
+    "startSeconds": 232,
+    "endSeconds": 238,
+    "text": "One more thing. A verifiable reward grades the outcome, not the reasoning."
+  },
+  {
+    "startSeconds": 238,
+    "endSeconds": 239,
+    "text": "Meaning?"
+  },
+  {
+    "startSeconds": 239,
+    "endSeconds": 246,
+    "text": "A lucky guess with nonsense working gets full marks. Five perfect steps with one slip at the end gets zero."
+  },
+  {
+    "startSeconds": 246,
+    "endSeconds": 253,
+    "text": "Over thousands of questions, the luck mostly washes out. But it’s a narrow window onto what you really want."
+  },
+  {
+    "startSeconds": 254,
+    "endSeconds": 256,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 256,
+    "endSeconds": 260,
+    "text": "A reward is just a number. The model never sees the right answer."
+  },
+  {
+    "startSeconds": 260,
+    "endSeconds": 265,
+    "text": "It’s verifiable when a short program can check it, like comparing a final number."
+  },
+  {
+    "startSeconds": 265,
+    "endSeconds": 269,
+    "text": "And we pay a little for the right shape, and more for the right answer."
+  },
+  {
+    "startSeconds": 270,
+    "endSeconds": 273,
+    "text": "Hmm. You keep saying, hard to cheat."
+  },
+  {
+    "startSeconds": 273,
+    "endSeconds": 278,
+    "text": "But what if the grader just takes the last number? Then I write, twenty-six, or eighteen..."
+  },
+  {
+    "startSeconds": 278,
+    "endSeconds": 282,
+    "text": "The grader sees eighteen. Reward: one."
+  },
+  {
+    "startSeconds": 282,
+    "endSeconds": 286,
+    "text": "So Tiny could get full marks without being right! Would it actually find that?"
+  },
+  {
+    "startSeconds": 286,
+    "endSeconds": 294,
+    "text": "Oh, it would. Models are brilliant at finding loopholes. In the next episode: when rewards go wrong."
+  },
+  {
+    "startSeconds": 295,
+    "endSeconds": 298,
+    "text": "Open the reward grader in the lesson, and try to break it."
+  },
+  {
+    "startSeconds": 298,
+    "endSeconds": 301,
+    "text": "See you in the next episode!"
+  }
+]

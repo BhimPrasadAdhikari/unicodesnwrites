@@ -27,7 +27,7 @@ const EMPTY_PERSISTENCE = {
 export default async function LessonPreviewPage({ params }: PageProps) {
   const { id, lessonSlug } = await params;
   const session = await getServerSession(authOptions);
-  if (!session?.user?.sessionValid) redirect(`/login?from=${encodeURIComponent(`/course-preview/${id}/${lessonSlug}`)}`);
+  if (!session?.user?.sessionValid) redirect(`/login?reauth=1&from=${encodeURIComponent(`/course-preview/${id}/${lessonSlug}`)}`);
   if (session.user.role !== 'admin') notFound();
   if (!isValidObjectId(id)) notFound();
   const preview = await getLessonPreviewById(id, lessonSlug);

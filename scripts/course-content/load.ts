@@ -3,7 +3,11 @@
  *
  *   content/courses/<slug>/course.json
  *   content/courses/<slug>/lessons/<lesson-slug>/{lesson.json, article.md, walkthrough.json, code/*, exercises/*.md}
+ *   content/courses/<slug>/youtube.json                           (optional, { "<lesson-slug>": "<YouTube video id>" })
+ *   content/courses/<slug>/lessons/<lesson-slug>/transcript.json  (optional, transcript cues)
  *   public/course-media/<slug>/<lesson-slug>.{mp4,jpg,cues.json}   (optional, git-ignored videos)
+ *
+ * A lesson listed in youtube.json plays from YouTube; otherwise a local mp4 is used if there is one.
  *
  * and validates it with the same schema the course editor uses.
  */
@@ -27,7 +31,7 @@ const readJson = <T>(file: string): T => JSON.parse(fs.readFileSync(file, 'utf8'
 const readText = (file: string) => fs.readFileSync(file, 'utf8');
 const readOptional = (file: string) => (fs.existsSync(file) ? readText(file) : '');
 
-function loadLesson(lessonDir: string, slug: string, mediaDir: string, videoBaseUrl: string) {
+function loadLesson(lessonDir: string, slug: string, mediaDir: string, videoBaseUrl: string, youtubeVideoId?: string) {
   const lesson = readJson<LessonFile>(path.join(lessonDir, 'lesson.json'));
   if (lesson.slug !== slug) throw new Error(`${lessonDir}: lesson.json slug "${lesson.slug}" does not match folder`);
 
@@ -50,11 +54,16 @@ function loadLesson(lessonDir: string, slug: string, mediaDir: string, videoBase
   }
 
   const media: Record<string, unknown> = {};
-  if (fs.existsSync(path.join(mediaDir, `${slug}.mp4`))) {
+  const transcriptFile = path.join(lessonDir, 'transcript.json');
+  if (youtubeVideoId) {
+    media.youtubeVideoId = youtubeVideoId;
+    if (fs.existsSync(transcriptFile)) media.transcript = readJson(transcriptFile);
+  } else if (fs.existsSync(path.join(mediaDir, `${slug}.mp4`))) {
     media.videoUrl = `${videoBaseUrl}/${slug}.mp4`;
     if (fs.existsSync(path.join(mediaDir, `${slug}.jpg`))) media.videoPosterUrl = `${videoBaseUrl}/${slug}.jpg`;
     const cuesFile = path.join(mediaDir, `${slug}.cues.json`);
     if (fs.existsSync(cuesFile)) media.transcript = readJson(cuesFile);
+    else if (fs.existsSync(transcriptFile)) media.transcript = readJson(transcriptFile);
   }
 
   return {
@@ -72,13 +81,15 @@ export function loadCourseFolder(root: string, slug: string): CourseInput {
   const mediaDir = path.join(root, 'public', 'course-media', slug);
   const videoBaseUrl = (course.videoBaseUrl || `/course-media/${slug}`).replace(/\/$/, '');
   const { videoBaseUrl: _ignored, ...courseFields } = course;
+  const youtubeFile = path.join(courseDir, 'youtube.json');
+  const youtube = fs.existsSync(youtubeFile) ? readJson<Record<string, string>>(youtubeFile) : {};
 
   const input = {
     ...courseFields,
     modules: course.modules.map((module) => ({
       ...module,
       lessons: module.lessons.map((lessonSlug) =>
-        loadLesson(path.join(courseDir, 'lessons', lessonSlug), lessonSlug, mediaDir, videoBaseUrl),
+        loadLesson(path.join(courseDir, 'lessons', lessonSlug), lessonSlug, mediaDir, videoBaseUrl, youtube[lessonSlug]),
       ),
     })),
   };

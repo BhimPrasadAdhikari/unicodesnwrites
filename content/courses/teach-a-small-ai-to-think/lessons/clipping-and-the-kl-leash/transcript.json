@@ -1,0 +1,327 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 8,
+    "text": "Imagine Tiny’s big sibling, a real language model. It gets one hard question right. Pure luck."
+  },
+  {
+    "startSeconds": 7,
+    "endSeconds": 12,
+    "text": "So we push that lucky answer up. Hard. Again, and again."
+  },
+  {
+    "startSeconds": 12,
+    "endSeconds": 19,
+    "text": "Then we ask it two plus two. Seven?! Five plus one... seven! Nine plus nine... seven!"
+  },
+  {
+    "startSeconds": 18,
+    "endSeconds": 23,
+    "text": "One lucky answer, pushed too far, and the whole model went wrong."
+  },
+  {
+    "startSeconds": 23,
+    "endSeconds": 26,
+    "text": "Okay, that’s terrifying. How do we stop it?"
+  },
+  {
+    "startSeconds": 27,
+    "endSeconds": 34,
+    "text": "GRPO has two safety brakes. By the end of this video, you’ll know exactly when each one kicks in."
+  },
+  {
+    "startSeconds": 34,
+    "endSeconds": 37,
+    "text": "Brakes. Like on a bike?"
+  },
+  {
+    "startSeconds": 37,
+    "endSeconds": 43,
+    "text": "Pretty much. One stops a single batch from overreacting. The other keeps the model close to home."
+  },
+  {
+    "startSeconds": 44,
+    "endSeconds": 48,
+    "text": "Clipping and the KL leash. Episode two."
+  },
+  {
+    "startSeconds": 49,
+    "endSeconds": 52,
+    "text": "First, why would one batch move the model too far?"
+  },
+  {
+    "startSeconds": 52,
+    "endSeconds": 58,
+    "text": "Writing answers is the slowest, most expensive part. So it’s tempting to reuse them."
+  },
+  {
+    "startSeconds": 58,
+    "endSeconds": 62,
+    "text": "Like, sample once, then learn from the same answers a few times?"
+  },
+  {
+    "startSeconds": 62,
+    "endSeconds": 69,
+    "text": "Exactly. Several small steps on the same batch. In the code, the setting is called num iterations."
+  },
+  {
+    "startSeconds": 69,
+    "endSeconds": 78,
+    "text": "But after the first step, the model has already changed. Push the same lucky answer four times, and slightly more likely becomes the only thing it says."
+  },
+  {
+    "startSeconds": 79,
+    "endSeconds": 84,
+    "text": "So we need a way to measure how far an answer has moved. That’s the ratio."
+  },
+  {
+    "startSeconds": 84,
+    "endSeconds": 88,
+    "text": "It’s the answer’s chance now, divided by its chance when it was sampled."
+  },
+  {
+    "startSeconds": 88,
+    "endSeconds": 91,
+    "text": "So if it was ten percent, and now it’s twelve percent..."
+  },
+  {
+    "startSeconds": 91,
+    "endSeconds": 97,
+    "text": "The ratio is one point two. Twenty percent more likely than when we sampled it."
+  },
+  {
+    "startSeconds": 96,
+    "endSeconds": 102,
+    "text": "And on the very first step, the ratio is always exactly one, because nothing has moved yet."
+  },
+  {
+    "startSeconds": 103,
+    "endSeconds": 108,
+    "text": "Now, clipping. Picture a fence around one, from zero point eight to one point two."
+  },
+  {
+    "startSeconds": 108,
+    "endSeconds": 115,
+    "text": "That’s twenty percent either way, the usual setting. In papers, that twenty percent is called epsilon."
+  },
+  {
+    "startSeconds": 115,
+    "endSeconds": 119,
+    "text": "Okay, Tiny’s answer was good, so we push it up. Push... push again..."
+  },
+  {
+    "startSeconds": 119,
+    "endSeconds": 126,
+    "text": "And once it’s twenty percent more likely than when it was sampled, the rule says: that’s enough for now. Stop pushing."
+  },
+  {
+    "startSeconds": 126,
+    "endSeconds": 133,
+    "text": "Same on the other side. A bad answer gets pushed down until it’s twenty percent less likely. Then it stops too."
+  },
+  {
+    "startSeconds": 134,
+    "endSeconds": 144,
+    "text": "Here’s a tricky one. A bad answer, with a negative advantage, somehow became more likely. Its ratio is one point five, way outside the fence."
+  },
+  {
+    "startSeconds": 144,
+    "endSeconds": 146,
+    "text": "Does clipping stop the update?"
+  },
+  {
+    "startSeconds": 146,
+    "endSeconds": 148,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 154,
+    "endSeconds": 158,
+    "text": "A! It’s outside the fence, so the brake kicks in. Stop!"
+  },
+  {
+    "startSeconds": 158,
+    "endSeconds": 164,
+    "text": "That’s the trap. It’s B. Clipping only stops you going too far in the direction you wanted."
+  },
+  {
+    "startSeconds": 164,
+    "endSeconds": 170,
+    "text": "This answer went the wrong way, so the rule keeps pushing it back down. Clipping never blocks a fix."
+  },
+  {
+    "startSeconds": 171,
+    "endSeconds": 175,
+    "text": "In the Tiny Adder code, the whole rule is a few lines."
+  },
+  {
+    "startSeconds": 175,
+    "endSeconds": 180,
+    "text": "If the answer was good, and it’s already more than twenty percent up: clipped."
+  },
+  {
+    "startSeconds": 180,
+    "endSeconds": 184,
+    "text": "If it was bad, and it’s already more than twenty percent down: clipped."
+  },
+  {
+    "startSeconds": 184,
+    "endSeconds": 188,
+    "text": "And anything else still gets nudged. Including our wrong-way answer!"
+  },
+  {
+    "startSeconds": 188,
+    "endSeconds": 193,
+    "text": "Exactly. Clipped just means: this answer stops adding to the step."
+  },
+  {
+    "startSeconds": 194,
+    "endSeconds": 201,
+    "text": "So does the brake help Tiny? Here’s an experiment from the lesson: four steps per batch, with and without clipping."
+  },
+  {
+    "startSeconds": 201,
+    "endSeconds": 204,
+    "text": "Wait. The clipped one is slower?!"
+  },
+  {
+    "startSeconds": 204,
+    "endSeconds": 209,
+    "text": "Much slower. At step fifty: about a quarter, against two thirds."
+  },
+  {
+    "startSeconds": 209,
+    "endSeconds": 212,
+    "text": "So the brake just... makes it worse?"
+  },
+  {
+    "startSeconds": 212,
+    "endSeconds": 219,
+    "text": "On the toy, yes. Tiny’s answers for each sum live in separate boxes, so overshooting costs almost nothing."
+  },
+  {
+    "startSeconds": 218,
+    "endSeconds": 228,
+    "text": "A real model shares every weight across millions of situations. There, clipping is insurance. On the toy, you only see the price, never the crash."
+  },
+  {
+    "startSeconds": 229,
+    "endSeconds": 234,
+    "text": "But many tiny, safe steps can still carry the model far from where it started."
+  },
+  {
+    "startSeconds": 234,
+    "endSeconds": 237,
+    "text": "Like a puppy that wanders off, one sniff at a time."
+  },
+  {
+    "startSeconds": 237,
+    "endSeconds": 245,
+    "text": "Ha, exactly. So the second brake is a leash. We keep a frozen copy of the starting model, called the reference."
+  },
+  {
+    "startSeconds": 244,
+    "endSeconds": 252,
+    "text": "Every step, we measure how far the model has drifted from it, and subtract a penalty. That distance is the KL."
+  },
+  {
+    "startSeconds": 252,
+    "endSeconds": 255,
+    "text": "And how hard the leash pulls is called beta."
+  },
+  {
+    "startSeconds": 256,
+    "endSeconds": 261,
+    "text": "On Tiny, here’s the reward after two hundred steps, for three leash strengths."
+  },
+  {
+    "startSeconds": 261,
+    "endSeconds": 264,
+    "text": "No leash: eighty-six percent."
+  },
+  {
+    "startSeconds": 264,
+    "endSeconds": 266,
+    "text": "A loose leash: sixty-two."
+  },
+  {
+    "startSeconds": 266,
+    "endSeconds": 275,
+    "text": "And a tight one, beta zero point five: six percent. The leash pulls back as hard as the reward pushes, and Tiny stays stuck, guessing."
+  },
+  {
+    "startSeconds": 276,
+    "endSeconds": 279,
+    "text": "Two brakes, side by side."
+  },
+  {
+    "startSeconds": 278,
+    "endSeconds": 284,
+    "text": "Clipping stops one batch overreacting, and it only matters when you take several steps per batch."
+  },
+  {
+    "startSeconds": 284,
+    "endSeconds": 288,
+    "text": "The leash stops slow drift, over the whole run."
+  },
+  {
+    "startSeconds": 288,
+    "endSeconds": 290,
+    "text": "So which one do people actually use?"
+  },
+  {
+    "startSeconds": 290,
+    "endSeconds": 300,
+    "text": "Both, loosely. With right-or-wrong maths rewards, the model is supposed to change a lot, so many recipes switch the leash off. The default is now beta zero."
+  },
+  {
+    "startSeconds": 301,
+    "endSeconds": 303,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 303,
+    "endSeconds": 307,
+    "text": "The ratio says how far an answer has moved since it was sampled."
+  },
+  {
+    "startSeconds": 307,
+    "endSeconds": 311,
+    "text": "Clipping stops pushing once it has moved enough, but never blocks a fix."
+  },
+  {
+    "startSeconds": 311,
+    "endSeconds": 315,
+    "text": "And the leash keeps the model from wandering too far from home."
+  },
+  {
+    "startSeconds": 316,
+    "endSeconds": 322,
+    "text": "Now we’ve got every piece. But Tiny’s whole brain is a table of just nineteen hundred numbers."
+  },
+  {
+    "startSeconds": 322,
+    "endSeconds": 326,
+    "text": "Hang on. So all of this has only ever run on a toy?"
+  },
+  {
+    "startSeconds": 326,
+    "endSeconds": 331,
+    "text": "What happens on a real model? With half a billion numbers? Can we even afford that?"
+  },
+  {
+    "startSeconds": 331,
+    "endSeconds": 337,
+    "text": "We can. Next episode, we set up the real thing, on a free GPU."
+  },
+  {
+    "startSeconds": 337,
+    "endSeconds": 342,
+    "text": "Drag the ratio and flip the advantage yourself, in the clip explorer below this video."
+  },
+  {
+    "startSeconds": 342,
+    "endSeconds": 345,
+    "text": "See you in the next episode!"
+  }
+]

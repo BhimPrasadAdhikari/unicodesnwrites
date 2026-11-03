@@ -1,0 +1,272 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 7,
+    "text": "Two students finish the same project. One says: my model gets ninety percent!"
+  },
+  {
+    "startSeconds": 7,
+    "endSeconds": 11,
+    "text": "The other says: mine went from eight percent, to fifteen."
+  },
+  {
+    "startSeconds": 11,
+    "endSeconds": 14,
+    "text": "Easy. Ninety wins. Right?"
+  },
+  {
+    "startSeconds": 13,
+    "endSeconds": 16,
+    "text": "You might be surprised."
+  },
+  {
+    "startSeconds": 16,
+    "endSeconds": 22,
+    "text": "Hold that thought. Because now it’s your turn: your own task, your own model, with your name on it."
+  },
+  {
+    "startSeconds": 23,
+    "endSeconds": 26,
+    "text": "The capstone. Episode one."
+  },
+  {
+    "startSeconds": 27,
+    "endSeconds": 29,
+    "text": "So what do I actually have to do?"
+  },
+  {
+    "startSeconds": 29,
+    "endSeconds": 36,
+    "text": "Five things. Pick a task with answers code can check. Measure how a small model does on it."
+  },
+  {
+    "startSeconds": 36,
+    "endSeconds": 43,
+    "text": "Train it with GRPO. Then measure again, on puzzles it never saw in training. Accuracy and length."
+  },
+  {
+    "startSeconds": 43,
+    "endSeconds": 48,
+    "text": "And share it on Hugging Face, with a short write-up a curious friend could follow."
+  },
+  {
+    "startSeconds": 49,
+    "endSeconds": 53,
+    "text": "The task is the biggest decision you’ll make. Think Goldilocks."
+  },
+  {
+    "startSeconds": 53,
+    "endSeconds": 59,
+    "text": "Too hard, and the model never gets one right. Every group scores zero, and nothing is learned."
+  },
+  {
+    "startSeconds": 59,
+    "endSeconds": 63,
+    "text": "Too easy, and it’s always right. Nothing to learn there either."
+  },
+  {
+    "startSeconds": 63,
+    "endSeconds": 68,
+    "text": "Aim for a base model that scores somewhere between about five and sixty percent."
+  },
+  {
+    "startSeconds": 68,
+    "endSeconds": 72,
+    "text": "And the answers have to be checkable, by a checker I can actually write."
+  },
+  {
+    "startSeconds": 72,
+    "endSeconds": 79,
+    "text": "Yes. Lots of puzzles you can generate, with short answers. And run fifty puzzles before anything else."
+  },
+  {
+    "startSeconds": 80,
+    "endSeconds": 84,
+    "text": "The starter repo comes with three tasks that pass every test."
+  },
+  {
+    "startSeconds": 84,
+    "endSeconds": 90,
+    "text": "Countdown, the numbers game. Unit conversions. And tiny logic puzzles."
+  },
+  {
+    "startSeconds": 90,
+    "endSeconds": 93,
+    "text": "Use one, make one harder, or invent your own."
+  },
+  {
+    "startSeconds": 93,
+    "endSeconds": 99,
+    "text": "But skip anything where correct is a matter of opinion. Summaries, jokes, essays."
+  },
+  {
+    "startSeconds": 99,
+    "endSeconds": 102,
+    "text": "Because there’s no honest checker for a joke."
+  },
+  {
+    "startSeconds": 103,
+    "endSeconds": 107,
+    "text": "Then you cross six stepping stones, M zero to M five."
+  },
+  {
+    "startSeconds": 107,
+    "endSeconds": 112,
+    "text": "A self-test. Your task, and a reward you’ve attacked. A baseline."
+  },
+  {
+    "startSeconds": 112,
+    "endSeconds": 117,
+    "text": "A fifty-step pilot run. The full run. And sharing."
+  },
+  {
+    "startSeconds": 116,
+    "endSeconds": 119,
+    "text": "Why so many little steps?"
+  },
+  {
+    "startSeconds": 119,
+    "endSeconds": 124,
+    "text": "So you never spend two hours of GPU time on a run that was broken from the start."
+  },
+  {
+    "startSeconds": 125,
+    "endSeconds": 129,
+    "text": "Milestone one has a fun rule: before you trust your reward, try to fool it."
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 135,
+    "text": "Write just the target. Use a number twice. Skip one. Slip in some code."
+  },
+  {
+    "startSeconds": 135,
+    "endSeconds": 138,
+    "text": "Zero, zero, zero, zero! It caught every one."
+  },
+  {
+    "startSeconds": 138,
+    "endSeconds": 140,
+    "text": "That’s what a good reward does."
+  },
+  {
+    "startSeconds": 140,
+    "endSeconds": 145,
+    "text": "And if it doesn’t, you’ve just saved yourself a run that learns to cheat."
+  },
+  {
+    "startSeconds": 146,
+    "endSeconds": 152,
+    "text": "Then you hand in two things: your model on Hugging Face, and a write-up of three to eight hundred words."
+  },
+  {
+    "startSeconds": 152,
+    "endSeconds": 157,
+    "text": "It’s graded in five areas, four points each. Twenty in total."
+  },
+  {
+    "startSeconds": 157,
+    "endSeconds": 161,
+    "text": "Fourteen is a pass. Eighteen is a distinction."
+  },
+  {
+    "startSeconds": 161,
+    "endSeconds": 164,
+    "text": "So, back to our two students."
+  },
+  {
+    "startSeconds": 164,
+    "endSeconds": 170,
+    "text": "Ninety percent, with no baseline and no samples. Or eight to fifteen, reported honestly."
+  },
+  {
+    "startSeconds": 170,
+    "endSeconds": 173,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 179,
+    "endSeconds": 183,
+    "text": "Still A. A higher number has to win. Doesn’t it?"
+  },
+  {
+    "startSeconds": 183,
+    "endSeconds": 187,
+    "text": "Nope. It’s B. There is no minimum accuracy."
+  },
+  {
+    "startSeconds": 188,
+    "endSeconds": 196,
+    "text": "A ninety with nothing to compare it to tells us nothing. A small, honest gain, with a failure explained, tells us a lot."
+  },
+  {
+    "startSeconds": 196,
+    "endSeconds": 199,
+    "text": "So the rubric rewards the why, not the score."
+  },
+  {
+    "startSeconds": 199,
+    "endSeconds": 207,
+    "text": "Exactly. Plus three hard rules. Test puzzles never in training. Every number from a run you actually did. And name the base model."
+  },
+  {
+    "startSeconds": 208,
+    "endSeconds": 211,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 210,
+    "endSeconds": 214,
+    "text": "Pick a task code can check, in the Goldilocks zone."
+  },
+  {
+    "startSeconds": 214,
+    "endSeconds": 218,
+    "text": "Cross the stones one at a time, and attack your own reward first."
+  },
+  {
+    "startSeconds": 218,
+    "endSeconds": 221,
+    "text": "And honest beats impressive."
+  },
+  {
+    "startSeconds": 221,
+    "endSeconds": 226,
+    "text": "Want to see one done, start to finish? We did one, on Countdown."
+  },
+  {
+    "startSeconds": 226,
+    "endSeconds": 230,
+    "text": "And while making it, we tried one more answer on our own checker."
+  },
+  {
+    "startSeconds": 230,
+    "endSeconds": 237,
+    "text": "Sixty-six equals twenty plus seven plus twenty-one plus eighteen. And it says... wrong?!"
+  },
+  {
+    "startSeconds": 236,
+    "endSeconds": 242,
+    "text": "A perfectly correct answer. Scored as wrong. By our own checker."
+  },
+  {
+    "startSeconds": 242,
+    "endSeconds": 246,
+    "text": "Wait. A bug in your checker? What does that do to the training?"
+  },
+  {
+    "startSeconds": 246,
+    "endSeconds": 250,
+    "text": "Next episode. The whole thing, start to finish."
+  },
+  {
+    "startSeconds": 250,
+    "endSeconds": 254,
+    "text": "The starter repo and the rubric are in the lesson below this video."
+  },
+  {
+    "startSeconds": 254,
+    "endSeconds": 257,
+    "text": "See you in the next episode!"
+  }
+]

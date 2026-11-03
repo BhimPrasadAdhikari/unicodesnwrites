@@ -1,0 +1,307 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 10,
+    "text": "Janet’s ducks lay sixteen eggs a day. She eats three, bakes with four, and sells the rest for two dollars each. How much does she make?"
+  },
+  {
+    "startSeconds": 10,
+    "endSeconds": 16,
+    "text": "Easy! Sixteen, minus three, minus four, is nine eggs. Times two. Eighteen dollars!"
+  },
+  {
+    "startSeconds": 16,
+    "endSeconds": 21,
+    "text": "Right. Now ask a small AI model, answering in a hurry."
+  },
+  {
+    "startSeconds": 20,
+    "endSeconds": 25,
+    "text": "Twenty-six dollars?! Where did that even come from?"
+  },
+  {
+    "startSeconds": 25,
+    "endSeconds": 32,
+    "text": "By the end of this course, that same small model will slow down, write out its working, and get problems like this right far more often."
+  },
+  {
+    "startSeconds": 33,
+    "endSeconds": 38,
+    "text": "And here’s the twist. Nobody will show it a single worked example."
+  },
+  {
+    "startSeconds": 38,
+    "endSeconds": 46,
+    "text": "It learns the way DeepSeek trained R1. It tries. A program gives it a score. And it does more of whatever scored well."
+  },
+  {
+    "startSeconds": 46,
+    "endSeconds": 51,
+    "text": "Hold on. No examples at all? Then how does it ever learn to reason?"
+  },
+  {
+    "startSeconds": 51,
+    "endSeconds": 58,
+    "text": "That’s what this whole course is about. Today, you’ll meet the team, see the map, and get a before score that you’re going to beat."
+  },
+  {
+    "startSeconds": 58,
+    "endSeconds": 62,
+    "text": "Teach a small AI to think. Welcome."
+  },
+  {
+    "startSeconds": 63,
+    "endSeconds": 66,
+    "text": "Meet the team. First, this is Tiny."
+  },
+  {
+    "startSeconds": 66,
+    "endSeconds": 68,
+    "text": "Aww, hi Tiny!"
+  },
+  {
+    "startSeconds": 68,
+    "endSeconds": 77,
+    "text": "Tiny is a toy model. It answers sums of two single digits, like three plus four, by picking an answer from zero to eighteen."
+  },
+  {
+    "startSeconds": 77,
+    "endSeconds": 82,
+    "text": "So what does it say for three plus four? Eleven. Two. Fifteen!"
+  },
+  {
+    "startSeconds": 81,
+    "endSeconds": 87,
+    "text": "Right now, it’s guessing at random. One chance in nineteen of being right."
+  },
+  {
+    "startSeconds": 86,
+    "endSeconds": 97,
+    "text": "But Tiny is so small that you can watch every number inside it change as it learns, right in your browser. So whenever a new idea shows up, we try it on Tiny first."
+  },
+  {
+    "startSeconds": 97,
+    "endSeconds": 102,
+    "text": "And this is Tiny’s big sibling, Qwen. The real model you’ll train."
+  },
+  {
+    "startSeconds": 102,
+    "endSeconds": 112,
+    "text": "It’s an open model from Alibaba, with about half a billion adjustable numbers inside. Sounds huge, but the models behind chat assistants are hundreds of times bigger."
+  },
+  {
+    "startSeconds": 112,
+    "endSeconds": 115,
+    "text": "Then why not train one of those? Go big!"
+  },
+  {
+    "startSeconds": 115,
+    "endSeconds": 124,
+    "text": "Because Qwen fits on a free GPU. Experiments take hours, not days. And its maths is shaky, so you’ll really see it improve."
+  },
+  {
+    "startSeconds": 124,
+    "endSeconds": 127,
+    "text": "Ha. So it’s small on purpose. I like it."
+  },
+  {
+    "startSeconds": 128,
+    "endSeconds": 138,
+    "text": "To know if Qwen is getting better, we need questions with known answers. We use GSM8K: about eight and a half thousand grade-school maths word problems."
+  },
+  {
+    "startSeconds": 138,
+    "endSeconds": 141,
+    "text": "Each one comes with a worked solution."
+  },
+  {
+    "startSeconds": 141,
+    "endSeconds": 145,
+    "text": "And the final number always sits right at the end, after four hash marks."
+  },
+  {
+    "startSeconds": 145,
+    "endSeconds": 148,
+    "text": "Why does that matter so much?"
+  },
+  {
+    "startSeconds": 148,
+    "endSeconds": 156,
+    "text": "Because a computer can check any answer by itself. Take the model’s last number, compare it with the number after the hashes, done. No human needed."
+  },
+  {
+    "startSeconds": 156,
+    "endSeconds": 159,
+    "text": "Oh! So a program can be the teacher."
+  },
+  {
+    "startSeconds": 160,
+    "endSeconds": 166,
+    "text": "So here’s a question. When Qwen gets a problem like Janet’s ducks wrong, what’s usually going on?"
+  },
+  {
+    "startSeconds": 166,
+    "endSeconds": 169,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 175,
+    "endSeconds": 179,
+    "text": "A, surely. It’s a tiny model. It just can’t do arithmetic."
+  },
+  {
+    "startSeconds": 179,
+    "endSeconds": 185,
+    "text": "Good guess, but no. It’s B. Most of the time, it can do every single step."
+  },
+  {
+    "startSeconds": 185,
+    "endSeconds": 196,
+    "text": "It skips a step, copies a number wrongly, or never says a final answer. What it’s missing is a habit: laying out the steps, and checking them. That habit is what we’ll train."
+  },
+  {
+    "startSeconds": 196,
+    "endSeconds": 200,
+    "text": "Here’s the map. Every stop is a short episode, like this one."
+  },
+  {
+    "startSeconds": 200,
+    "endSeconds": 207,
+    "text": "First, why thinking out loud helps a model at all. Then, how to grade answers with no teacher."
+  },
+  {
+    "startSeconds": 207,
+    "endSeconds": 213,
+    "text": "Next, how a score actually changes a model, and the method behind R1, built step by step on Tiny."
+  },
+  {
+    "startSeconds": 213,
+    "endSeconds": 216,
+    "text": "And when do we get to train Qwen for real?"
+  },
+  {
+    "startSeconds": 216,
+    "endSeconds": 225,
+    "text": "Right after that. Your first real run on a free GPU, then reading the training curves, the famous aha moment, and copying a big model’s thinking into a small one."
+  },
+  {
+    "startSeconds": 225,
+    "endSeconds": 227,
+    "text": "And at the very end?"
+  },
+  {
+    "startSeconds": 227,
+    "endSeconds": 231,
+    "text": "A capstone, where you train a reasoning model of your own."
+  },
+  {
+    "startSeconds": 232,
+    "endSeconds": 234,
+    "text": "Okay, I’m in. What do I need?"
+  },
+  {
+    "startSeconds": 234,
+    "endSeconds": 239,
+    "text": "A free Google account, for Colab, which lends you a GPU right in your browser."
+  },
+  {
+    "startSeconds": 239,
+    "endSeconds": 244,
+    "text": "A free Hugging Face account, which is where the models and datasets live."
+  },
+  {
+    "startSeconds": 244,
+    "endSeconds": 249,
+    "text": "And a browser. That’s it. All the heavy work happens on Google’s machines."
+  },
+  {
+    "startSeconds": 249,
+    "endSeconds": 252,
+    "text": "Total cost: zero. My favourite price!"
+  },
+  {
+    "startSeconds": 252,
+    "endSeconds": 259,
+    "text": "For the labs, it helps to read a short Python loop. For the maths, school averages and percentages are enough."
+  },
+  {
+    "startSeconds": 260,
+    "endSeconds": 264,
+    "text": "Then, your very first notebook: hello GPU."
+  },
+  {
+    "startSeconds": 263,
+    "endSeconds": 270,
+    "text": "Upload it to Colab, switch the runtime to a T4 GPU, and run the cells from top to bottom."
+  },
+  {
+    "startSeconds": 270,
+    "endSeconds": 277,
+    "text": "It checks the GPU, loads Qwen, and asks it twenty maths questions, grading each one by its last number."
+  },
+  {
+    "startSeconds": 277,
+    "endSeconds": 279,
+    "text": "So I get a score out of twenty?"
+  },
+  {
+    "startSeconds": 279,
+    "endSeconds": 288,
+    "text": "Exactly. Write it down. It’s your before photo. Expect a mixed score: measurements of this model land somewhere between a third and a half right."
+  },
+  {
+    "startSeconds": 288,
+    "endSeconds": 291,
+    "text": "So, lots of room to grow. Got it."
+  },
+  {
+    "startSeconds": 292,
+    "endSeconds": 294,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 294,
+    "endSeconds": 299,
+    "text": "We’re teaching a small open model, Qwen, to reason through maths word problems."
+  },
+  {
+    "startSeconds": 299,
+    "endSeconds": 305,
+    "text": "GSM8K answers can be checked by a program, so it learns from scores, with no human teacher."
+  },
+  {
+    "startSeconds": 305,
+    "endSeconds": 308,
+    "text": "And Tiny, the toy, lets us see every idea first."
+  },
+  {
+    "startSeconds": 309,
+    "endSeconds": 312,
+    "text": "One last thing, before you go."
+  },
+  {
+    "startSeconds": 311,
+    "endSeconds": 321,
+    "text": "Remember Janet’s ducks? Answering straight away, a small model often blurts out a wrong number. Asked to write its steps first, it gets it right far more often."
+  },
+  {
+    "startSeconds": 321,
+    "endSeconds": 327,
+    "text": "But wait. That’s the same model, with the same brain. Why would writing things down make it any smarter?"
+  },
+  {
+    "startSeconds": 327,
+    "endSeconds": 333,
+    "text": "That has a surprising answer. And it’s exactly where Module two begins."
+  },
+  {
+    "startSeconds": 333,
+    "endSeconds": 338,
+    "text": "Go run the hello GPU notebook, and write down your before score."
+  },
+  {
+    "startSeconds": 338,
+    "endSeconds": 340,
+    "text": "See you in Module two!"
+  }
+]

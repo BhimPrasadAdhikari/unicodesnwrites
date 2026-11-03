@@ -1,0 +1,287 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 8,
+    "text": "A bat and a ball cost one dollar ten together. The bat costs one dollar more than the ball. How much is the ball?"
+  },
+  {
+    "startSeconds": 8,
+    "endSeconds": 10,
+    "text": "Ten cents! Easy."
+  },
+  {
+    "startSeconds": 10,
+    "endSeconds": 13,
+    "text": "Are you sure?"
+  },
+  {
+    "startSeconds": 13,
+    "endSeconds": 19,
+    "text": "If the ball is ten cents, the bat is a dollar ten. Together, that’s a dollar twenty. It’s wrong."
+  },
+  {
+    "startSeconds": 19,
+    "endSeconds": 23,
+    "text": "Oh no. That’s the answer everyone gives, isn’t it?"
+  },
+  {
+    "startSeconds": 24,
+    "endSeconds": 26,
+    "text": "Now grab a pencil."
+  },
+  {
+    "startSeconds": 26,
+    "endSeconds": 35,
+    "text": "Call the ball x. The bat is x plus a dollar. Together they make a dollar ten, so two x is ten cents, and the ball is five cents."
+  },
+  {
+    "startSeconds": 35,
+    "endSeconds": 38,
+    "text": "Wait. My brain didn’t change between those two tries."
+  },
+  {
+    "startSeconds": 38,
+    "endSeconds": 42,
+    "text": "Exactly. You just gave yourself room to think."
+  },
+  {
+    "startSeconds": 42,
+    "endSeconds": 51,
+    "text": "Language models have the same problem, and the same fix. By the end of this video, you’ll know why writing steps helps a model, and what it costs."
+  },
+  {
+    "startSeconds": 51,
+    "endSeconds": 55,
+    "text": "Answer now, or think first? Episode one."
+  },
+  {
+    "startSeconds": 56,
+    "endSeconds": 60,
+    "text": "Picture two students, with Janet’s ducks from the last episode."
+  },
+  {
+    "startSeconds": 60,
+    "endSeconds": 67,
+    "text": "Student A writes twenty-six dollars. Student B writes out the eggs, the steps, and gets eighteen."
+  },
+  {
+    "startSeconds": 67,
+    "endSeconds": 70,
+    "text": "A is instant. B takes a few seconds longer."
+  },
+  {
+    "startSeconds": 70,
+    "endSeconds": 75,
+    "text": "Both get easy questions right. But only B handles the multi-step ones."
+  },
+  {
+    "startSeconds": 75,
+    "endSeconds": 78,
+    "text": "And when B is wrong, at least you can see which step broke."
+  },
+  {
+    "startSeconds": 78,
+    "endSeconds": 84,
+    "text": "B isn’t cleverer. B just breaks the problem into small steps, each one easy on its own."
+  },
+  {
+    "startSeconds": 85,
+    "endSeconds": 93,
+    "text": "So why do steps help a model? A language model writes one token at a time. A token is a word, or a piece of a word."
+  },
+  {
+    "startSeconds": 93,
+    "endSeconds": 101,
+    "text": "And for every token, it does about the same, fixed amount of computation. Think of it as one coin of thinking per token."
+  },
+  {
+    "startSeconds": 101,
+    "endSeconds": 105,
+    "text": "So if it has to blurt the answer as its very first token..."
+  },
+  {
+    "startSeconds": 104,
+    "endSeconds": 111,
+    "text": "It gets one coin. For two plus two, that’s plenty. For a four-step problem, it’s not."
+  },
+  {
+    "startSeconds": 111,
+    "endSeconds": 115,
+    "text": "But every word of working is another coin it gets to spend on the problem."
+  },
+  {
+    "startSeconds": 115,
+    "endSeconds": 118,
+    "text": "Ohh. So writing steps literally buys it more thinking!"
+  },
+  {
+    "startSeconds": 118,
+    "endSeconds": 123,
+    "text": "Exactly. In papers, writing out steps like this is called chain of thought."
+  },
+  {
+    "startSeconds": 124,
+    "endSeconds": 131,
+    "text": "And there’s a second reason. Quick, Emma. Forty-seven times thirty-six. In your head."
+  },
+  {
+    "startSeconds": 131,
+    "endSeconds": 136,
+    "text": "Forty-seven times thirty-six... carry the... wait, what was the first bit? I’ve lost it."
+  },
+  {
+    "startSeconds": 136,
+    "endSeconds": 146,
+    "text": "Now on paper. Forty-seven times thirty, fourteen ten. Forty-seven times six, two eighty-two. Add them: sixteen ninety-two."
+  },
+  {
+    "startSeconds": 146,
+    "endSeconds": 148,
+    "text": "Okay, that was way easier."
+  },
+  {
+    "startSeconds": 148,
+    "endSeconds": 153,
+    "text": "The paper doesn’t know any maths. It just stops you dropping digits."
+  },
+  {
+    "startSeconds": 153,
+    "endSeconds": 161,
+    "text": "A model is the same. Whatever it writes, it can read back. Nine eggs left sits right there on the page, so the next step builds on it."
+  },
+  {
+    "startSeconds": 162,
+    "endSeconds": 165,
+    "text": "So: more coins, more thinking. Here’s a question."
+  },
+  {
+    "startSeconds": 165,
+    "endSeconds": 171,
+    "text": "Give a model ten times more room to think on hard problems. What happens to its accuracy?"
+  },
+  {
+    "startSeconds": 171,
+    "endSeconds": 173,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 179,
+    "endSeconds": 184,
+    "text": "A! Ten times the coins, ten times the thinking, ten times better. Right?"
+  },
+  {
+    "startSeconds": 184,
+    "endSeconds": 190,
+    "text": "Tempting, but no. It’s B. Accuracy climbs fast at first, and then it levels off."
+  },
+  {
+    "startSeconds": 191,
+    "endSeconds": 196,
+    "text": "Here’s the shape researchers report. This chart is illustrative, not measured."
+  },
+  {
+    "startSeconds": 196,
+    "endSeconds": 201,
+    "text": "With a little room, there’s a big jump. The model can lay out the key steps."
+  },
+  {
+    "startSeconds": 201,
+    "endSeconds": 205,
+    "text": "More room helps less. It double-checks, and catches slips."
+  },
+  {
+    "startSeconds": 205,
+    "endSeconds": 207,
+    "text": "And way too much?"
+  },
+  {
+    "startSeconds": 207,
+    "endSeconds": 213,
+    "text": "Little or no extra gain. Sometimes it even talks itself out of a right answer."
+  },
+  {
+    "startSeconds": 213,
+    "endSeconds": 215,
+    "text": "And meanwhile, every coin costs something."
+  },
+  {
+    "startSeconds": 215,
+    "endSeconds": 223,
+    "text": "Right. Every thinking token takes time, and on a paid AI service, money. On two plus two, it buys you nothing."
+  },
+  {
+    "startSeconds": 224,
+    "endSeconds": 229,
+    "text": "So the goal isn’t to think as long as possible. It’s to think the right amount."
+  },
+  {
+    "startSeconds": 229,
+    "endSeconds": 231,
+    "text": "A quick glance for two plus two."
+  },
+  {
+    "startSeconds": 231,
+    "endSeconds": 234,
+    "text": "A careful page for a four-step word problem."
+  },
+  {
+    "startSeconds": 234,
+    "endSeconds": 237,
+    "text": "Like a student who knows when to grab the pencil."
+  },
+  {
+    "startSeconds": 238,
+    "endSeconds": 240,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 240,
+    "endSeconds": 244,
+    "text": "Every token gets about the same small slice of thinking."
+  },
+  {
+    "startSeconds": 244,
+    "endSeconds": 249,
+    "text": "So writing steps buys the model more thinking, plus a scratchpad it can read back."
+  },
+  {
+    "startSeconds": 249,
+    "endSeconds": 253,
+    "text": "And more thinking helps, then levels off, and it always costs time."
+  },
+  {
+    "startSeconds": 254,
+    "endSeconds": 256,
+    "text": "But here’s the catch."
+  },
+  {
+    "startSeconds": 255,
+    "endSeconds": 262,
+    "text": "In the hello GPU notebook, our prompt already asked Qwen to show its working. And it did."
+  },
+  {
+    "startSeconds": 262,
+    "endSeconds": 267,
+    "text": "Sixteen minus three, thirteen eggs. Times two dollars, twenty-six."
+  },
+  {
+    "startSeconds": 267,
+    "endSeconds": 273,
+    "text": "It skipped the four muffins! So just asking a small model to think... isn’t enough?"
+  },
+  {
+    "startSeconds": 273,
+    "endSeconds": 281,
+    "text": "Asking changes the prompt. Training changes the model. In the next episode, we open the paper that showed how to train a model to think."
+  },
+  {
+    "startSeconds": 282,
+    "endSeconds": 286,
+    "text": "Try the thinking budget slider in the lesson, and find the sweet spot."
+  },
+  {
+    "startSeconds": 286,
+    "endSeconds": 289,
+    "text": "See you in the next episode!"
+  }
+]

@@ -1,0 +1,302 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 5,
+    "text": "Easy fix for rambling! Just take off a little reward for every word."
+  },
+  {
+    "startSeconds": 5,
+    "endSeconds": 9,
+    "text": "Let’s try it. And now Tiny answers in the blink of an eye."
+  },
+  {
+    "startSeconds": 9,
+    "endSeconds": 13,
+    "text": "Wow, so fast! And... wrong. Wrong. Wrong!"
+  },
+  {
+    "startSeconds": 13,
+    "endSeconds": 18,
+    "text": "We told Tiny to be short. We forgot to tell it to be right."
+  },
+  {
+    "startSeconds": 17,
+    "endSeconds": 23,
+    "text": "In this episode: how to pay for short answers, without ever paying for wrong ones."
+  },
+  {
+    "startSeconds": 24,
+    "endSeconds": 27,
+    "text": "Shorter thinking. Episode two."
+  },
+  {
+    "startSeconds": 28,
+    "endSeconds": 33,
+    "text": "First, why bother? Because every word a model writes costs time, and money."
+  },
+  {
+    "startSeconds": 33,
+    "endSeconds": 42,
+    "text": "Just the answer: a few tokens. Short working: about twelve times the cost. Long working with re-checks: about a hundred and twenty times."
+  },
+  {
+    "startSeconds": 42,
+    "endSeconds": 46,
+    "text": "So... no thinking at all? Just answers?"
+  },
+  {
+    "startSeconds": 46,
+    "endSeconds": 54,
+    "text": "No. Brief on easy problems. Longer on hard ones. And never trade a right answer for a short one."
+  },
+  {
+    "startSeconds": 54,
+    "endSeconds": 58,
+    "text": "Think of a delivery company that pays a bonus for speed."
+  },
+  {
+    "startSeconds": 58,
+    "endSeconds": 62,
+    "text": "A parcel that zooms to the wrong address in an hour? No bonus."
+  },
+  {
+    "startSeconds": 62,
+    "endSeconds": 66,
+    "text": "Only parcels that reach the right address get paid extra for being fast."
+  },
+  {
+    "startSeconds": 66,
+    "endSeconds": 69,
+    "text": "So speed only counts once you’re right."
+  },
+  {
+    "startSeconds": 69,
+    "endSeconds": 74,
+    "text": "That’s the golden rule. Length only matters once the answer is right."
+  },
+  {
+    "startSeconds": 74,
+    "endSeconds": 82,
+    "text": "So here are two ways to say: be concise. Both only apply to correct answers. Wrong ones always score zero."
+  },
+  {
+    "startSeconds": 82,
+    "endSeconds": 89,
+    "text": "Shape one, a length penalty. A right answer starts near one, and loses a little for every token, down to one half."
+  },
+  {
+    "startSeconds": 89,
+    "endSeconds": 93,
+    "text": "And a half still beats zero, so being right always wins."
+  },
+  {
+    "startSeconds": 93,
+    "endSeconds": 96,
+    "text": "Exactly. Shape two, a budget."
+  },
+  {
+    "startSeconds": 96,
+    "endSeconds": 101,
+    "text": "Anything under the limit gets full marks. Go over, and the reward slides down."
+  },
+  {
+    "startSeconds": 101,
+    "endSeconds": 106,
+    "text": "So it doesn’t care about forty words versus sixty. It just hates going way over."
+  },
+  {
+    "startSeconds": 107,
+    "endSeconds": 112,
+    "text": "Shape three comes from a paper called DAPO. Picture a road with a wall at the end."
+  },
+  {
+    "startSeconds": 112,
+    "endSeconds": 119,
+    "text": "Every reply has a hard cap. Up to a hundred and fifty tokens, the road is smooth. No penalty."
+  },
+  {
+    "startSeconds": 119,
+    "endSeconds": 124,
+    "text": "Then comes a rumble strip. The penalty ramps down, minus a half, then more."
+  },
+  {
+    "startSeconds": 124,
+    "endSeconds": 129,
+    "text": "At two hundred tokens, the wall: minus one, and the reply is cut off."
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 132,
+    "text": "And this one doesn’t check if the answer is right?"
+  },
+  {
+    "startSeconds": 132,
+    "endSeconds": 138,
+    "text": "Right. You add it to a correctness reward. You feel the strip before you hit the wall."
+  },
+  {
+    "startSeconds": 138,
+    "endSeconds": 146,
+    "text": "Let’s run these on real code. One question, five answers. Four right, of different lengths, and one short wrong one."
+  },
+  {
+    "startSeconds": 146,
+    "endSeconds": 151,
+    "text": "Plain correctness can’t tell the four right answers apart. Same score."
+  },
+  {
+    "startSeconds": 151,
+    "endSeconds": 158,
+    "text": "Switch on the length penalty, and they line up: shorter right answers score higher. The wrong one stays at zero."
+  },
+  {
+    "startSeconds": 159,
+    "endSeconds": 166,
+    "text": "Now remember, GRPO doesn’t use scores directly. It compares each answer to its group’s average."
+  },
+  {
+    "startSeconds": 166,
+    "endSeconds": 171,
+    "text": "Look at the very long answer. Two hundred and fifty-nine tokens, and correct."
+  },
+  {
+    "startSeconds": 170,
+    "endSeconds": 173,
+    "text": "Which way does it get pushed?"
+  },
+  {
+    "startSeconds": 173,
+    "endSeconds": 175,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 181,
+    "endSeconds": 185,
+    "text": "A, surely! It got the answer right, so it gets pushed up."
+  },
+  {
+    "startSeconds": 185,
+    "endSeconds": 189,
+    "text": "That’s what most people think. But it’s B. Down, a little."
+  },
+  {
+    "startSeconds": 190,
+    "endSeconds": 194,
+    "text": "Here’s the group. The scores average out at about point five seven."
+  },
+  {
+    "startSeconds": 194,
+    "endSeconds": 199,
+    "text": "Each answer is pushed by how far it sits above or below that average."
+  },
+  {
+    "startSeconds": 199,
+    "endSeconds": 204,
+    "text": "The short right answer gets a big push up. The very long right answer?"
+  },
+  {
+    "startSeconds": 203,
+    "endSeconds": 210,
+    "text": "Its score, point five, is just below the average. So its push is negative. Minus point two one."
+  },
+  {
+    "startSeconds": 210,
+    "endSeconds": 215,
+    "text": "So a correct answer gets made a little less likely? Because it was long?"
+  },
+  {
+    "startSeconds": 215,
+    "endSeconds": 224,
+    "text": "Yes. That’s the power and the danger of a length reward in one picture. On a hard problem, the long answer might be the only one that solved it."
+  },
+  {
+    "startSeconds": 225,
+    "endSeconds": 227,
+    "text": "So how do we protect the hard problems?"
+  },
+  {
+    "startSeconds": 227,
+    "endSeconds": 235,
+    "text": "One fix: compare lengths within each group. On an easy question, the shortest right answer gets the bonus."
+  },
+  {
+    "startSeconds": 235,
+    "endSeconds": 242,
+    "text": "On a hard question where every right answer is long, there’s nothing shorter to compare with, so nobody is penalised."
+  },
+  {
+    "startSeconds": 242,
+    "endSeconds": 248,
+    "text": "And start gentle. Many people switch the length reward on only after accuracy has climbed."
+  },
+  {
+    "startSeconds": 248,
+    "endSeconds": 255,
+    "text": "In TRL, you just pass two reward functions: correctness, and the overlong rumble strip."
+  },
+  {
+    "startSeconds": 255,
+    "endSeconds": 260,
+    "text": "Reward weights say how much each counts. Here, being right counts twice as much."
+  },
+  {
+    "startSeconds": 260,
+    "endSeconds": 266,
+    "text": "And replies that get cut off at the cap are left out of the loss, instead of counted as failures."
+  },
+  {
+    "startSeconds": 267,
+    "endSeconds": 269,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 269,
+    "endSeconds": 272,
+    "text": "Length only counts once the answer is right."
+  },
+  {
+    "startSeconds": 272,
+    "endSeconds": 277,
+    "text": "You can use a penalty, a budget, or a rumble strip before the wall."
+  },
+  {
+    "startSeconds": 276,
+    "endSeconds": 280,
+    "text": "And keep it gentle, because even a right answer can get pushed down."
+  },
+  {
+    "startSeconds": 281,
+    "endSeconds": 287,
+    "text": "But here’s the thing. Everything so far, Tiny learns by trial and error."
+  },
+  {
+    "startSeconds": 287,
+    "endSeconds": 291,
+    "text": "Thousands of tries, mostly wrong, nudged by a score."
+  },
+  {
+    "startSeconds": 291,
+    "endSeconds": 297,
+    "text": "Wait. What if Tiny just copied the homework of a much bigger model? Every step, written out?"
+  },
+  {
+    "startSeconds": 297,
+    "endSeconds": 302,
+    "text": "DeepSeek tried exactly that, against trial and error, on the same small models."
+  },
+  {
+    "startSeconds": 302,
+    "endSeconds": 305,
+    "text": "And one of them won by a mile."
+  },
+  {
+    "startSeconds": 306,
+    "endSeconds": 310,
+    "text": "Try the three length rewards yourself, in the lesson below this video."
+  },
+  {
+    "startSeconds": 310,
+    "endSeconds": 312,
+    "text": "See you in the next episode!"
+  }
+]

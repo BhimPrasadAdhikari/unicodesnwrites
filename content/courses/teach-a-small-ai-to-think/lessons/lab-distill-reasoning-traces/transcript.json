@@ -1,0 +1,282 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 5,
+    "text": "Okay, let’s actually do it. Copy a big model’s thinking into a small one."
+  },
+  {
+    "startSeconds": 5,
+    "endSeconds": 11,
+    "text": "Our student is Qwen, the real half-a-billion-parameter model. Tiny’s big sibling."
+  },
+  {
+    "startSeconds": 11,
+    "endSeconds": 17,
+    "text": "We’ll show it about a thousand worked answers, on a free GPU, in under an hour."
+  },
+  {
+    "startSeconds": 16,
+    "endSeconds": 19,
+    "text": "That sounds almost too easy."
+  },
+  {
+    "startSeconds": 19,
+    "endSeconds": 25,
+    "text": "Here’s the twist to watch for. A student often learns to sound like the teacher, before it learns to think like it."
+  },
+  {
+    "startSeconds": 26,
+    "endSeconds": 30,
+    "text": "Copying a big model’s thinking. Episode two."
+  },
+  {
+    "startSeconds": 31,
+    "endSeconds": 40,
+    "text": "We open a free dataset of worked answers, written in the style of DeepSeek R1. About seven and a half thousand school maths problems."
+  },
+  {
+    "startSeconds": 40,
+    "endSeconds": 42,
+    "text": "Do we just trust it?"
+  },
+  {
+    "startSeconds": 42,
+    "endSeconds": 50,
+    "text": "Never. Read some first. In the first hundred rows, ninety-seven were marked correct, and they all matched the real answers."
+  },
+  {
+    "startSeconds": 50,
+    "endSeconds": 55,
+    "text": "But look at the length. Problems a person solves in three lines get a whole page of thinking."
+  },
+  {
+    "startSeconds": 55,
+    "endSeconds": 59,
+    "text": "Keep an eye on that. It’ll matter later."
+  },
+  {
+    "startSeconds": 59,
+    "endSeconds": 65,
+    "text": "Step one: rewrite each answer into our format. We keep the thinking."
+  },
+  {
+    "startSeconds": 64,
+    "endSeconds": 69,
+    "text": "But the teacher writes its final answer in a box, inside a sentence."
+  },
+  {
+    "startSeconds": 69,
+    "endSeconds": 73,
+    "text": "So we pull out the number, and rebuild the reply with our answer tags."
+  },
+  {
+    "startSeconds": 73,
+    "endSeconds": 76,
+    "text": "Same habit everywhere: think, then answer."
+  },
+  {
+    "startSeconds": 77,
+    "endSeconds": 86,
+    "text": "Step two: a free GPU can’t handle huge answers, so we drop anything over a thousand and twenty-four tokens, and keep the first thousand."
+  },
+  {
+    "startSeconds": 85,
+    "endSeconds": 89,
+    "text": "The long ones are too big. Out they go."
+  },
+  {
+    "startSeconds": 88,
+    "endSeconds": 92,
+    "text": "Wait. So we only keep the teacher’s shorter answers?"
+  },
+  {
+    "startSeconds": 92,
+    "endSeconds": 96,
+    "text": "Exactly. What you filter is what you teach."
+  },
+  {
+    "startSeconds": 96,
+    "endSeconds": 102,
+    "text": "The student copies style as well as skill. By picking shorter answers, we’re teaching it to be more concise."
+  },
+  {
+    "startSeconds": 103,
+    "endSeconds": 107,
+    "text": "Step three: measure before you train. Always."
+  },
+  {
+    "startSeconds": 107,
+    "endSeconds": 109,
+    "text": "Like a before photo."
+  },
+  {
+    "startSeconds": 109,
+    "endSeconds": 113,
+    "text": "Right. Then we train, and measure again."
+  },
+  {
+    "startSeconds": 113,
+    "endSeconds": 121,
+    "text": "On the same two hundred test problems, which the student has never seen, always picking its most likely answer, so nothing is luck."
+  },
+  {
+    "startSeconds": 120,
+    "endSeconds": 128,
+    "text": "Three numbers: accuracy, format, and tokens. Is it right, does it use the tags, and how long does it think?"
+  },
+  {
+    "startSeconds": 128,
+    "endSeconds": 136,
+    "text": "Step four, training. Instead of rewriting all five hundred million weights, we add sticky notes. That’s LoRA."
+  },
+  {
+    "startSeconds": 136,
+    "endSeconds": 140,
+    "text": "Like scribbling in the margins of a textbook, instead of reprinting it."
+  },
+  {
+    "startSeconds": 140,
+    "endSeconds": 147,
+    "text": "Exactly. And the student is only graded on the teacher’s reply, not on copying the question back."
+  },
+  {
+    "startSeconds": 147,
+    "endSeconds": 153,
+    "text": "One more detail: the free GPU needs sixteen-bit numbers of the older kind. The script switches for you."
+  },
+  {
+    "startSeconds": 154,
+    "endSeconds": 159,
+    "text": "Training’s done. Of our three numbers, which one usually changes first?"
+  },
+  {
+    "startSeconds": 159,
+    "endSeconds": 161,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 167,
+    "endSeconds": 171,
+    "text": "A! It copied a much smarter model, so it should just get smarter."
+  },
+  {
+    "startSeconds": 171,
+    "endSeconds": 176,
+    "text": "That’s the hope. But usually it’s B. Format and length."
+  },
+  {
+    "startSeconds": 177,
+    "endSeconds": 179,
+    "text": "Here’s how to read your table."
+  },
+  {
+    "startSeconds": 179,
+    "endSeconds": 183,
+    "text": "Format jumps to nearly a hundred percent? It learned the layout from the teacher."
+  },
+  {
+    "startSeconds": 183,
+    "endSeconds": 188,
+    "text": "Tokens jump a lot? It copied the teacher’s long thinking style."
+  },
+  {
+    "startSeconds": 187,
+    "endSeconds": 192,
+    "text": "Accuracy rises? The copied reasoning is actually helping."
+  },
+  {
+    "startSeconds": 192,
+    "endSeconds": 196,
+    "text": "And if accuracy stays flat, but the answers got way longer?"
+  },
+  {
+    "startSeconds": 195,
+    "endSeconds": 200,
+    "text": "Then it copied the style, more than the skill. Accuracy is the honest measure."
+  },
+  {
+    "startSeconds": 201,
+    "endSeconds": 206,
+    "text": "Then read at least three replies yourself. Does the student say wait, let me check?"
+  },
+  {
+    "startSeconds": 206,
+    "endSeconds": 209,
+    "text": "A real check recomputes a step."
+  },
+  {
+    "startSeconds": 209,
+    "endSeconds": 213,
+    "text": "An empty one just says the words, and changes nothing."
+  },
+  {
+    "startSeconds": 212,
+    "endSeconds": 216,
+    "text": "Ha. So it’s a parrot. It learned the catchphrase!"
+  },
+  {
+    "startSeconds": 216,
+    "endSeconds": 224,
+    "text": "Sometimes. So find one problem it used to get right, and now gets wrong, and ask why. That’s the most useful thing in this lab."
+  },
+  {
+    "startSeconds": 225,
+    "endSeconds": 227,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 227,
+    "endSeconds": 231,
+    "text": "You don’t need the teacher running. Just its saved answers."
+  },
+  {
+    "startSeconds": 231,
+    "endSeconds": 234,
+    "text": "What you filter is what you teach, including length."
+  },
+  {
+    "startSeconds": 234,
+    "endSeconds": 239,
+    "text": "And measure before and after. Trust accuracy, then read the replies."
+  },
+  {
+    "startSeconds": 240,
+    "endSeconds": 247,
+    "text": "And that’s every tool in the box. Rewards, GRPO, curves, shorter thinking, and copying."
+  },
+  {
+    "startSeconds": 247,
+    "endSeconds": 252,
+    "text": "So next, it’s your turn. Your own task, your own model, with your name on it."
+  },
+  {
+    "startSeconds": 252,
+    "endSeconds": 255,
+    "text": "Wait, me? Train my own reasoning model?"
+  },
+  {
+    "startSeconds": 255,
+    "endSeconds": 259,
+    "text": "But pick the wrong task, and the model starts at zero."
+  },
+  {
+    "startSeconds": 259,
+    "endSeconds": 264,
+    "text": "And then every group scores the same, and it learns nothing! So how do I pick a good one?"
+  },
+  {
+    "startSeconds": 264,
+    "endSeconds": 267,
+    "text": "Next episode: the capstone."
+  },
+  {
+    "startSeconds": 267,
+    "endSeconds": 271,
+    "text": "The notebook for this lab is linked below this video."
+  },
+  {
+    "startSeconds": 271,
+    "endSeconds": 273,
+    "text": "See you in the next episode!"
+  }
+]

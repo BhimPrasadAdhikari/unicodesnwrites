@@ -1,0 +1,312 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 7,
+    "text": "January, twenty twenty-five. A lab in Hangzhou publishes a paper with a bold claim."
+  },
+  {
+    "startSeconds": 7,
+    "endSeconds": 16,
+    "text": "You can teach a model to reason, to write careful working, check itself and fix its mistakes, without ever showing it one example of careful working."
+  },
+  {
+    "startSeconds": 15,
+    "endSeconds": 18,
+    "text": "Not one example? Come on."
+  },
+  {
+    "startSeconds": 18,
+    "endSeconds": 24,
+    "text": "On a hard competition maths test, its score went from fifteen point six percent to seventy-one."
+  },
+  {
+    "startSeconds": 24,
+    "endSeconds": 27,
+    "text": "Okay. That’s... not nothing."
+  },
+  {
+    "startSeconds": 27,
+    "endSeconds": 34,
+    "text": "The paper was DeepSeek R1. Today we read it together, in plain words. It’s the blueprint for this course."
+  },
+  {
+    "startSeconds": 35,
+    "endSeconds": 39,
+    "text": "How R1 learned to think. Episode two."
+  },
+  {
+    "startSeconds": 40,
+    "endSeconds": 43,
+    "text": "The paper describes a little family of models."
+  },
+  {
+    "startSeconds": 43,
+    "endSeconds": 51,
+    "text": "R1-Zero: pure practice, from scores alone. No examples first. It’s the proof that the idea works."
+  },
+  {
+    "startSeconds": 51,
+    "endSeconds": 56,
+    "text": "R1: the polished version, with a few extra steps to make it readable."
+  },
+  {
+    "startSeconds": 56,
+    "endSeconds": 58,
+    "text": "Aww, and the little ones?"
+  },
+  {
+    "startSeconds": 58,
+    "endSeconds": 67,
+    "text": "The distilled models: small Qwen and Llama models that learned by copying R1’s answers. Keep an eye on them. They’re the twist at the end."
+  },
+  {
+    "startSeconds": 67,
+    "endSeconds": 74,
+    "text": "Here’s how R1-Zero was trained. Take maths and coding problems whose answers a computer can check."
+  },
+  {
+    "startSeconds": 74,
+    "endSeconds": 81,
+    "text": "Give the model a fixed template. Think first, inside think tags. Then answer, inside answer tags."
+  },
+  {
+    "startSeconds": 81,
+    "endSeconds": 85,
+    "text": "So it tells the model where to think... but not how?"
+  },
+  {
+    "startSeconds": 85,
+    "endSeconds": 94,
+    "text": "Exactly. No example reasoning to copy. It tries each problem many times, every try gets a score, and the high scorers become more likely."
+  },
+  {
+    "startSeconds": 95,
+    "endSeconds": 99,
+    "text": "And the scores come from just two rules, both checked by ordinary code."
+  },
+  {
+    "startSeconds": 99,
+    "endSeconds": 107,
+    "text": "Accuracy. Is the final answer right? For maths, compare it with the known answer. For code, run the tests."
+  },
+  {
+    "startSeconds": 107,
+    "endSeconds": 111,
+    "text": "And format. Is the thinking inside the think tags?"
+  },
+  {
+    "startSeconds": 110,
+    "endSeconds": 115,
+    "text": "Why not get another AI to judge the answers? Wouldn’t that be smarter?"
+  },
+  {
+    "startSeconds": 115,
+    "endSeconds": 126,
+    "text": "They chose not to. A model in training hunts hard for anything that scores well, and it can learn to fool a judge AI. That’s called reward hacking. Plain code is cheap, and hard to fool."
+  },
+  {
+    "startSeconds": 127,
+    "endSeconds": 134,
+    "text": "The training method is called GRPO. For each question, the model writes a group of answers."
+  },
+  {
+    "startSeconds": 134,
+    "endSeconds": 141,
+    "text": "Each one gets scored. The ones that beat the group’s average get pushed up. The ones below it get pushed down."
+  },
+  {
+    "startSeconds": 141,
+    "endSeconds": 143,
+    "text": "Ha, like grading on a curve!"
+  },
+  {
+    "startSeconds": 143,
+    "endSeconds": 147,
+    "text": "Pretty much. We’ll build it from scratch in Module five."
+  },
+  {
+    "startSeconds": 147,
+    "endSeconds": 155,
+    "text": "So R1-Zero trains. Score, nudge, repeat. And nobody ever rewards how long an answer is."
+  },
+  {
+    "startSeconds": 155,
+    "endSeconds": 158,
+    "text": "So what happened to the length of its answers?"
+  },
+  {
+    "startSeconds": 157,
+    "endSeconds": 160,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 166,
+    "endSeconds": 171,
+    "text": "B, shorter! Fewer words, less effort, same reward. I’d do that."
+  },
+  {
+    "startSeconds": 171,
+    "endSeconds": 177,
+    "text": "Makes sense, but no. It’s C. The answers grew longer, all on their own."
+  },
+  {
+    "startSeconds": 177,
+    "endSeconds": 184,
+    "text": "The model discovered that spending more tokens on thinking led to more right answers. And right answers were what got rewarded."
+  },
+  {
+    "startSeconds": 184,
+    "endSeconds": 191,
+    "text": "Here’s the shape. This chart is illustrative. It follows the pattern in the paper, not its exact data."
+  },
+  {
+    "startSeconds": 191,
+    "endSeconds": 195,
+    "text": "Answers get longer and longer as training goes on."
+  },
+  {
+    "startSeconds": 195,
+    "endSeconds": 201,
+    "text": "And partway through, the authors spotted something odd. The model stopped in the middle of a solution, and wrote..."
+  },
+  {
+    "startSeconds": 201,
+    "endSeconds": 206,
+    "text": "Wait, wait. Wait. That’s an aha moment I can flag here."
+  },
+  {
+    "startSeconds": 206,
+    "endSeconds": 214,
+    "text": "Then it went back and re-checked its approach. Nobody taught it to re-check. It showed up because, sometimes, re-checking led to a right answer."
+  },
+  {
+    "startSeconds": 215,
+    "endSeconds": 222,
+    "text": "But R1-Zero had a problem. Its working was hard to read, and it switched between English and Chinese mid-thought."
+  },
+  {
+    "startSeconds": 222,
+    "endSeconds": 224,
+    "text": "Why would it do that?"
+  },
+  {
+    "startSeconds": 224,
+    "endSeconds": 232,
+    "text": "Because nothing in its rewards cared about reading well. The model optimizes exactly what you reward, and nothing else."
+  },
+  {
+    "startSeconds": 233,
+    "endSeconds": 236,
+    "text": "So for R1, they built a four-stage recipe."
+  },
+  {
+    "startSeconds": 236,
+    "endSeconds": 243,
+    "text": "One. A cold start: a small warm-up on thousands of long, readable worked solutions."
+  },
+  {
+    "startSeconds": 242,
+    "endSeconds": 248,
+    "text": "Two. Reasoning practice with scores, plus a new reward for sticking to one language."
+  },
+  {
+    "startSeconds": 248,
+    "endSeconds": 250,
+    "text": "Did that cost them anything?"
+  },
+  {
+    "startSeconds": 250,
+    "endSeconds": 258,
+    "text": "A little. Benchmark scores dipped slightly. They kept it anyway, because the output was far easier to read. Rewards are trade-offs."
+  },
+  {
+    "startSeconds": 258,
+    "endSeconds": 268,
+    "text": "Three. Generate lots of answers, keep the good ones, and fine-tune on them. Four. One last round of practice, to polish the final assistant."
+  },
+  {
+    "startSeconds": 268,
+    "endSeconds": 272,
+    "text": "And now, the twist. The little models."
+  },
+  {
+    "startSeconds": 272,
+    "endSeconds": 280,
+    "text": "The authors asked: what if we skip the teacher, and train a smaller model with practice alone? They tried it on a thirty-two billion parameter Qwen."
+  },
+  {
+    "startSeconds": 280,
+    "endSeconds": 284,
+    "text": "With practice alone, it scored forty-seven on that hard maths test."
+  },
+  {
+    "startSeconds": 284,
+    "endSeconds": 289,
+    "text": "Copying R1’s answers instead, it scored seventy-two point six."
+  },
+  {
+    "startSeconds": 289,
+    "endSeconds": 294,
+    "text": "Wait. So copying beat practice? Then why is this course all about practice?"
+  },
+  {
+    "startSeconds": 294,
+    "endSeconds": 301,
+    "text": "Fair question. You don’t always have a teacher to copy, and practice is how the teacher was made. Later, we do both."
+  },
+  {
+    "startSeconds": 302,
+    "endSeconds": 305,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 304,
+    "endSeconds": 309,
+    "text": "R1-Zero learned to reason from scores alone. No worked examples."
+  },
+  {
+    "startSeconds": 309,
+    "endSeconds": 314,
+    "text": "The scores came from two rules checked by plain code: accuracy, and format."
+  },
+  {
+    "startSeconds": 314,
+    "endSeconds": 320,
+    "text": "Its answers grew longer by themselves. And for small models, copying a teacher can beat practice."
+  },
+  {
+    "startSeconds": 321,
+    "endSeconds": 323,
+    "text": "Here’s what gets me."
+  },
+  {
+    "startSeconds": 323,
+    "endSeconds": 330,
+    "text": "The whole recipe hangs on two tiny rules. Is it right, and is it tidy. And there’s no teacher anywhere."
+  },
+  {
+    "startSeconds": 330,
+    "endSeconds": 334,
+    "text": "That’s right. A program hands out every single score."
+  },
+  {
+    "startSeconds": 334,
+    "endSeconds": 339,
+    "text": "But how does a program grade a maths answer it doesn’t understand? And what can it grade at all?"
+  },
+  {
+    "startSeconds": 339,
+    "endSeconds": 345,
+    "text": "That’s the secret ingredient. In the next episode: grading without a teacher."
+  },
+  {
+    "startSeconds": 345,
+    "endSeconds": 350,
+    "text": "Open the length and aha chart in the lesson, and find the aha moment yourself."
+  },
+  {
+    "startSeconds": 350,
+    "endSeconds": 353,
+    "text": "See you in the next episode!"
+  }
+]

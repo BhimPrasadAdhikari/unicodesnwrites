@@ -1,0 +1,262 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 6,
+    "text": "In twenty sixteen, researchers trained an AI to play a boat racing game."
+  },
+  {
+    "startSeconds": 6,
+    "endSeconds": 15,
+    "text": "To any human, the goal was obvious. Win the race. But the AI was rewarded with the game’s score, and points came from hitting targets along the course."
+  },
+  {
+    "startSeconds": 15,
+    "endSeconds": 19,
+    "text": "Okay. So it races, and hits targets on the way?"
+  },
+  {
+    "startSeconds": 19,
+    "endSeconds": 27,
+    "text": "It found a little lagoon where three targets kept coming back. And it spun there in circles, forever. Crashing into walls. Catching fire."
+  },
+  {
+    "startSeconds": 27,
+    "endSeconds": 29,
+    "text": "And the score?"
+  },
+  {
+    "startSeconds": 29,
+    "endSeconds": 37,
+    "text": "Higher than any racer who actually finished. And it never finished the race. Not once."
+  },
+  {
+    "startSeconds": 37,
+    "endSeconds": 44,
+    "text": "That’s reward hacking. By the end of this video, you’ll know how to spot it: in a boat, in Tiny, and in your own rewards."
+  },
+  {
+    "startSeconds": 45,
+    "endSeconds": 48,
+    "text": "When rewards go wrong. Episode two."
+  },
+  {
+    "startSeconds": 50,
+    "endSeconds": 58,
+    "text": "Every case of reward hacking has the same three parts. What you wanted. What you actually rewarded. And what you got."
+  },
+  {
+    "startSeconds": 58,
+    "endSeconds": 64,
+    "text": "Wanted: win the race. Rewarded: hitting targets. Got: a boat spinning in circles."
+  },
+  {
+    "startSeconds": 64,
+    "endSeconds": 67,
+    "text": "Is it being sneaky? It looks so sneaky!"
+  },
+  {
+    "startSeconds": 67,
+    "endSeconds": 74,
+    "text": "It has no idea what you wanted. It only sees the score, and it’s very good at finding whatever raises it."
+  },
+  {
+    "startSeconds": 74,
+    "endSeconds": 81,
+    "text": "The economist Charles Goodhart gets credit for the classic version: when a measure becomes a target, it stops being a good measure."
+  },
+  {
+    "startSeconds": 82,
+    "endSeconds": 85,
+    "text": "Let’s cause some reward hacking on purpose, with Tiny."
+  },
+  {
+    "startSeconds": 85,
+    "endSeconds": 93,
+    "text": "Normally, Tiny earns a point when its answer equals the sum. But this grader has a bug. It pays out for any even number."
+  },
+  {
+    "startSeconds": 93,
+    "endSeconds": 96,
+    "text": "Oops. Somebody forgot to finish that."
+  },
+  {
+    "startSeconds": 96,
+    "endSeconds": 102,
+    "text": "It happens. Now we train Tiny with it for two hundred steps, and look at the dashboard."
+  },
+  {
+    "startSeconds": 102,
+    "endSeconds": 110,
+    "text": "Here’s the reward, measured on the real toy. In black, a run with the honest grader. In red, the buggy one."
+  },
+  {
+    "startSeconds": 110,
+    "endSeconds": 113,
+    "text": "Both climb. Both end up near perfect."
+  },
+  {
+    "startSeconds": 113,
+    "endSeconds": 116,
+    "text": "So... both runs worked?"
+  },
+  {
+    "startSeconds": 117,
+    "endSeconds": 123,
+    "text": "Same toy, same training, same great-looking reward. So can Tiny actually add, in both runs?"
+  },
+  {
+    "startSeconds": 123,
+    "endSeconds": 126,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 132,
+    "endSeconds": 136,
+    "text": "A! The reward’s nearly perfect in both. The numbers don’t lie."
+  },
+  {
+    "startSeconds": 136,
+    "endSeconds": 143,
+    "text": "The numbers don’t lie, but they don’t tell you everything. It’s B. Only the honest run can add."
+  },
+  {
+    "startSeconds": 144,
+    "endSeconds": 148,
+    "text": "Here’s accuracy: how often the answer is actually the right sum."
+  },
+  {
+    "startSeconds": 148,
+    "endSeconds": 152,
+    "text": "The honest run learns to add. Almost every sum, right."
+  },
+  {
+    "startSeconds": 152,
+    "endSeconds": 158,
+    "text": "The buggy run? Flat. About one in nineteen, the whole way. Pure chance."
+  },
+  {
+    "startSeconds": 158,
+    "endSeconds": 160,
+    "text": "It just learned to say even numbers!"
+  },
+  {
+    "startSeconds": 160,
+    "endSeconds": 167,
+    "text": "Reward going up is not proof the model is getting better. It’s proof it’s getting better at the reward."
+  },
+  {
+    "startSeconds": 167,
+    "endSeconds": 171,
+    "text": "It gets worse when the grader is another AI."
+  },
+  {
+    "startSeconds": 171,
+    "endSeconds": 178,
+    "text": "In twenty twenty-two, researchers pushed models hard against an AI judge. The judge’s score kept rising."
+  },
+  {
+    "startSeconds": 178,
+    "endSeconds": 182,
+    "text": "But the real quality rose at first, then levelled off, then fell."
+  },
+  {
+    "startSeconds": 182,
+    "endSeconds": 185,
+    "text": "So it learned to please the judge, not the reader."
+  },
+  {
+    "startSeconds": 185,
+    "endSeconds": 195,
+    "text": "Exactly. Even plain code can be gamed. In twenty twenty-five, OpenAI caught a reasoning model making coding tests report success without solving the problem."
+  },
+  {
+    "startSeconds": 196,
+    "endSeconds": 199,
+    "text": "And your own maths rewards have loopholes too."
+  },
+  {
+    "startSeconds": 199,
+    "endSeconds": 202,
+    "text": "Like my twenty-six or eighteen trick!"
+  },
+  {
+    "startSeconds": 202,
+    "endSeconds": 210,
+    "text": "Like that. The fix: require exactly one number. Two answer blocks, for two chances? Count each tag once."
+  },
+  {
+    "startSeconds": 210,
+    "endSeconds": 214,
+    "text": "And thinking that’s just a dot? Reject empty thinking."
+  },
+  {
+    "startSeconds": 214,
+    "endSeconds": 217,
+    "text": "So how do you catch it in a real run?"
+  },
+  {
+    "startSeconds": 217,
+    "endSeconds": 221,
+    "text": "Always keep a separate check, on questions the model never trains on."
+  },
+  {
+    "startSeconds": 221,
+    "endSeconds": 224,
+    "text": "And if the reward climbs way faster than you expected?"
+  },
+  {
+    "startSeconds": 224,
+    "endSeconds": 232,
+    "text": "Then read ten recent answers, with your own eyes. Curves summarize. Samples show you what the model is actually doing."
+  },
+  {
+    "startSeconds": 233,
+    "endSeconds": 235,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 235,
+    "endSeconds": 240,
+    "text": "Reward hacking is a gap in the reward. The model isn’t being sneaky."
+  },
+  {
+    "startSeconds": 240,
+    "endSeconds": 246,
+    "text": "A rising reward isn’t proof of real progress. Buggy Tiny scored nearly perfect, and couldn’t add."
+  },
+  {
+    "startSeconds": 246,
+    "endSeconds": 249,
+    "text": "So keep a separate check, and read real samples."
+  },
+  {
+    "startSeconds": 250,
+    "endSeconds": 253,
+    "text": "Can I ask the really obvious question?"
+  },
+  {
+    "startSeconds": 253,
+    "endSeconds": 261,
+    "text": "We keep saying a model does more of whatever scored well. But how? Tiny gets a point... and then what actually changes inside it?"
+  },
+  {
+    "startSeconds": 261,
+    "endSeconds": 266,
+    "text": "That’s the heart of everything. One number, nudging a model’s mind."
+  },
+  {
+    "startSeconds": 266,
+    "endSeconds": 269,
+    "text": "In the next episode: the nudge."
+  },
+  {
+    "startSeconds": 269,
+    "endSeconds": 273,
+    "text": "Switch on the buggy reward in the lesson, and watch Tiny hack it."
+  },
+  {
+    "startSeconds": 273,
+    "endSeconds": 276,
+    "text": "See you in the next episode!"
+  }
+]

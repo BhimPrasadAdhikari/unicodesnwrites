@@ -25,7 +25,7 @@ async function main() {
   const input = { ...loadCourseFolder(process.cwd(), slug), status: 'draft' as const, featured: false };
   const lessons = input.modules.flatMap((module) => module.lessons);
   console.log(`"${input.title}": ${input.modules.length} modules, ${lessons.length} lessons`);
-  console.log(`  videos ${lessons.filter((l) => l.videoUrl).length}, interactives ${lessons.filter((l) => l.interactive).length}, walkthroughs ${lessons.filter((l) => l.codeWalkthrough).length}`);
+  console.log(`  videos ${lessons.filter((l) => l.videoUrl || l.youtubeVideoId).length}, interactives ${lessons.filter((l) => l.interactive).length}, walkthroughs ${lessons.filter((l) => l.codeWalkthrough).length}`);
   console.log(`  quiz questions ${lessons.reduce((n, l) => n + l.quiz.length, 0)}, exercises ${lessons.reduce((n, l) => n + l.exercises.length, 0)}, downloads ${lessons.reduce((n, l) => n + l.resources.length, 0)}`);
   if (checkOnly) return;
 
