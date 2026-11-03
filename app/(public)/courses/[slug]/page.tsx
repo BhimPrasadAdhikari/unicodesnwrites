@@ -1,7 +1,20 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Check, CheckCircle2, ChevronDown, FileText, PlayCircle, Users } from 'lucide-react';
+import {
+  Award,
+  BarChart3,
+  BookOpen,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  FileText,
+  ListChecks,
+  MousePointerClick,
+  PlayCircle,
+  Users,
+} from 'lucide-react';
 
 import { Container } from '@/components/ui/Section';
 import { SiteIconCell } from '@/components/ui/SiteIcon';
@@ -70,10 +83,17 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const openModuleKey =
     course.modules.find((module) => module.lessons.some((lesson) => lesson.slug === (enrolled ? resumeLessonSlug : course.firstLessonSlug)))?.key ??
     course.modules[0]?.key;
-  const stats: Array<[string, string]> = [
-    [String(course.lessonCount), 'Lessons'],
-    [formatDuration(course.durationMinutes), 'To finish'],
-    [String(course.quizCount), 'Quiz questions'],
+  const lessons = course.modules.flatMap((module) => module.lessons);
+  const videoCount = lessons.filter((lesson) => lesson.hasVideo).length;
+  const interactiveCount = lessons.filter((lesson) => lesson.hasInteractive).length;
+  const facts = [
+    { icon: BarChart3, label: `${course.level.charAt(0).toUpperCase()}${course.level.slice(1)} level` },
+    { icon: Clock3, label: `${formatDuration(course.durationMinutes)} to finish` },
+    { icon: BookOpen, label: `${course.lessonCount} lessons in ${course.modules.length} parts` },
+    ...(videoCount ? [{ icon: PlayCircle, label: `${videoCount} video lessons` }] : []),
+    ...(interactiveCount ? [{ icon: MousePointerClick, label: `${interactiveCount} hands-on interactives` }] : []),
+    ...(course.quizCount ? [{ icon: ListChecks, label: `${course.quizCount} quiz questions` }] : []),
+    { icon: Award, label: 'Certificate when you finish' },
   ];
   const enrollmentAction = course.firstLessonSlug ? (
     <CourseEnrollmentAction
@@ -155,16 +175,14 @@ export default async function CourseDetailPage({ params }: PageProps) {
                   See the lessons
                 </a>
               </div>
-              <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3 border-t border-border pt-6">
-                {stats.map(([value, label]) => (
-                  <div key={label}>
-                    <dt className="sr-only">{label}</dt>
-                    <dd className="font-serif text-2xl font-medium leading-none">{value}</dd>
-                    <dd className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{label}</dd>
-                  </div>
+              <ul className="mt-7 flex flex-wrap gap-2" aria-label="Course at a glance">
+                {[`${course.lessonCount} lessons`, formatDuration(course.durationMinutes), course.level, 'Certificate'].map((pill) => (
+                  <li key={pill} className="rounded-full border border-border px-3 py-1 font-mono text-[12px] capitalize text-muted-foreground">
+                    {pill}
+                  </li>
                 ))}
-              </dl>
-              <p className="mt-6 text-xs text-muted-foreground">Created and taught by {course.instructorName}</p>
+              </ul>
+              <p className="mt-5 text-xs text-muted-foreground">Created and taught by {course.instructorName}</p>
             </div>
 
             {course.introVideoId ? (
@@ -182,11 +200,27 @@ export default async function CourseDetailPage({ params }: PageProps) {
         </Container>
       </section>
 
-      <Container className="max-w-4xl space-y-20 py-16 sm:py-20">
-        <section aria-labelledby="outcomes">
-          <p className="text-eyebrow text-primary">What you will learn</p>
-          <h2 id="outcomes" className="mt-2 font-serif text-3xl font-medium">By the end, you can</h2>
-          <ul className="mt-8 grid gap-x-10 gap-y-5 sm:grid-cols-2">
+      <nav aria-label="Course sections" className="sticky top-16 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <Container className="flex max-w-6xl gap-6 overflow-x-auto text-sm [scrollbar-width:none]">
+          {[
+            ['#outcomes', 'What you will learn'],
+            ['#curriculum', 'Lessons'],
+            ['#audience', 'Who it’s for'],
+            ['#about', 'About'],
+          ].map(([href, label]) => (
+            <a key={href} href={href} className="shrink-0 border-b-2 border-transparent py-3.5 text-muted-foreground transition-colors hover:border-primary hover:text-foreground">
+              {label}
+            </a>
+          ))}
+        </Container>
+      </nav>
+
+      <Container className="max-w-6xl py-12 sm:py-14">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-12">
+        <div className="min-w-0 space-y-14">
+        <section id="outcomes" aria-labelledby="outcomes-title" className="scroll-mt-32 rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <h2 id="outcomes-title" className="font-serif text-2xl font-medium">What you will learn</h2>
+          <ul className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2">
             {course.learningOutcomes.map((outcome) => (
               <li key={outcome} className="flex gap-3 text-[15px] leading-6">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
@@ -196,26 +230,23 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </ul>
         </section>
 
-        <section id="curriculum" aria-labelledby="curriculum-title" className="scroll-mt-24">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-eyebrow text-primary">Lessons</p>
-              <h2 id="curriculum-title" className="mt-2 font-serif text-3xl font-medium">The course, part by part</h2>
-            </div>
+        <section id="curriculum" aria-labelledby="curriculum-title" className="scroll-mt-32">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 id="curriculum-title" className="font-serif text-2xl font-medium">Lessons</h2>
             <p className="font-mono text-[12px] text-muted-foreground">
               {course.modules.length} parts · {course.lessonCount} lessons · {formatDuration(course.durationMinutes)}
             </p>
           </div>
-          <div className="mt-8 divide-y divide-border border-y border-border">
+          <div className="mt-5 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
             {course.modules.map((module, moduleIndex) => {
               const minutes = module.lessons.reduce((total, lesson) => total + lesson.durationMinutes, 0);
               const done = module.lessons.filter((lesson) => completedSlugs.has(lesson.slug)).length;
               return (
                 <details key={module.key} open={module.key === openModuleKey} className="group/module">
-                  <summary className="flex cursor-pointer list-none items-start gap-4 py-5 [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-start gap-4 px-5 py-4 transition-colors hover:bg-secondary/50 [&::-webkit-details-marker]:hidden">
                     <span className="mt-0.5 w-8 shrink-0 font-mono text-[13px] text-muted-foreground">{String(moduleIndex + 1).padStart(2, '0')}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-lg font-medium leading-snug">{module.title}</span>
+                      <span className="block text-[17px] font-medium leading-snug">{module.title}</span>
                       <span className="mt-1 block text-sm leading-6 text-muted-foreground">{module.description}</span>
                     </span>
                     <span className="hidden shrink-0 pt-1 text-right font-mono text-[12px] text-muted-foreground sm:block">
@@ -223,14 +254,14 @@ export default async function CourseDetailPage({ params }: PageProps) {
                     </span>
                     <ChevronDown className="mt-1 h-5 w-5 shrink-0 text-muted-foreground transition group-open/module:rotate-180" />
                   </summary>
-                  <ol className="mb-5 ml-12 space-y-1">
+                  <ol className="mb-4 ml-14 mr-3 space-y-0.5">
                     {module.lessons.map((lesson) => {
                       const complete = completedSlugs.has(lesson.slug);
                       return (
                         <li key={lesson.key}>
                           <Link
                             href={`/courses/${course.slug}/learn/${lesson.slug}`}
-                            className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition hover:bg-secondary"
+                            className="group flex items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-secondary"
                           >
                             {complete ? (
                               <CheckCircle2 className="h-4 w-4 shrink-0 text-success" aria-label="Completed" />
@@ -253,7 +284,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         </section>
 
         {course.audience.length || course.prerequisites.length ? (
-          <section className="grid gap-4 sm:grid-cols-2">
+          <section id="audience" className="grid scroll-mt-32 gap-4 sm:grid-cols-2">
             {course.audience.length ? (
               <div className="rounded-2xl border border-border bg-card p-6">
                 <h2 className="font-serif text-xl font-medium">Who it&apos;s for</h2>
@@ -277,18 +308,37 @@ export default async function CourseDetailPage({ params }: PageProps) {
           </section>
         ) : null}
 
-        <section aria-labelledby="about">
-          <p className="text-eyebrow text-primary">About this course</p>
-          <h2 id="about" className="mt-2 font-serif text-3xl font-medium">Understand it first, then use it</h2>
-          <div className="mt-6 max-w-2xl space-y-4 text-[16px] leading-7 text-muted-foreground">
+        <section id="about" aria-labelledby="about-title" className="scroll-mt-32">
+          <h2 id="about-title" className="font-serif text-2xl font-medium">About this course</h2>
+          <div className="mt-4 max-w-2xl space-y-4 text-[16px] leading-7 text-muted-foreground">
             {course.description.split(/\n\s*\n/).map((paragraph) => (
               <p key={paragraph.slice(0, 40)}>{paragraph}</p>
             ))}
           </div>
         </section>
 
+        </div>
+
+        <aside aria-label="Course details" className="lg:sticky lg:top-32">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+            <p className="text-eyebrow text-primary">Free course</p>
+            <p className="mt-2 font-serif text-xl font-medium leading-snug">{course.title}</p>
+            <ul className="mt-5 space-y-3 text-sm">
+              {facts.map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-center gap-3">
+                  <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span>{label}</span>
+                </li>
+              ))}
+            </ul>
+            {enrollmentAction ? <div className="mt-6 [&_a]:w-full [&_a]:justify-center [&_button]:w-full [&_button]:justify-center">{enrollmentAction}</div> : null}
+            <p className="mt-4 text-xs leading-5 text-muted-foreground">Taught by {course.instructorName}. Your progress, notes and quiz scores are saved to your account.</p>
+          </div>
+        </aside>
+        </div>
+
         {course.firstLessonSlug ? (
-          <section className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-secondary p-8 sm:flex-row sm:items-center sm:p-10">
+          <section className="mt-14 flex flex-col items-start justify-between gap-6 rounded-2xl bg-secondary p-8 sm:flex-row sm:items-center sm:p-10 lg:hidden">
             <div>
               <h2 className="font-serif text-2xl font-medium">{enrolled ? 'Pick up where you left off' : 'Ready when you are'}</h2>
               <p className="mt-2 text-sm text-muted-foreground">
