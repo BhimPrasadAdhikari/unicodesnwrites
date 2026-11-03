@@ -695,7 +695,7 @@ export function CourseLessonWorkspace({
             </div>
           )}
 
-          <section aria-label="Lesson" className="flex min-w-0 flex-1 flex-col lg:h-full">
+          <section aria-label="Lesson" className="@container flex min-w-0 flex-1 flex-col lg:h-full">
             <div
               ref={tabsRef}
               className="sticky top-[7.125rem] z-30 shrink-0 scroll-mt-28 border-b border-border bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4 lg:static"
@@ -717,7 +717,7 @@ export function CourseLessonWorkspace({
                         : "border-transparent text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="hidden h-4 w-4 @[36rem]:block" />
                     {label}
                   </button>
                 ))}
@@ -1121,8 +1121,8 @@ export function CourseLessonWorkspace({
                   </button>
                 )}
 
-                <footer className="mt-12 grid gap-3 border-t border-border pt-6 xl:grid-cols-[1fr_auto_1fr] xl:items-center">
-                  <div className="order-2 xl:order-1">
+                <footer className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-3 border-t border-border pt-6 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center">
+                  <div className="order-2 min-w-0 xl:order-1">
                     {previousLesson && (
                       <Link
                         href={lessonHref(previousLesson.slug)}
@@ -1134,7 +1134,7 @@ export function CourseLessonWorkspace({
                     )}
                   </div>
                   <div className="order-1 xl:order-2">{completeButton(false)}</div>
-                  <div className="order-3 xl:text-right">
+                  <div className="order-3 min-w-0 xl:text-right">
                     {nextLesson ? (
                       <Link
                         href={lessonHref(nextLesson.slug)}
