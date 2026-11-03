@@ -147,6 +147,7 @@ export async function getPublishedCourseBySlug(slug: string) {
         durationMinutes: lesson.durationMinutes,
         concepts: lesson.concepts,
         hasVideo: Boolean(lesson.videoUrl || lesson.youtubeVideoId),
+        hasInteractive: Boolean(lesson.interactive?.component),
       })),
   }));
   const firstLesson = course.modules.flatMap((module) => module.lessons).find((lesson) => lesson.published);
