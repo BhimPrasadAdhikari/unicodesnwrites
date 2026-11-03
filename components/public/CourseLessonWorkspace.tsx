@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +23,8 @@ import {
   MessageSquareText,
   NotebookPen,
   PanelLeft,
+  PanelRight,
+  PlayCircle,
   RotateCcw,
   Search,
   Sparkles,
@@ -45,15 +46,13 @@ import { cn } from "@/lib/utils";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 type Tab = "transcript" | "notes" | "quiz";
-/** The lesson parts shown as tabs under the video. Only transcript, notes and quiz are saved as the learner's last tab. */
-type View = "lesson" | "try" | "code" | "practice" | Tab;
+/** The parts of a lesson, each shown on its own like an item in a course outline. */
+type Step = "video" | "read" | "try" | "code" | "practice" | "notes" | "quiz";
+const STEPS: Step[] = ["video", "read", "try", "code", "practice", "notes", "quiz"];
 
-// Desktop split between the video column and the lesson panel, as a percentage of the width.
-const SPLIT_DEFAULT = 56;
-const SPLIT_MIN = 35;
-const SPLIT_MAX = 72;
-const SPLIT_KEY = "course-workspace:split";
+// Which side panels are open is a per-viewer convenience, kept in this browser only.
 const RAIL_KEY = "course-workspace:rail";
+const SIDE_KEY = "course-workspace:side";
 type QuizResult = {
   attemptId?: string;
   attemptedAt?: string;
@@ -116,23 +115,21 @@ export function CourseLessonWorkspace({
   const notesKey = `course-notes:${workspace.course.slug}:${workspace.lesson.slug}`;
   const latestAttempt = initialPersistence.quizAttempts[0];
   const [tab, setTab] = useState<Tab>(initialPersistence.activeTab);
-  const [view, setView] = useState<View>("lesson");
+  const [step, setStep] = useState<Step>(
+    workspace.lesson.embedUrl || workspace.lesson.videoUrl ? "video" : "read",
+  );
   const [curriculumOpen, setCurriculumOpen] = useState(false);
   const [railOpen, setRailOpen] = useState(true);
-  const [split, setSplit] = useState(SPLIT_DEFAULT);
-  const videoRef = useRef<HTMLDivElement>(null);
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const splitRef = useRef<HTMLDivElement>(null);
-  const activeLessonRef = useRef<HTMLAnchorElement>(null);
+  const [sideOpen, setSideOpen] = useState(false);
+  const [sideSheet, setSideSheet] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+  const activeLessonRef = useRef<HTMLDivElement>(null);
 
-  // Layout choices are a per-viewer convenience, so they live in this browser only.
   useEffect(() => {
     try {
       const savedRail = localStorage.getItem(RAIL_KEY);
       if (savedRail) setRailOpen(savedRail === "open");
-      const savedSplit = Number(localStorage.getItem(SPLIT_KEY));
-      if (savedSplit >= SPLIT_MIN && savedSplit <= SPLIT_MAX) setSplit(savedSplit);
+      if (localStorage.getItem(SIDE_KEY) === "open") setSideOpen(true);
     } catch {}
   }, []);
 
@@ -145,28 +142,13 @@ export function CourseLessonWorkspace({
     });
   };
 
-  const updateSplit = (value: number) => {
-    const next = Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, value));
-    setSplit(next);
-    try {
-      localStorage.setItem(SPLIT_KEY, String(Math.round(next)));
-    } catch {}
-  };
-
-  const startResize = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const container = splitRef.current;
-    if (!container) return;
-    event.preventDefault();
-    const handle = event.currentTarget;
-    handle.setPointerCapture(event.pointerId);
-    const { left, width } = container.getBoundingClientRect();
-    const onMove = (move: PointerEvent) => updateSplit(((move.clientX - left) / width) * 100);
-    const onUp = () => {
-      handle.removeEventListener("pointermove", onMove);
-      handle.removeEventListener("pointerup", onUp);
-    };
-    handle.addEventListener("pointermove", onMove);
-    handle.addEventListener("pointerup", onUp);
+  const toggleSide = () => {
+    setSideOpen((open) => {
+      try {
+        localStorage.setItem(SIDE_KEY, open ? "closed" : "open");
+      } catch {}
+      return !open;
+    });
   };
   const [completedLessons, setCompletedLessons] = useState<string[]>(
     initialCompletedLessons,
@@ -302,41 +284,50 @@ export function CourseLessonWorkspace({
     : 0;
 
   const lesson = workspace.lesson;
-  const views = (
+  const hasVideo = Boolean(lesson.embedUrl || lesson.videoUrl);
+  const readingMinutes = lesson.article
+    ? Math.max(1, Math.round(lesson.article.split(/\s+/).length / 200))
+    : 0;
+  const steps = (
     [
-      { value: "lesson", label: "Lesson", icon: BookOpenText, show: true },
-      { value: "try", label: "Try it", icon: Sparkles, show: Boolean(lesson.interactive) },
-      { value: "code", label: "Code", icon: Code2, show: Boolean(lesson.codeWalkthrough) },
-      { value: "practice", label: "Practice", icon: Target, show: lesson.exercises.length > 0 },
-      { value: "transcript", label: "Transcript", icon: FileText, show: Boolean(lesson.transcript?.length) },
-      { value: "notes", label: "Notes", icon: NotebookPen, show: true },
-      { value: "quiz", label: "Quiz", icon: ListChecks, show: lesson.quiz.length > 0 },
+      { value: "video", label: "Video", meta: `Video · ${lesson.durationMinutes} min`, icon: PlayCircle, show: hasVideo },
+      { value: "read", label: "Read the lesson", meta: readingMinutes ? `Reading · ${readingMinutes} min` : "Key points", icon: BookOpenText, show: true },
+      { value: "try", label: lesson.interactive?.title || "Try it yourself", meta: "Interactive", icon: Sparkles, show: Boolean(lesson.interactive) },
+      { value: "code", label: lesson.codeWalkthrough?.title || "Code walkthrough", meta: "Code walkthrough", icon: Code2, show: Boolean(lesson.codeWalkthrough) },
+      { value: "practice", label: "Practice", meta: `Practice · ${lesson.exercises.length} ${lesson.exercises.length === 1 ? "exercise" : "exercises"}`, icon: Target, show: lesson.exercises.length > 0 },
+      { value: "notes", label: "Study notes", meta: "Notes · key ideas and yours", icon: NotebookPen, show: true },
+      { value: "quiz", label: "Quiz", meta: `Quiz · ${lesson.quiz.length} questions`, icon: ListChecks, show: lesson.quiz.length > 0 },
     ] as const
   ).filter((item) => item.show);
-  const viewIndex = views.findIndex((item) => item.value === view);
-  // Point to the next part of the lesson, but stop before the study tools.
-  const nextPart =
-    viewIndex >= 0 && views[viewIndex + 1] && !["transcript", "notes"].includes(views[viewIndex + 1].value)
-      ? views[viewIndex + 1]
-      : null;
+  const currentStep = steps.find((item) => item.value === step) || steps[0];
+  const stepIndex = steps.indexOf(currentStep);
+  const previousStep = stepIndex > 0 ? steps[stepIndex - 1] : null;
+  const nextStep = stepIndex < steps.length - 1 ? steps[stepIndex + 1] : null;
 
-  const openView = (value: View) => {
-    setView(value);
-    if (value === "transcript" || value === "notes" || value === "quiz") setTab(value);
-    // Desktop: the panel scrolls on its own, so start the new part at its top.
-    // Phone: the page scrolls, so bring the tab bar back if it has scrolled away.
-    if (window.matchMedia("(min-width: 1024px)").matches) {
-      panelRef.current?.scrollTo({ top: 0 });
-    } else {
-      const tabs = tabsRef.current;
-      if (tabs && tabs.getBoundingClientRect().top < 120) tabs.scrollIntoView({ block: "start" });
-    }
+  const openStep = (value: Step) => {
+    setStep(value);
+    if (value === "notes" || value === "quiz") setTab(value);
+    setCurriculumOpen(false);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("part", value);
+      window.history.replaceState(window.history.state, "", url);
+    } catch {}
+    mainRef.current?.scrollTo({ top: 0 });
+    if (!window.matchMedia("(min-width: 1024px)").matches) window.scrollTo({ top: 0 });
   };
+
+  // Open the part named in the address (?part=quiz), so a part can be linked and survives a reload.
+  useEffect(() => {
+    const part = new URLSearchParams(window.location.search).get("part");
+    if (part && STEPS.includes(part as Step)) setStep(part as Step);
+  }, []);
 
   const seekTo = (seconds: number) => {
     setVideoSeek(seconds);
-    videoRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (hasVideo && step !== "video") openStep("video");
   };
+
 
   // Keep the current lesson visible in the lesson list.
   useEffect(() => {
@@ -486,33 +477,66 @@ export function CourseLessonWorkspace({
               Part {moduleIndex + 1} · {module.title}
             </p>
             <div className="space-y-0.5">
-              {module.lessons.map((lesson) => {
-                const active = lesson.slug === workspace.lesson.slug;
-                const complete = completedLessons.includes(lesson.slug);
+              {module.lessons.map((item) => {
+                const active = item.slug === workspace.lesson.slug;
+                const complete = completedLessons.includes(item.slug);
+                if (!active) {
+                  return (
+                    <Link
+                      key={item.key}
+                      href={lessonHref(item.slug)}
+                      onClick={() => setCurriculumOpen(false)}
+                      className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 transition hover:bg-secondary/60"
+                    >
+                      {complete ? (
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+                      ) : (
+                        <Circle className="h-4 w-4 shrink-0 opacity-40" />
+                      )}
+                      <span className="min-w-0 flex-1 text-sm leading-5">{item.title}</span>
+                      <span className="shrink-0 font-mono text-2xs text-muted-foreground">
+                        {item.durationMinutes}m
+                      </span>
+                    </Link>
+                  );
+                }
                 return (
-                  <Link
-                    key={lesson.key}
-                    href={lessonHref(lesson.slug)}
-                    ref={active ? activeLessonRef : undefined}
-                    aria-current={active ? "page" : undefined}
-                    onClick={() => setCurriculumOpen(false)}
-                    className={cn(
-                      "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 transition",
-                      active
-                        ? "bg-secondary text-foreground shadow-[inset_2px_0_0_hsl(var(--primary))]"
-                        : "hover:bg-secondary/60",
-                    )}
-                  >
-                    {complete ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
-                    ) : (
-                      <Circle className="h-4 w-4 shrink-0 opacity-40" />
-                    )}
-                    <span className="min-w-0 flex-1 text-sm leading-5">{lesson.title}</span>
-                    <span className="shrink-0 font-mono text-2xs text-muted-foreground">
-                      {lesson.durationMinutes}m
-                    </span>
-                  </Link>
+                  <div key={item.key} ref={activeLessonRef} className="rounded-lg bg-secondary/70 py-1">
+                    <p className="flex items-start gap-3 px-3 py-2 text-sm font-semibold leading-5">
+                      {complete ? (
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                      ) : (
+                        <Circle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      )}
+                      <span className="min-w-0 flex-1">{item.title}</span>
+                    </p>
+                    <ol className="space-y-0.5 pb-1 pl-5 pr-1">
+                      {steps.map(({ value, label, meta, icon: Icon }) => {
+                        const current = value === currentStep.value;
+                        return (
+                          <li key={value}>
+                            <button
+                              type="button"
+                              onClick={() => openStep(value)}
+                              aria-current={current ? "step" : undefined}
+                              className={cn(
+                                "flex w-full items-start gap-2.5 rounded-md px-2.5 py-2 text-left transition",
+                                current
+                                  ? "bg-background text-foreground shadow-[inset_2px_0_0_hsl(var(--primary))]"
+                                  : "text-muted-foreground hover:bg-background/70 hover:text-foreground",
+                              )}
+                            >
+                              <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", current && "text-primary")} />
+                              <span className="min-w-0">
+                                <span className="block text-[13px] leading-5">{label}</span>
+                                <span className="block font-mono text-2xs text-muted-foreground">{meta}</span>
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                  </div>
                 );
               })}
             </div>
@@ -524,26 +548,27 @@ export function CourseLessonWorkspace({
 
   const previousLesson = workspace.navigation.previous;
   const nextLesson = workspace.navigation.next;
-  const hasVideo = Boolean(workspace.lesson.embedUrl || workspace.lesson.videoUrl);
 
-  const lessonHeader = (
-    <header>
+  const stepHeader = (
+    <header className="mb-8">
       <p className="text-eyebrow text-primary">
-        {workspace.lesson.moduleTitle} · Lesson {workspace.lessonNumber}
+        Lesson {workspace.lessonNumber} · {currentStep.meta}
       </p>
-      <h1 className="mt-2 font-serif text-[26px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[32px]">
+      <h1 className="mt-2 font-serif text-[26px] font-medium leading-[1.15] tracking-[-0.02em] sm:text-[34px]">
         {workspace.lesson.title}
       </h1>
-      <p className="mt-2 max-w-3xl font-serif text-[17px] leading-[1.55] text-muted-foreground">
-        {workspace.lesson.summary}
-      </p>
+      {(currentStep.value === "video" || currentStep.value === "read") && (
+        <p className="mt-2 max-w-3xl font-serif text-[17px] leading-[1.55] text-muted-foreground">
+          {workspace.lesson.summary}
+        </p>
+      )}
     </header>
   );
 
   const objectives = workspace.lesson.learningObjectives.length > 0 && (
     <section className="rounded-xl border border-border bg-card p-4 sm:p-5">
       <p className="text-eyebrow text-muted-foreground">In this lesson you will</p>
-      <ul className="mt-3 space-y-2">
+      <ul className="mt-3 grid gap-x-8 gap-y-2 sm:grid-cols-2">
         {workspace.lesson.learningObjectives.map((objective) => (
           <li key={objective} className="flex gap-2 text-sm leading-6">
             <Check className="mt-1 h-3.5 w-3.5 shrink-0 text-success" />
@@ -567,8 +592,60 @@ export function CourseLessonWorkspace({
       )}
     >
       <CheckCircle2 className="h-4 w-4" />
-      {isComplete ? "Completed" : compact ? "Mark complete" : nextLesson ? "Mark complete and continue" : "Mark complete"}
+      {isComplete ? "Completed" : compact ? "Mark complete" : nextLesson ? "Mark complete and go to the next lesson" : "Mark complete"}
     </button>
+  );
+
+  const hasTranscript = Boolean(workspace.lesson.transcript?.length);
+  const studyTools = (
+    <div className="flex h-full flex-col">
+      <div className="flex h-[3.25rem] shrink-0 items-center gap-2 border-b border-border px-4 pr-14">
+        <FileText className="h-4 w-4 text-muted-foreground" />
+        <p className="text-sm font-semibold">Transcript</p>
+        <p className="font-mono text-2xs text-muted-foreground">Click a line to jump there</p>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        {(
+          <div>
+            {!workspace.lesson.transcript || workspace.lesson.transcript.length === 0 ? (
+              <p className="py-8 text-center text-xs text-muted-foreground">
+                No transcript available for this lesson.
+              </p>
+            ) : (
+              <>
+                <div className="mb-4 flex items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
+                  <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    value={transcriptQuery}
+                    onChange={(event) => setTranscriptQuery(event.target.value)}
+                    placeholder="Search this lesson"
+                    className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                  />
+                </div>
+                <div className="max-w-3xl space-y-0.5">
+                  {filteredTranscript.map((cue) => (
+                    <button
+                      key={`${cue.startSeconds}-${cue.text.slice(0, 20)}`}
+                      type="button"
+                      onClick={() => seekTo(cue.startSeconds)}
+                      className="group flex w-full gap-3 rounded-xl p-3 text-left hover:bg-muted"
+                    >
+                      <span className="mt-0.5 font-mono text-2xs text-muted-foreground">
+                        {formatTime(cue.startSeconds)}
+                      </span>
+                      <span className="text-[15px] leading-6 text-muted-foreground group-hover:text-foreground">
+                        {cue.text}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+      </div>
+    </div>
   );
 
   return (
@@ -582,7 +659,6 @@ export function CourseLessonWorkspace({
               else setCurriculumOpen(true);
             }}
             aria-label="Show or hide the lesson list"
-            aria-expanded={railOpen}
             className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold hover:bg-secondary"
           >
             <PanelLeft className="h-4 w-4" />
@@ -594,11 +670,8 @@ export function CourseLessonWorkspace({
           >
             {workspace.course.title}
           </Link>
-          <span className="hidden shrink-0 font-mono text-[12px] text-muted-foreground sm:inline">
+          <span className="hidden shrink-0 font-mono text-[12px] text-muted-foreground md:inline">
             Lesson {workspace.lessonNumber} of {workspace.lessonCount}
-          </span>
-          <span className="shrink-0 font-mono text-[12px] text-muted-foreground sm:hidden">
-            {workspace.lessonNumber}/{workspace.lessonCount}
           </span>
           <div className="flex shrink-0 items-center">
             {previousLesson ? (
@@ -628,6 +701,18 @@ export function CourseLessonWorkspace({
               </span>
             )}
           </div>
+          {hasTranscript && (
+            <button
+              type="button"
+              onClick={() => (window.matchMedia("(min-width: 1024px)").matches ? toggleSide() : setSideSheet(true))}
+              aria-label="Show or hide the transcript"
+              aria-pressed={sideOpen}
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold hover:bg-secondary"
+            >
+              <PanelRight className="h-4 w-4" />
+              <span className="hidden xl:inline">Transcript</span>
+            </button>
+          )}
           <div className="hidden md:block">{completeButton(true)}</div>
         </div>
         <div className="h-0.5 bg-border/60" aria-hidden="true">
@@ -639,524 +724,521 @@ export function CourseLessonWorkspace({
         <aside
           aria-label="Course lessons"
           className={cn(
-            "hidden shrink-0 overflow-hidden border-border bg-card transition-[width] duration-200 lg:block",
-            railOpen ? "w-72 border-r" : "w-0",
+            "relative hidden shrink-0 border-r border-border bg-card transition-[width] duration-200 lg:block",
+            railOpen ? "w-80" : "w-11",
           )}
         >
-          <div className="h-full w-72">{curriculum}</div>
+          {railOpen ? (
+            <>
+              <div className="h-full w-80 overflow-hidden">{curriculum}</div>
+              <button
+                type="button"
+                onClick={toggleRail}
+                aria-label="Hide the lesson list"
+                title="Hide the lesson list"
+                className="absolute -right-3 top-1/2 z-20 flex h-12 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition-colors hover:border-primary hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={toggleRail}
+              aria-label="Show the lesson list"
+              title="Show the lesson list"
+              className="flex h-full w-full flex-col items-center gap-3 pt-4 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <ChevronRight className="h-4 w-4" />
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em] [writing-mode:vertical-rl]">
+                Lessons · {completedCount}/{totalLessons}
+              </span>
+            </button>
+          )}
         </aside>
 
-        <div
-          ref={splitRef}
-          className="flex min-w-0 flex-1 flex-col lg:flex-row"
-          style={{ "--split": `${split}%` } as CSSProperties}
-        >
-          {hasVideo && (
-            <section
-              aria-label="Video"
-              className="shrink-0 lg:h-full lg:w-[var(--split)] lg:overflow-y-auto"
-            >
-              <div className="space-y-5 p-4 sm:p-6">
-                <div ref={videoRef} className="scroll-mt-32">
-                  <LessonVideoPlayer
-                    embedUrl={workspace.lesson.embedUrl}
-                    videoUrl={workspace.lesson.videoUrl}
-                    posterUrl={workspace.lesson.videoPosterUrl}
-                    title={workspace.lesson.title}
-                    initialPositionSeconds={initialPersistence.videoPositionSeconds}
-                    seekToSeconds={videoSeek}
-                    onPositionChange={handleVideoPosition}
-                  />
-                </div>
-                {lessonHeader}
-                <div className="hidden lg:block">{objectives}</div>
+        <main ref={mainRef} className="min-w-0 flex-1 lg:h-full lg:overflow-y-auto">
+          <div
+            className={cn(
+              "mx-auto px-4 pb-16 pt-6 sm:px-8 sm:pt-8",
+              currentStep.value === "video" || currentStep.value === "code" ? "max-w-5xl" : "max-w-3xl",
+            )}
+          >
+            {currentStep.value === "video" && (
+              <div className="space-y-6">
+                <LessonVideoPlayer
+                  embedUrl={workspace.lesson.embedUrl}
+                  videoUrl={workspace.lesson.videoUrl}
+                  posterUrl={workspace.lesson.videoPosterUrl}
+                  title={workspace.lesson.title}
+                  initialPositionSeconds={videoPosition}
+                  seekToSeconds={videoSeek}
+                  onPositionChange={handleVideoPosition}
+                />
+                {stepHeader}
+                {objectives}
               </div>
-            </section>
-          )}
-
-          {hasVideo && (
-            <div
-              role="separator"
-              aria-orientation="vertical"
-              aria-label="Resize the video and lesson panels"
-              aria-valuenow={Math.round(split)}
-              aria-valuemin={SPLIT_MIN}
-              aria-valuemax={SPLIT_MAX}
-              tabIndex={0}
-              onPointerDown={startResize}
-              onKeyDown={(event) => {
-                if (event.key === "ArrowLeft") updateSplit(split - 2);
-                if (event.key === "ArrowRight") updateSplit(split + 2);
-              }}
-              onDoubleClick={() => updateSplit(SPLIT_DEFAULT)}
-              className="group relative hidden w-2 shrink-0 cursor-col-resize items-center justify-center bg-border/40 outline-none hover:bg-primary/20 focus-visible:bg-primary/30 lg:flex"
-            >
-              <span className="h-10 w-0.5 rounded-full bg-muted-foreground/40 group-hover:bg-primary" />
-            </div>
-          )}
-
-          <section aria-label="Lesson" className="flex min-w-0 flex-1 flex-col lg:h-full">
-            <div
-              ref={tabsRef}
-              className="sticky top-[7.125rem] z-30 shrink-0 scroll-mt-28 border-b border-border bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-4 lg:static"
-            >
-              <div role="tablist" aria-label="Lesson parts" className="-mb-px flex gap-0.5 overflow-x-auto [scrollbar-width:none]">
-                {views.map(({ value, label, icon: Icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    role="tab"
-                    id={`lesson-tab-${value}`}
-                    aria-selected={view === value}
-                    aria-controls="lesson-panel"
-                    onClick={() => openView(value)}
-                    className={cn(
-                      "inline-flex h-11 shrink-0 items-center gap-1.5 border-b-2 px-2.5 text-sm font-medium transition-colors",
-                      view === value
-                        ? "border-primary text-foreground"
-                        : "border-transparent text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </button>
-                ))}
+            )}
+            {currentStep.value === "read" && (
+              <div className="space-y-10">
+                {stepHeader}
+                {!hasVideo && objectives}
+                <LessonArticleSection lesson={workspace.lesson} />
+                <LessonResourcesSection lesson={workspace.lesson} />
               </div>
-            </div>
-
-            <div
-              ref={panelRef}
-              id="lesson-panel"
-              role="tabpanel"
-              aria-labelledby={`lesson-tab-${view}`}
-              className="min-h-0 flex-1 lg:overflow-y-auto"
-            >
-              <div className={cn("p-4 pb-16 sm:p-6", !hasVideo && "mx-auto max-w-3xl")}>
-                {!hasVideo && <div className="mb-8">{lessonHeader}</div>}
-                {view === "lesson" && (
-                  <div className="space-y-10">
-                    <div className={cn(hasVideo && "lg:hidden")}>{objectives}</div>
-                    <LessonArticleSection lesson={workspace.lesson} />
-                    <LessonResourcesSection lesson={workspace.lesson} />
-                  </div>
-                )}
-                {view === "try" && <LessonInteractiveSection lesson={workspace.lesson} />}
-                {view === "code" && <LessonCodeSection lesson={workspace.lesson} />}
-                {view === "practice" && <LessonPracticeSection lesson={workspace.lesson} />}
-                {view === "transcript" && (
-                  <div>
-                    {!workspace.lesson.transcript || workspace.lesson.transcript.length === 0 ? (
-                      <p className="py-8 text-center text-xs text-muted-foreground">
-                        No transcript available for this lesson.
-                      </p>
-                    ) : (
-                      <>
-                        <div className="mb-4 flex items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
-                          <Search className="h-3.5 w-3.5 text-muted-foreground" />
-                          <input
-                            value={transcriptQuery}
-                            onChange={(event) => setTranscriptQuery(event.target.value)}
-                            placeholder="Search this lesson"
-                            className="min-w-0 flex-1 bg-transparent text-sm outline-none"
-                          />
-                        </div>
-                        <div className="max-w-3xl space-y-0.5">
-                          {filteredTranscript.map((cue) => (
-                            <button
-                              key={`${cue.startSeconds}-${cue.text.slice(0, 20)}`}
-                              type="button"
-                              onClick={() => seekTo(cue.startSeconds)}
-                              className="group flex w-full gap-3 rounded-xl p-3 text-left hover:bg-muted"
-                            >
-                              <span className="mt-0.5 font-mono text-2xs text-muted-foreground">
-                                {formatTime(cue.startSeconds)}
-                              </span>
-                              <span className="text-[15px] leading-6 text-muted-foreground group-hover:text-foreground">
-                                {cue.text}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {view === "notes" && (
-                  <div className="max-w-3xl space-y-6">
-                    {workspace.lesson.studyGuide?.mentalModel ? (
-                      <section>
-                        <p className="flex items-center gap-2 text-eyebrow text-primary">
-                          <BrainCircuit className="h-4 w-4" /> Study guide
-                        </p>
-                        <h3 className="mt-3 text-lg font-medium">The big idea</h3>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          {workspace.lesson.studyGuide.mentalModel}
-                        </p>
-                      </section>
-                    ) : null}
-                    {workspace.lesson.studyGuide?.keyIdeas?.length ? (
-                      <section>
-                        <h3 className="text-sm font-medium">Key ideas</h3>
-                        <ul className="mt-3 space-y-3">
-                          {workspace.lesson.studyGuide.keyIdeas.map((idea) => (
-                            <li key={idea} className="flex gap-2 text-xs leading-5">
-                              <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                              {idea}
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-                    ) : null}
-                    {workspace.lesson.studyGuide?.misconceptions?.length ? (
-                      <section className="rounded-xl border border-warning/20 bg-warning/8 p-4">
-                        <h3 className="text-xs font-medium text-warning">
-                          Common mix-ups
-                        </h3>
-                        <ul className="mt-2 space-y-2 text-xs leading-5">
-                          {workspace.lesson.studyGuide.misconceptions.map(
-                            (item) => (
-                              <li key={item}>• {item}</li>
-                            ),
-                          )}
-                        </ul>
-                      </section>
-                    ) : null}
-                    {workspace.lesson.studyGuide?.recallPrompts?.length ? (
-                      <section className="rounded-xl border border-border bg-card p-4">
-                        <h3 className="flex items-center gap-2 text-eyebrow text-muted-foreground">
-                          <HelpCircle className="h-4 w-4" /> Test your memory
-                        </h3>
-                        <ul className="mt-2 space-y-2 text-xs leading-5">
-                          {workspace.lesson.studyGuide.recallPrompts.map(
-                            (prompt) => (
-                              <li key={prompt}>? {prompt}</li>
-                            ),
-                          )}
-                        </ul>
-                      </section>
-                    ) : null}
-                    {workspace.lesson.studyGuide?.explainBackPrompt ? (
-                      <section className="rounded-xl border border-border bg-card p-4">
-                        <h3 className="flex items-center gap-2 text-xs font-medium">
-                          <MessageSquareText className="h-4 w-4 text-muted-foreground" />{" "}
-                          Explain it back
-                        </h3>
-                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                          {workspace.lesson.studyGuide.explainBackPrompt}
-                        </p>
-                      </section>
-                    ) : null}
-                    {workspace.lesson.concepts?.length ? (
-                      <section>
-                        <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                          Key words
-                        </h3>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {workspace.lesson.concepts.map((concept) => (
-                            <span
-                              key={concept}
-                              className="rounded-md border border-border px-2 py-1 font-mono text-[11px] text-foreground hover:border-foreground/40"
-                            >
-                              {concept}
-                            </span>
-                          ))}
-                        </div>
-                      </section>
-                    ) : null}
-                    {workspace.lesson.learningObjectives?.length ? (
-                      <section className="rounded-xl bg-muted/40 p-4">
-                        <h3 className="flex items-center gap-2 text-xs font-medium">
-                          <Target className="h-4 w-4 text-muted-foreground" /> What you will learn
-                        </h3>
-                        <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
-                          {workspace.lesson.learningObjectives.map((obj) => (
-                            <li key={obj} className="flex items-start gap-1.5">
-                              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
-                              <span>{obj}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-                    ) : null}
-                    {!preview && (
-                      <AiNotesGenerator
-                        courseSlug={workspace.course.slug}
-                        lessonSlug={workspace.lesson.slug}
-                      />
-                    )}
-                    {workspace.lesson.transcript?.length ? (
-                      <section>
-                        <label className="text-eyebrow text-muted-foreground">
-                          Search transcript evidence
-                        </label>
-                        <input
-                          value={notesFocus}
-                          onChange={(event) => setNotesFocus(event.target.value)}
-                          placeholder="e.g. attention, tool use, evaluation"
-                          className="mt-2 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:border-ring"
-                        />
-                        {notesFocus && (
-                          <div className="mt-3 rounded-xl bg-muted/60 p-3">
-                            <p className="text-eyebrow text-muted-foreground">
-                              Transcript evidence
-                            </p>
-                            {generatedNotes.length ? (
-                              generatedNotes.map((cue) => (
-                                <p
-                                  key={cue.startSeconds}
-                                  className="mt-2 text-xs leading-5"
-                                >
-                                  <span className="font-mono text-muted-foreground">
-                                    {formatTime(cue.startSeconds)}
-                                  </span>{" "}
-                                  {cue.text}
-                                </p>
-                              ))
-                            ) : (
-                              <p className="mt-2 text-xs text-muted-foreground">
-                                No transcript evidence matched that focus yet.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </section>
-                    ) : null}
-                    <section>
-                      <label htmlFor="personal-notes" className="text-eyebrow text-muted-foreground">
-                        My notes
-                      </label>
-                      <textarea
-                        id="personal-notes"
-                        value={personalNotes}
-                        onChange={(event) => setPersonalNotes(event.target.value)}
-                        rows={7}
-                        placeholder="Capture the idea in your own words…"
-                        className="mt-2 w-full resize-y rounded-lg border border-input bg-card p-3 text-sm leading-6 outline-none focus:border-ring"
-                      />
-                      <p className="mt-1 text-2xs text-muted-foreground">
-                        {saveStatus === "saving" ? (
-                          <span className="inline-flex items-center gap-1.5">
-                            <Loader2 className="h-3 w-3 animate-spin" /> Saving to
-                            your account...
-                          </span>
-                        ) : saveStatus === "error" ? (
-                          <button
-                            type="button"
-                            onClick={() => setSaveRevision((value) => value + 1)}
-                            className="inline-flex items-center gap-1.5 font-semibold text-destructive"
-                          >
-                            <CloudOff className="h-3 w-3" /> Not saved. Retry
-                          </button>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5">
-                            <Cloud className="h-3 w-3 text-success" /> Synced
-                            across your devices
-                          </span>
-                        )}
-                      </p>
-                    </section>
-                  </div>
-                )}
-
-                {view === "quiz" && (
-                  <div className="max-w-3xl">
-                    {!workspace.lesson.quiz || workspace.lesson.quiz.length === 0 ? (
-                      <div className="mb-5">
-                        <p className="text-eyebrow text-primary">
-                          Knowledge check
-                        </p>
-                        <h3 className="mt-2 text-lg font-medium">
-                          No quiz for this lesson
-                        </h3>
-                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                          This lesson does not have any quiz questions. Mark the lesson as complete when you finish.
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="mb-5">
-                          <p className="text-eyebrow text-primary">
-                            Knowledge check
-                          </p>
-                          <h3 className="mt-2 text-lg font-medium">
-                            Did it make sense?
-                          </h3>
-                          <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                            Answer a few quick questions. Get 70% or more to finish
-                            the lesson.
-                          </p>
-                          <p className="mt-2 text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            {quizAttemptCount} saved attempt
-                            {quizAttemptCount === 1 ? "" : "s"}
-                          </p>
-                        </div>
-                    {quizResult && (
-                      <div
-                        className={cn(
-                          "mb-5 rounded-xl border p-4",
-                          quizResult.passed
-                            ? "border-success/25 bg-success/8"
-                            : "border-warning/25 bg-warning/8",
-                        )}
-                      >
-                        <p className="font-serif text-[32px] font-medium leading-none">{quizResult.score}%</p>
-                        <p className="mt-1 text-xs">
-                          {quizResult.passed
-                            ? "Concept check passed."
-                            : "Review the explanations and try again."}
-                        </p>
-                        {quizResult.passed && workspace.navigation.next ? (
-                          <button
-                            type="button"
-                            onClick={() => router.push(lessonHref(workspace.navigation.next!.slug))}
-                            className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:bg-foreground/90"
-                          >
-                            Next lesson →
-                          </button>
-                        ) : null}
-                      </div>
-                    )}
-                    <div className="space-y-6">
-                      {workspace.lesson.quiz.map((question, questionIndex) => {
-                        const result = quizResult?.results.find(
-                          (item) => item.questionKey === question.key,
-                        );
-                        return (
-                          <fieldset key={question.key}>
-                            <legend className="text-sm font-semibold leading-6">
-                              {questionIndex + 1}. {question.prompt}
-                            </legend>
-                            <div className="mt-3 space-y-2">
-                              {question.options.map((option, optionIndex) => (
-                                <label
-                                  key={option}
-                                  className={cn(
-                                    "flex cursor-pointer gap-3 rounded-xl border p-3.5 text-sm leading-6 transition",
-                                    answers[question.key] === optionIndex
-                                      ? "border-foreground bg-secondary"
-                                      : "border-border hover:bg-muted",
-                                  )}
-                                >
-                                  <input
-                                    type="radio"
-                                    name={question.key}
-                                    checked={answers[question.key] === optionIndex}
-                                    onChange={() => {
-                                      setAnswers((current) => ({
-                                        ...current,
-                                        [question.key]: optionIndex,
-                                      }));
-                                      setQuizResult(null);
-                                    }}
-                                    className="mt-0.5"
-                                  />
-                                  {option}
-                                </label>
-                              ))}
-                            </div>
-                            {result && (
-                              <div
-                                className={cn(
-                                  "mt-3 rounded-lg p-3 text-xs leading-5",
-                                  result.correct
-                                    ? "bg-success/10"
-                                    : "bg-warning/10",
-                                )}
-                              >
-                                <p className="font-semibold">
-                                  {result.correct ? "Correct" : "Not quite"}
-                                </p>
-                                <p className="mt-1 text-muted-foreground">
-                                  {result.explanation}
-                                </p>
-                              </div>
-                            )}
-                          </fieldset>
-                        );
-                      })}
+            )}
+            {currentStep.value === "try" && (
+              <>
+                {stepHeader}
+                <LessonInteractiveSection lesson={workspace.lesson} />
+              </>
+            )}
+            {currentStep.value === "code" && (
+              <>
+                {stepHeader}
+                <LessonCodeSection lesson={workspace.lesson} />
+              </>
+            )}
+            {currentStep.value === "practice" && (
+              <>
+                {stepHeader}
+                <LessonPracticeSection lesson={workspace.lesson} />
+              </>
+            )}
+            {currentStep.value === "notes" && stepHeader}
+            {currentStep.value === "notes" && (
+              <div className="max-w-3xl space-y-6">
+                {workspace.lesson.studyGuide?.mentalModel ? (
+                  <section>
+                    <p className="flex items-center gap-2 text-eyebrow text-primary">
+                      <BrainCircuit className="h-4 w-4" /> Study guide
+                    </p>
+                    <h3 className="mt-3 text-lg font-medium">The big idea</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {workspace.lesson.studyGuide.mentalModel}
+                    </p>
+                  </section>
+                ) : null}
+                {workspace.lesson.studyGuide?.keyIdeas?.length ? (
+                  <section>
+                    <h3 className="text-sm font-medium">Key ideas</h3>
+                    <ul className="mt-3 space-y-3">
+                      {workspace.lesson.studyGuide.keyIdeas.map((idea) => (
+                        <li key={idea} className="flex gap-2 text-xs leading-5">
+                          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                          {idea}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+                {workspace.lesson.studyGuide?.misconceptions?.length ? (
+                  <section className="rounded-xl border border-warning/20 bg-warning/8 p-4">
+                    <h3 className="text-xs font-medium text-warning">
+                      Common mix-ups
+                    </h3>
+                    <ul className="mt-2 space-y-2 text-xs leading-5">
+                      {workspace.lesson.studyGuide.misconceptions.map(
+                        (item) => (
+                          <li key={item}>• {item}</li>
+                        ),
+                      )}
+                    </ul>
+                  </section>
+                ) : null}
+                {workspace.lesson.studyGuide?.recallPrompts?.length ? (
+                  <section className="rounded-xl border border-border bg-card p-4">
+                    <h3 className="flex items-center gap-2 text-eyebrow text-muted-foreground">
+                      <HelpCircle className="h-4 w-4" /> Test your memory
+                    </h3>
+                    <ul className="mt-2 space-y-2 text-xs leading-5">
+                      {workspace.lesson.studyGuide.recallPrompts.map(
+                        (prompt) => (
+                          <li key={prompt}>? {prompt}</li>
+                        ),
+                      )}
+                    </ul>
+                  </section>
+                ) : null}
+                {workspace.lesson.studyGuide?.explainBackPrompt ? (
+                  <section className="rounded-xl border border-border bg-card p-4">
+                    <h3 className="flex items-center gap-2 text-xs font-medium">
+                      <MessageSquareText className="h-4 w-4 text-muted-foreground" />{" "}
+                      Explain it back
+                    </h3>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      {workspace.lesson.studyGuide.explainBackPrompt}
+                    </p>
+                  </section>
+                ) : null}
+                {workspace.lesson.concepts?.length ? (
+                  <section>
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Key words
+                    </h3>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {workspace.lesson.concepts.map((concept) => (
+                        <span
+                          key={concept}
+                          className="rounded-md border border-border px-2 py-1 font-mono text-[11px] text-foreground hover:border-foreground/40"
+                        >
+                          {concept}
+                        </span>
+                      ))}
                     </div>
-                    {quizError && (
-                      <p
-                        role="alert"
-                        className="mt-4 text-xs font-medium text-destructive"
-                      >
-                        {quizError}
-                      </p>
+                  </section>
+                ) : null}
+                {workspace.lesson.learningObjectives?.length ? (
+                  <section className="rounded-xl bg-muted/40 p-4">
+                    <h3 className="flex items-center gap-2 text-xs font-medium">
+                      <Target className="h-4 w-4 text-muted-foreground" /> What you will learn
+                    </h3>
+                    <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+                      {workspace.lesson.learningObjectives.map((obj) => (
+                        <li key={obj} className="flex items-start gap-1.5">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
+                          <span>{obj}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+                {!preview && (
+                  <AiNotesGenerator
+                    courseSlug={workspace.course.slug}
+                    lessonSlug={workspace.lesson.slug}
+                  />
+                )}
+                {workspace.lesson.transcript?.length ? (
+                  <section>
+                    <label className="text-eyebrow text-muted-foreground">
+                      Search transcript evidence
+                    </label>
+                    <input
+                      value={notesFocus}
+                      onChange={(event) => setNotesFocus(event.target.value)}
+                      placeholder="e.g. attention, tool use, evaluation"
+                      className="mt-2 w-full rounded-lg border border-input bg-card px-3 py-2.5 text-sm outline-none focus:border-ring"
+                    />
+                    {notesFocus && (
+                      <div className="mt-3 rounded-xl bg-muted/60 p-3">
+                        <p className="text-eyebrow text-muted-foreground">
+                          Transcript evidence
+                        </p>
+                        {generatedNotes.length ? (
+                          generatedNotes.map((cue) => (
+                            <p
+                              key={cue.startSeconds}
+                              className="mt-2 text-xs leading-5"
+                            >
+                              <span className="font-mono text-muted-foreground">
+                                {formatTime(cue.startSeconds)}
+                              </span>{" "}
+                              {cue.text}
+                            </p>
+                          ))
+                        ) : (
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            No transcript evidence matched that focus yet.
+                          </p>
+                        )}
+                      </div>
                     )}
-                    <div className="mt-6 flex gap-2">
+                  </section>
+                ) : null}
+                <section>
+                  <label htmlFor="personal-notes" className="text-eyebrow text-muted-foreground">
+                    My notes
+                  </label>
+                  <textarea
+                    id="personal-notes"
+                    value={personalNotes}
+                    onChange={(event) => setPersonalNotes(event.target.value)}
+                    rows={7}
+                    placeholder="Capture the idea in your own words…"
+                    className="mt-2 w-full resize-y rounded-lg border border-input bg-card p-3 text-sm leading-6 outline-none focus:border-ring"
+                  />
+                  <p className="mt-1 text-2xs text-muted-foreground">
+                    {saveStatus === "saving" ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Saving to
+                        your account...
+                      </span>
+                    ) : saveStatus === "error" ? (
                       <button
                         type="button"
-                        disabled={submitting}
-                        onClick={submitQuiz}
-                        className="h-11 flex-1 rounded-lg bg-foreground px-4 text-sm font-medium text-background disabled:opacity-50"
+                        onClick={() => setSaveRevision((value) => value + 1)}
+                        className="inline-flex items-center gap-1.5 font-semibold text-destructive"
                       >
-                        {submitting ? "Checking…" : "Check answers"}
+                        <CloudOff className="h-3 w-3" /> Not saved. Retry
                       </button>
-                      {quizResult && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAnswers({});
-                            setQuizResult(null);
-                          }}
-                          aria-label="Reset quiz"
-                          className="flex h-11 w-11 items-center justify-center rounded-lg border border-border"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  </>
-                )}
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Cloud className="h-3 w-3 text-success" /> Synced
+                        across your devices
+                      </span>
+                    )}
+                  </p>
+                </section>
               </div>
+            )}
+            {currentStep.value === "quiz" && stepHeader}
+            {currentStep.value === "quiz" && (
+              <div className="max-w-3xl">
+                {!workspace.lesson.quiz || workspace.lesson.quiz.length === 0 ? (
+                  <div className="mb-5">
+                    <p className="text-eyebrow text-primary">
+                      Knowledge check
+                    </p>
+                    <h3 className="mt-2 text-lg font-medium">
+                      No quiz for this lesson
+                    </h3>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                      This lesson does not have any quiz questions. Mark the lesson as complete when you finish.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-5">
+                      <p className="text-eyebrow text-primary">
+                        Knowledge check
+                      </p>
+                      <h3 className="mt-2 text-lg font-medium">
+                        Did it make sense?
+                      </h3>
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                        Answer a few quick questions. Get 70% or more to finish
+                        the lesson.
+                      </p>
+                      <p className="mt-2 text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {quizAttemptCount} saved attempt
+                        {quizAttemptCount === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                {quizResult && (
+                  <div
+                    className={cn(
+                      "mb-5 rounded-xl border p-4",
+                      quizResult.passed
+                        ? "border-success/25 bg-success/8"
+                        : "border-warning/25 bg-warning/8",
+                    )}
+                  >
+                    <p className="font-serif text-[32px] font-medium leading-none">{quizResult.score}%</p>
+                    <p className="mt-1 text-xs">
+                      {quizResult.passed
+                        ? "Concept check passed."
+                        : "Review the explanations and try again."}
+                    </p>
+                    {quizResult.passed && workspace.navigation.next ? (
+                      <button
+                        type="button"
+                        onClick={() => router.push(lessonHref(workspace.navigation.next!.slug))}
+                        className="mt-3 inline-flex min-h-10 items-center rounded-lg bg-foreground px-4 text-sm font-medium text-background hover:bg-foreground/90"
+                      >
+                        Next lesson →
+                      </button>
+                    ) : null}
+                  </div>
                 )}
-                {nextPart && (
+                <div className="space-y-6">
+                  {workspace.lesson.quiz.map((question, questionIndex) => {
+                    const result = quizResult?.results.find(
+                      (item) => item.questionKey === question.key,
+                    );
+                    return (
+                      <fieldset key={question.key}>
+                        <legend className="text-sm font-semibold leading-6">
+                          {questionIndex + 1}. {question.prompt}
+                        </legend>
+                        <div className="mt-3 space-y-2">
+                          {question.options.map((option, optionIndex) => (
+                            <label
+                              key={option}
+                              className={cn(
+                                "flex cursor-pointer gap-3 rounded-xl border p-3.5 text-sm leading-6 transition",
+                                answers[question.key] === optionIndex
+                                  ? "border-foreground bg-secondary"
+                                  : "border-border hover:bg-muted",
+                              )}
+                            >
+                              <input
+                                type="radio"
+                                name={question.key}
+                                checked={answers[question.key] === optionIndex}
+                                onChange={() => {
+                                  setAnswers((current) => ({
+                                    ...current,
+                                    [question.key]: optionIndex,
+                                  }));
+                                  setQuizResult(null);
+                                }}
+                                className="mt-0.5"
+                              />
+                              {option}
+                            </label>
+                          ))}
+                        </div>
+                        {result && (
+                          <div
+                            className={cn(
+                              "mt-3 rounded-lg p-3 text-xs leading-5",
+                              result.correct
+                                ? "bg-success/10"
+                                : "bg-warning/10",
+                            )}
+                          >
+                            <p className="font-semibold">
+                              {result.correct ? "Correct" : "Not quite"}
+                            </p>
+                            <p className="mt-1 text-muted-foreground">
+                              {result.explanation}
+                            </p>
+                          </div>
+                        )}
+                      </fieldset>
+                    );
+                  })}
+                </div>
+                {quizError && (
+                  <p
+                    role="alert"
+                    className="mt-4 text-xs font-medium text-destructive"
+                  >
+                    {quizError}
+                  </p>
+                )}
+                <div className="mt-6 flex gap-2">
                   <button
                     type="button"
-                    onClick={() => openView(nextPart.value)}
-                    className="mt-10 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                    disabled={submitting}
+                    onClick={submitQuiz}
+                    className="h-11 flex-1 rounded-lg bg-foreground px-4 text-sm font-medium text-background disabled:opacity-50"
                   >
-                    Next: {nextPart.label} <ArrowRight className="h-4 w-4" />
+                    {submitting ? "Checking…" : "Check answers"}
                   </button>
-                )}
-
-                <footer className="mt-12 grid gap-3 border-t border-border pt-6 xl:grid-cols-[1fr_auto_1fr] xl:items-center">
-                  <div className="order-2 xl:order-1">
-                    {previousLesson && (
-                      <Link
-                        href={lessonHref(previousLesson.slug)}
-                        className="inline-flex min-h-11 min-w-0 max-w-full items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-                      >
+                  {quizResult && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnswers({});
+                        setQuizResult(null);
+                      }}
+                      aria-label="Reset quiz"
+                      className="flex h-11 w-11 items-center justify-center rounded-lg border border-border"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+            )}
+            <footer className="mt-14 border-t border-border pt-6">
+              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
+                <div className="min-w-0">
+                  {previousStep ? (
+                    <button
+                      type="button"
+                      onClick={() => openStep(previousStep.value)}
+                      className="group flex w-full min-w-0 flex-col items-start rounded-xl border border-border p-4 text-left transition hover:border-foreground/30"
+                    >
+                      <span className="text-eyebrow text-muted-foreground">Previous</span>
+                      <span className="mt-1 flex max-w-full items-center gap-2 text-sm font-medium">
+                        <ArrowLeft className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{previousStep.label}</span>
+                      </span>
+                    </button>
+                  ) : previousLesson ? (
+                    <Link
+                      href={lessonHref(previousLesson.slug)}
+                      className="group flex w-full min-w-0 flex-col items-start rounded-xl border border-border p-4 transition hover:border-foreground/30"
+                    >
+                      <span className="text-eyebrow text-muted-foreground">Previous lesson</span>
+                      <span className="mt-1 flex max-w-full items-center gap-2 text-sm font-medium">
                         <ArrowLeft className="h-4 w-4 shrink-0" />
                         <span className="truncate">{previousLesson.title}</span>
-                      </Link>
-                    )}
-                  </div>
-                  <div className="order-1 xl:order-2">{completeButton(false)}</div>
-                  <div className="order-3 xl:text-right">
-                    {nextLesson ? (
-                      <Link
-                        href={lessonHref(nextLesson.slug)}
-                        className="inline-flex min-h-11 min-w-0 max-w-full items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-                      >
+                      </span>
+                    </Link>
+                  ) : null}
+                </div>
+                <div className="min-w-0">
+                  {nextStep ? (
+                    <button
+                      type="button"
+                      onClick={() => openStep(nextStep.value)}
+                      className="group flex w-full min-w-0 flex-col items-end rounded-xl border border-foreground bg-foreground p-4 text-right text-background transition hover:bg-foreground/90"
+                    >
+                      <span className="text-eyebrow text-background/70">Next · {nextStep.meta}</span>
+                      <span className="mt-1 flex max-w-full items-center gap-2 text-sm font-medium">
+                        <span className="truncate">{nextStep.label}</span>
+                        <ArrowRight className="h-4 w-4 shrink-0" />
+                      </span>
+                    </button>
+                  ) : nextLesson ? (
+                    <Link
+                      href={lessonHref(nextLesson.slug)}
+                      className="group flex w-full min-w-0 flex-col items-end rounded-xl border border-border p-4 text-right transition hover:border-foreground/30"
+                    >
+                      <span className="text-eyebrow text-muted-foreground">Next lesson</span>
+                      <span className="mt-1 flex max-w-full items-center gap-2 text-sm font-medium">
                         <span className="truncate">{nextLesson.title}</span>
                         <ArrowRight className="h-4 w-4 shrink-0" />
-                      </Link>
-                    ) : (
-                      <Link
-                        href={preview ? overviewHref : `/courses/${workspace.course.slug}/complete`}
-                        className="inline-flex min-h-11 items-center text-sm font-semibold underline decoration-primary decoration-2 underline-offset-4"
-                      >
-                        Finish course
-                      </Link>
-                    )}
-                  </div>
-                </footer>
+                      </span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={preview ? overviewHref : `/courses/${workspace.course.slug}/complete`}
+                      className="flex w-full flex-col items-end rounded-xl border border-border p-4 text-right text-sm font-semibold"
+                    >
+                      Finish course <ArrowRight className="mt-1 h-4 w-4" />
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-          </section>
-        </div>
+              {!nextStep && <div className="mt-4 flex justify-center">{completeButton(false)}</div>}
+            </footer>
+          </div>
+        </main>
+
+        {hasTranscript && (
+        <aside
+          aria-label="Transcript"
+          className={cn(
+            "relative hidden shrink-0 border-l border-border bg-card transition-[width] duration-200 lg:block",
+            sideOpen ? "w-[380px] xl:w-[420px]" : "w-11",
+          )}
+        >
+          {sideOpen ? (
+            <>
+              <div className="h-full overflow-hidden">{studyTools}</div>
+              <button
+                type="button"
+                onClick={toggleSide}
+                aria-label="Hide the transcript"
+                title="Hide the transcript"
+                className="absolute -left-3 top-1/2 z-20 flex h-12 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-card transition-colors hover:border-primary hover:text-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={toggleSide}
+              aria-label="Show the transcript"
+              title="Show the transcript"
+              className="flex h-full w-full flex-col items-center gap-3 pt-4 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em] [writing-mode:vertical-rl]">
+                Transcript
+              </span>
+            </button>
+          )}
+        </aside>
+        )}
       </div>
 
       {curriculumOpen && (
@@ -1182,6 +1264,33 @@ export function CourseLessonWorkspace({
               <X className="h-4 w-4" />
             </button>
             {curriculum}
+          </aside>
+        </div>
+      )}
+
+      {sideSheet && (
+        <div className="fixed inset-0 z-[70] lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
+            aria-label="Close the transcript"
+            onClick={() => setSideSheet(false)}
+          />
+          <aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="Transcript"
+            className="absolute inset-y-0 right-0 w-[min(92vw,420px)] bg-card shadow-overlay"
+          >
+            <button
+              type="button"
+              onClick={() => setSideSheet(false)}
+              aria-label="Close the transcript"
+              className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            {studyTools}
           </aside>
         </div>
       )}
