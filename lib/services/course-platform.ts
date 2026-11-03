@@ -146,8 +146,10 @@ export async function getPublishedCourseBySlug(slug: string) {
         type: lesson.type,
         durationMinutes: lesson.durationMinutes,
         concepts: lesson.concepts,
+        hasVideo: Boolean(lesson.videoUrl || lesson.youtubeVideoId),
       })),
   }));
+  const firstLesson = course.modules.flatMap((module) => module.lessons).find((lesson) => lesson.published);
 
   return {
     ...toCourseCard(course),
@@ -157,6 +159,8 @@ export async function getPublishedCourseBySlug(slug: string) {
     audience: course.audience,
     modules,
     firstLessonSlug: modules.flatMap((module) => module.lessons)[0]?.slug || null,
+    // Thumbnail for the hero: the first lesson's YouTube video, when it has one.
+    introVideoId: firstLesson?.youtubeVideoId || null,
   };
 }
 

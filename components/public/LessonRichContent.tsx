@@ -6,7 +6,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import {
-  BookOpenText,
   Code2,
   Download,
   ExternalLink,
@@ -123,90 +122,91 @@ function Exercise({ exercise, index }: { exercise: Lesson["exercises"][number]; 
   );
 }
 
-export function LessonRichContent({ lesson }: { lesson: Lesson }) {
-  const hasAnything =
-    lesson.interactive || lesson.article || lesson.codeWalkthrough || lesson.exercises.length || lesson.resources.length;
-  if (!hasAnything) return null;
+/* Each part of a lesson renders on its own, so the lesson page can show them as tabs. */
 
+export function LessonInteractiveSection({ lesson }: { lesson: Lesson }) {
+  if (!lesson.interactive) return null;
   return (
-    <div className="mt-10 space-y-12">
-      {lesson.interactive && (
-        <section aria-labelledby="lesson-interactive">
-          <SectionHeading icon={Sparkles} eyebrow="Try it yourself" title={lesson.interactive.title} />
-          {lesson.interactive.caption && (
-            <p className="mb-4 max-w-3xl text-sm leading-6 text-muted-foreground">{lesson.interactive.caption}</p>
-          )}
-          <div className="rounded-xl border border-border bg-card p-4 shadow-card sm:p-6">
-            <LessonInteractive component={lesson.interactive.component} />
-          </div>
-        </section>
+    <section aria-labelledby="lesson-interactive">
+      <SectionHeading icon={Sparkles} eyebrow="Try it yourself" title={lesson.interactive.title} />
+      {lesson.interactive.caption && (
+        <p className="mb-5 max-w-3xl text-[15px] leading-7 text-muted-foreground">{lesson.interactive.caption}</p>
       )}
+      <div className="rounded-xl border border-border bg-card p-4 shadow-card sm:p-6">
+        <LessonInteractive component={lesson.interactive.component} />
+      </div>
+    </section>
+  );
+}
 
-      {lesson.article && (
-        <section aria-label="Lesson article">
-          <SectionHeading icon={BookOpenText} eyebrow="Read" title="The lesson, written out" />
-          <div className="rounded-xl border border-border bg-card px-5 py-6 sm:px-10 sm:py-10">
-            {/* The page already shows the lesson title, so drop a leading "# Title" line. */}
-            <LessonMarkdown className="mx-auto max-w-3xl">{lesson.article.replace(/^#\s[^\n]*\n+/, "")}</LessonMarkdown>
-          </div>
-        </section>
-      )}
+export function LessonArticleSection({ lesson }: { lesson: Lesson }) {
+  if (!lesson.article) return null;
+  return (
+    <section aria-label="Lesson article">
+      {/* The page already shows the lesson title, so drop a leading "# Title" line. */}
+      <LessonMarkdown className="prose-lg max-w-[68ch]">{lesson.article.replace(/^#\s[^\n]*\n+/, "")}</LessonMarkdown>
+    </section>
+  );
+}
 
-      {lesson.codeWalkthrough && (
-        <section aria-label="Code walkthrough">
-          <SectionHeading icon={Code2} eyebrow="Code walkthrough" title={lesson.codeWalkthrough.title} />
-          <p className="mb-4 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Step through the code. Each step highlights a few lines and explains what they do in plain words.
-          </p>
-          <CodeWalkthrough
-            files={lesson.codeWalkthrough.files}
-            steps={lesson.codeWalkthrough.steps}
-          />
-        </section>
-      )}
+export function LessonCodeSection({ lesson }: { lesson: Lesson }) {
+  if (!lesson.codeWalkthrough) return null;
+  return (
+    <section aria-label="Code walkthrough">
+      <SectionHeading icon={Code2} eyebrow="Code walkthrough" title={lesson.codeWalkthrough.title} />
+      <p className="mb-5 max-w-3xl text-[15px] leading-7 text-muted-foreground">
+        Step through the code. Each step highlights a few lines and explains what they do in plain words.
+      </p>
+      <CodeWalkthrough files={lesson.codeWalkthrough.files} steps={lesson.codeWalkthrough.steps} />
+    </section>
+  );
+}
 
-      {lesson.exercises.length > 0 && (
-        <section aria-label="Exercises">
-          <SectionHeading icon={Target} eyebrow="Practice" title="Exercises" />
-          <p className="mb-4 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Have a go before you open the solution. The hints come one at a time, so take only what you need.
-          </p>
-          <div className="space-y-4">
-            {lesson.exercises.map((exercise, index) => (
-              <Exercise key={exercise.key} exercise={exercise} index={index} />
-            ))}
-          </div>
-        </section>
-      )}
+export function LessonPracticeSection({ lesson }: { lesson: Lesson }) {
+  if (!lesson.exercises.length) return null;
+  return (
+    <section aria-label="Exercises">
+      <SectionHeading icon={Target} eyebrow="Practice" title="Exercises" />
+      <p className="mb-5 max-w-3xl text-[15px] leading-7 text-muted-foreground">
+        Have a go before you open the solution. The hints come one at a time, so take only what you need.
+      </p>
+      <div className="space-y-4">
+        {lesson.exercises.map((exercise, index) => (
+          <Exercise key={exercise.key} exercise={exercise} index={index} />
+        ))}
+      </div>
+    </section>
+  );
+}
 
-      {lesson.resources.length > 0 && (
-        <section aria-label="Downloads and further reading">
-          <SectionHeading icon={Download} eyebrow="Take it with you" title="Downloads and reading" />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {lesson.resources.map((resource) => {
-              const Icon = RESOURCE_ICONS[resource.kind] || ExternalLink;
-              const external = /^https?:\/\//.test(resource.url);
-              return (
-                <a
-                  key={resource.key}
-                  href={resource.url}
-                  {...(external ? { target: "_blank", rel: "noopener noreferrer" } : { download: "" })}
-                  className="group flex gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-primary/50"
-                >
-                  <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                  <span className="min-w-0">
-                    <span className="text-eyebrow text-muted-foreground">{RESOURCE_LABELS[resource.kind]}</span>
-                    <span className="mt-0.5 block font-semibold group-hover:text-primary">{resource.title}</span>
-                    {resource.description && (
-                      <span className="mt-1 block text-sm leading-5 text-muted-foreground">{resource.description}</span>
-                    )}
-                  </span>
-                </a>
-              );
-            })}
-          </div>
-        </section>
-      )}
-    </div>
+export function LessonResourcesSection({ lesson }: { lesson: Lesson }) {
+  if (!lesson.resources.length) return null;
+  return (
+    <section aria-label="Downloads and further reading">
+      <SectionHeading icon={Download} eyebrow="Take it with you" title="Downloads and reading" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        {lesson.resources.map((resource) => {
+          const Icon = RESOURCE_ICONS[resource.kind] || ExternalLink;
+          const external = /^https?:\/\//.test(resource.url);
+          return (
+            <a
+              key={resource.key}
+              href={resource.url}
+              {...(external ? { target: "_blank", rel: "noopener noreferrer" } : { download: "" })}
+              className="group flex gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-primary/50"
+            >
+              <Icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <span className="min-w-0">
+                <span className="text-eyebrow text-muted-foreground">{RESOURCE_LABELS[resource.kind]}</span>
+                <span className="mt-0.5 block font-semibold group-hover:text-primary">{resource.title}</span>
+                {resource.description && (
+                  <span className="mt-1 block text-sm leading-5 text-muted-foreground">{resource.description}</span>
+                )}
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    </section>
   );
 }
