@@ -2,19 +2,72 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 
-export function LessonVideoPlayer({
+type PlayerProps = {
+  embedUrl: string;
+  videoUrl?: string;
+  posterUrl?: string;
+  title: string;
+  initialPositionSeconds: number;
+  seekToSeconds: number;
+  onPositionChange(position: number): void;
+};
+
+export function LessonVideoPlayer(props: PlayerProps) {
+  return props.videoUrl ? <FileVideoPlayer {...props} videoUrl={props.videoUrl} /> : <YouTubePlayer {...props} />;
+}
+
+function FileVideoPlayer({
+  videoUrl,
+  posterUrl,
+  title,
+  initialPositionSeconds,
+  seekToSeconds,
+  onPositionChange,
+}: PlayerProps & { videoUrl: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const report = () => onPositionChange(Math.max(0, Math.floor(video.currentTime)));
+    video.addEventListener('timeupdate', report);
+    video.addEventListener('pause', report);
+    return () => {
+      video.removeEventListener('timeupdate', report);
+      video.removeEventListener('pause', report);
+    };
+  }, [onPositionChange]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || seekToSeconds < 0) return;
+    video.currentTime = seekToSeconds;
+    onPositionChange(seekToSeconds);
+  }, [onPositionChange, seekToSeconds]);
+
+  return (
+    <div className="aspect-video overflow-hidden rounded-2xl border border-border bg-black shadow-xl">
+      <video
+        ref={videoRef}
+        className="h-full w-full"
+        src={`${videoUrl}#t=${Math.floor(initialPositionSeconds)}`}
+        poster={posterUrl || undefined}
+        title={title}
+        controls
+        playsInline
+        preload="metadata"
+      />
+    </div>
+  );
+}
+
+function YouTubePlayer({
   embedUrl,
   title,
   initialPositionSeconds,
   seekToSeconds,
   onPositionChange,
-}: {
-  embedUrl: string;
-  title: string;
-  initialPositionSeconds: number;
-  seekToSeconds: number;
-  onPositionChange(position: number): void;
-}) {
+}: PlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const latestPosition = useRef(initialPositionSeconds);
   const source = `${embedUrl}&enablejsapi=1&playsinline=1&start=${Math.floor(initialPositionSeconds)}`;

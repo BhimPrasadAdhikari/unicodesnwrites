@@ -1,0 +1,166 @@
+{
+  "key": "capstone-walkthrough",
+  "slug": "capstone-walkthrough",
+  "title": "Capstone walkthrough: a worked example, start to finish",
+  "summary": "A complete worked capstone on the Countdown numbers game: self-test, a task file that makes solvable puzzles and checks answers safely, baseline, pilot and full GRPO runs with TRL, reading the curves, honest re-measurement and a sample write-up.",
+  "type": "case-study",
+  "durationMinutes": 30,
+  "learningObjectives": [
+    "Generate puzzles that are solvable by construction, with a separate held-out test split.",
+    "Check model answers with a safe parser instead of eval, and explain each rule the checker enforces.",
+    "Find both reward loopholes and false negatives by testing a checker with cheating and unusual correct answers.",
+    "Run a baseline, a 50-step pilot and a full GRPO run with the starter repo, and judge run health from the logged metrics.",
+    "Write up results honestly: before/after accuracy and length on the same held-out set, with real samples."
+  ],
+  "concepts": [
+    "Countdown task",
+    "solvable by construction",
+    "safe expression parsing",
+    "false negative",
+    "reward weights",
+    "pilot run",
+    "frac_reward_zero_std",
+    "clipped ratio",
+    "curriculum",
+    "write-up"
+  ],
+  "studyGuide": {
+    "mentalModel": "Think of the Countdown task file as a quiz-master with two jobs: writing puzzles (always working backwards from a known solution, so none are impossible) and refereeing answers (a strict calculator that only allows the four operations and checks every number is used exactly once). GRPO is the practice routine, and evaluate.py is the exam on fresh puzzles. A good referee rejects every cheat and still accepts every correct answer, even one written in an unusual way.",
+    "keyIdeas": [
+      "make_puzzle chains random numbers with random operations and keeps the result as the target only if it's a whole number from 1 to 100, so every puzzle has a known solution.",
+      "Answers are parsed with Python's ast module and evaluated with exact fractions; only whole numbers and + - * / are allowed, so model output is never executed.",
+      "Counter(used) == Counter(numbers) checks every number is used exactly once.",
+      "Rewards: 0.5 x format + 1.0 x correctness, set by REWARD_WEIGHTS and passed to GRPOConfig's reward_weights.",
+      "Testing found a false negative: target-first answers like \"66 = 20 + 7 + 21 + 18\" were rejected. False negatives push the model away from correct answers.",
+      "In a pilot, check that reward moves, frac_reward_zero_std is below 1.0, and completions/clipped_ratio is small.",
+      "train.py uses 8 answers per group, 16 completions per update, learning rate 1e-5, beta 0, loss_type \"dapo\", masked truncations and rank-16 LoRA.",
+      "A strong write-up reports accuracy and length before and after on the same held-out set, with real samples including a failure."
+    ],
+    "misconceptions": [
+      "\"eval is fine for checking arithmetic.\" Model output can contain code; parse it and allow only what you expect.",
+      "\"A reward only needs testing against cheats.\" Correct answers in unusual forms can be wrongly rejected, and that hurts training too.",
+      "\"If the pilot's reward is flat, train longer.\" A flat reward usually means a task that's too hard or a broken checker; fix that first.",
+      "\"The sample numbers in the walkthrough are targets to hit.\" They are illustrative; only your own measured numbers belong in your write-up."
+    ],
+    "recallPrompts": [
+      "How does make_puzzle guarantee every puzzle is solvable?",
+      "List three kinds of answers the Countdown checker rejects, and why.",
+      "What is a false negative in a reward, and why does it matter for GRPO?",
+      "Which logged metrics tell you a pilot run is healthy?",
+      "What must a before/after comparison keep the same to be fair?"
+    ],
+    "explainBackPrompt": "Walk a friend through how you'd train a small model to play the Countdown numbers game: how the puzzles are made, how answers are checked, how you know training is working, and how you'd prove it improved. No code."
+  },
+  "quiz": [
+    {
+      "key": "q1-construction",
+      "prompt": "How does the starter repo make sure every Countdown puzzle has a solution?",
+      "options": [
+        "It searches all possible equations for each random target",
+        "It builds a random equation from the numbers first and uses its result as the target",
+        "It only uses targets below 10",
+        "It doesn't; some puzzles are impossible"
+      ],
+      "correctOption": 1,
+      "explanation": "make_puzzle chains the numbers with random operations, and if the result is a whole number from 1 to 100 it becomes the target. The chain is a known valid solution."
+    },
+    {
+      "key": "q2-safe-parse",
+      "prompt": "Why does the checker parse answers with Python's ast module instead of calling eval?",
+      "options": [
+        "eval is slower",
+        "ast gives more decimal places",
+        "Model output could contain code; parsing lets the checker allow only numbers and + - * /, without executing anything",
+        "eval can't handle brackets"
+      ],
+      "correctOption": 2,
+      "explanation": "Running model output with eval would execute whatever it contains. Walking the parsed tree means anything other than whole numbers and the four operations is rejected."
+    },
+    {
+      "key": "q3-false-negative",
+      "prompt": "The checker rejects the valid answer \"66 = 20 + 7 + 21 + 18\". Why is this a problem during GRPO training?",
+      "options": [
+        "It slows training down",
+        "It makes the format reward fail",
+        "It has no effect, because the model never writes equations that way",
+        "Correct answers in that form get a below-average reward, so GRPO pushes the model away from them"
+      ],
+      "correctOption": 3,
+      "explanation": "A false negative gives a correct answer a low reward and a negative advantage, so GRPO makes that correct form less likely. Rewards must accept every correct answer, not just reject cheats."
+    },
+    {
+      "key": "q4-pilot-health",
+      "prompt": "In a 50-step pilot, which pattern most suggests the run can learn?",
+      "options": [
+        "reward drifting up and frac_reward_zero_std clearly below 1.0",
+        "reward exactly 0 at every step",
+        "completions/clipped_ratio near 1.0",
+        "frac_reward_zero_std equal to 1.0"
+      ],
+      "correctOption": 0,
+      "explanation": "A rising reward with many groups that have a mix of scores means GRPO is getting a signal. All-zero rewards or groups that always score the same give no signal, and a high clipped ratio means replies are being cut off."
+    },
+    {
+      "key": "q5-counter",
+      "prompt": "For the puzzle [20, 21, 7, 18], why does \"20 + 21 + 18 + 7 + 7\" fail the check?",
+      "options": [
+        "It doesn't equal any number",
+        "Counter(used) has 7 twice, so it doesn't match Counter(numbers)",
+        "Addition isn't allowed",
+        "It has too many characters"
+      ],
+      "correctOption": 1,
+      "explanation": "A Counter records how many times each value appears. The answer uses 7 twice, while the puzzle has one 7, so the counters differ and the answer is rejected, whatever its value."
+    }
+  ],
+  "resources": [
+    {
+      "key": "starter-repo",
+      "title": "Capstone starter repo (zip)",
+      "description": "The full repo used in this walkthrough: tasks, train.py, evaluate.py, selftest.py and the rubric.",
+      "kind": "repo",
+      "url": "/courses/teach-a-small-ai-to-think/starter-repo.zip"
+    },
+    {
+      "key": "capstone-checklist",
+      "title": "Capstone checklist",
+      "description": "One page: milestones, what to submit and the write-up outline.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/capstone-checklist.pdf"
+    },
+    {
+      "key": "trl-grpo-docs",
+      "title": "TRL GRPOTrainer documentation",
+      "description": "GRPOConfig options and the metrics TRL logs during training.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/trl/main/en/grpo_trainer"
+    },
+    {
+      "key": "python-ast-docs",
+      "title": "Python ast module",
+      "description": "The standard-library module used to parse answers safely.",
+      "kind": "link",
+      "url": "https://docs.python.org/3/library/ast.html"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "both-sides-equation",
+      "title": "Fix the false negative in the Countdown checker",
+      "hints": [
+        "Split the answer on every \"=\" and try each side.",
+        "Strip spaces from each side before parsing, or Python sees an indent.",
+        "Skip sides that fail to parse instead of rejecting the whole answer."
+      ]
+    },
+    {
+      "key": "easier-curriculum",
+      "title": "Build an easy-to-hard curriculum",
+      "hints": [
+        "make_puzzle already accepts n_numbers.",
+        "Decide the puzzle size from the row's position: easy rows first.",
+        "Look for a GRPOConfig option about shuffling the dataset."
+      ]
+    }
+  ]
+}

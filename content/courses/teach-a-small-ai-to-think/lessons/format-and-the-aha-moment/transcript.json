@@ -1,0 +1,372 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 5,
+    "text": "Halfway through a hard maths problem, an AI stopped, and wrote this."
+  },
+  {
+    "startSeconds": 5,
+    "endSeconds": 11,
+    "text": "Wait, wait. Wait. That’s an aha moment I can flag here."
+  },
+  {
+    "startSeconds": 11,
+    "endSeconds": 16,
+    "text": "Hold on. It said that by itself? Nobody told it to say wait?"
+  },
+  {
+    "startSeconds": 16,
+    "endSeconds": 21,
+    "text": "Nobody. It had only ever been given problems, a simple template, and a score."
+  },
+  {
+    "startSeconds": 21,
+    "endSeconds": 25,
+    "text": "So the AI taught itself to reason? That’s amazing!"
+  },
+  {
+    "startSeconds": 25,
+    "endSeconds": 32,
+    "text": "Partly. But a later paper found the story was more ordinary. Part of it was a quirk in the maths."
+  },
+  {
+    "startSeconds": 31,
+    "endSeconds": 34,
+    "text": "A quirk? Okay, now I need to know."
+  },
+  {
+    "startSeconds": 34,
+    "endSeconds": 39,
+    "text": "By the end, you’ll know what really grew, and the setting that controls it."
+  },
+  {
+    "startSeconds": 39,
+    "endSeconds": 42,
+    "text": "The aha moment. Episode one."
+  },
+  {
+    "startSeconds": 43,
+    "endSeconds": 47,
+    "text": "So what did they give it? Examples of good reasoning?"
+  },
+  {
+    "startSeconds": 47,
+    "endSeconds": 52,
+    "text": "None at all. Picture an exam paper with two boxes printed on it."
+  },
+  {
+    "startSeconds": 52,
+    "endSeconds": 56,
+    "text": "A big box for your working, and a small box for the final answer."
+  },
+  {
+    "startSeconds": 56,
+    "endSeconds": 61,
+    "text": "The examiner only marks the small box. But they check you used both."
+  },
+  {
+    "startSeconds": 61,
+    "endSeconds": 64,
+    "text": "So it’s told where to think, but not how to think."
+  },
+  {
+    "startSeconds": 65,
+    "endSeconds": 71,
+    "text": "In the real thing, the boxes are tags. The working goes inside think tags, and the answer inside answer tags."
+  },
+  {
+    "startSeconds": 71,
+    "endSeconds": 76,
+    "text": "Then two rules grade it. Accuracy: is the final answer right?"
+  },
+  {
+    "startSeconds": 76,
+    "endSeconds": 81,
+    "text": "And format: did it use the tags? Both are checked by plain code."
+  },
+  {
+    "startSeconds": 81,
+    "endSeconds": 86,
+    "text": "Why not get another AI to grade the answers? Like a judge?"
+  },
+  {
+    "startSeconds": 86,
+    "endSeconds": 93,
+    "text": "DeepSeek avoided that. Watch. Tiny gives a wrong answer, very confidently. And the judge loves it."
+  },
+  {
+    "startSeconds": 93,
+    "endSeconds": 97,
+    "text": "Oh no. So it learns to fool the judge, not to do maths."
+  },
+  {
+    "startSeconds": 97,
+    "endSeconds": 102,
+    "text": "That’s reward hacking. A few lines of code that check the answer are much harder to fool."
+  },
+  {
+    "startSeconds": 103,
+    "endSeconds": 107,
+    "text": "And it worked. On a hard competition maths test called AIME..."
+  },
+  {
+    "startSeconds": 107,
+    "endSeconds": 113,
+    "text": "R1-Zero started out solving fifteen point six percent of the problems, on one try."
+  },
+  {
+    "startSeconds": 113,
+    "endSeconds": 115,
+    "text": "And by the end?"
+  },
+  {
+    "startSeconds": 115,
+    "endSeconds": 121,
+    "text": "Seventy-one percent. And with a majority vote over many tries, eighty-six point seven."
+  },
+  {
+    "startSeconds": 122,
+    "endSeconds": 126,
+    "text": "Something else happened at the same time. The answers got longer."
+  },
+  {
+    "startSeconds": 126,
+    "endSeconds": 129,
+    "text": "Early on: a few lines, often a guess."
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 133,
+    "text": "Later: longer working, then checking, then trying another way."
+  },
+  {
+    "startSeconds": 133,
+    "endSeconds": 138,
+    "text": "But nobody rewarded length, right? Only the answer and the tags."
+  },
+  {
+    "startSeconds": 138,
+    "endSeconds": 145,
+    "text": "Right. Longer working got more answers right, so it got reinforced. From hundreds of tokens, to thousands."
+  },
+  {
+    "startSeconds": 146,
+    "endSeconds": 150,
+    "text": "Then, partway through a hard algebra problem, came the famous moment."
+  },
+  {
+    "startSeconds": 150,
+    "endSeconds": 155,
+    "text": "Wait, wait. Wait. That’s an aha moment I can flag here."
+  },
+  {
+    "startSeconds": 155,
+    "endSeconds": 158,
+    "text": "Then it went back and re-checked its own working."
+  },
+  {
+    "startSeconds": 158,
+    "endSeconds": 161,
+    "text": "So that’s reasoning appearing out of nowhere. Right?"
+  },
+  {
+    "startSeconds": 161,
+    "endSeconds": 167,
+    "text": "That’s how the story was told. Then a 2025 paper took a closer look."
+  },
+  {
+    "startSeconds": 167,
+    "endSeconds": 171,
+    "text": "People call it the Dr. GRPO paper."
+  },
+  {
+    "startSeconds": 171,
+    "endSeconds": 178,
+    "text": "First finding: base models, before any reinforcement learning, already show this aha-style self-checking."
+  },
+  {
+    "startSeconds": 178,
+    "endSeconds": 181,
+    "text": "Wait. So the training didn’t invent it?"
+  },
+  {
+    "startSeconds": 181,
+    "endSeconds": 187,
+    "text": "Not invented. Found. The model already did it sometimes, and training made it much more common."
+  },
+  {
+    "startSeconds": 187,
+    "endSeconds": 192,
+    "text": "Like a radio station that was always on, just very quiet. Training turned up the volume."
+  },
+  {
+    "startSeconds": 193,
+    "endSeconds": 198,
+    "text": "Second finding. And it’s about how the blame gets shared out."
+  },
+  {
+    "startSeconds": 197,
+    "endSeconds": 207,
+    "text": "Two wrong answers get the same penalty. One is ten words long, one is a hundred. Each penalty is spread over that answer’s own words."
+  },
+  {
+    "startSeconds": 206,
+    "endSeconds": 209,
+    "text": "So which one gets off lighter, per word?"
+  },
+  {
+    "startSeconds": 209,
+    "endSeconds": 212,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 218,
+    "endSeconds": 223,
+    "text": "C! Wrong is wrong. Same penalty, so length shouldn’t matter. Right?"
+  },
+  {
+    "startSeconds": 223,
+    "endSeconds": 229,
+    "text": "It feels fair. But no. It’s B. The long wrong answer gets off lighter."
+  },
+  {
+    "startSeconds": 230,
+    "endSeconds": 235,
+    "text": "Think of butter. One knob of butter on one slice of toast makes a thick layer."
+  },
+  {
+    "startSeconds": 235,
+    "endSeconds": 240,
+    "text": "Spread the same knob over ten slices, and each one barely tastes of it."
+  },
+  {
+    "startSeconds": 240,
+    "endSeconds": 246,
+    "text": "The penalty is the butter. The words are the slices. Ten words: each word gets a tenth."
+  },
+  {
+    "startSeconds": 246,
+    "endSeconds": 252,
+    "text": "A hundred words: each word gets a hundredth. Ten times gentler."
+  },
+  {
+    "startSeconds": 252,
+    "endSeconds": 256,
+    "text": "Oh no. So when it’s not sure, rambling is the safer bet!"
+  },
+  {
+    "startSeconds": 256,
+    "endSeconds": 261,
+    "text": "Exactly. Over thousands of steps, wrong answers drift longer."
+  },
+  {
+    "startSeconds": 261,
+    "endSeconds": 264,
+    "text": "So some of that famous growth was just butter, spreading."
+  },
+  {
+    "startSeconds": 265,
+    "endSeconds": 270,
+    "text": "The fix is called Dr. GRPO. GRPO done right."
+  },
+  {
+    "startSeconds": 270,
+    "endSeconds": 279,
+    "text": "Divide every answer by the same fixed number, not by its own length. Now a word counts the same, in a short reply or a long one."
+  },
+  {
+    "startSeconds": 279,
+    "endSeconds": 282,
+    "text": "And scale rewards, none? What’s that one?"
+  },
+  {
+    "startSeconds": 282,
+    "endSeconds": 287,
+    "text": "A second, smaller bias the paper found. Switch that off too."
+  },
+  {
+    "startSeconds": 287,
+    "endSeconds": 295,
+    "text": "Some growth is real. Hard problems need more working. So, always watch length and accuracy together."
+  },
+  {
+    "startSeconds": 295,
+    "endSeconds": 298,
+    "text": "Picture a run where the answers keep getting longer."
+  },
+  {
+    "startSeconds": 298,
+    "endSeconds": 301,
+    "text": "But accuracy just sits there, flat."
+  },
+  {
+    "startSeconds": 301,
+    "endSeconds": 304,
+    "text": "That’s not an aha moment. That’s butter."
+  },
+  {
+    "startSeconds": 304,
+    "endSeconds": 309,
+    "text": "Right. Then read the replies. A real check looks very different from filler."
+  },
+  {
+    "startSeconds": 310,
+    "endSeconds": 312,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 312,
+    "endSeconds": 317,
+    "text": "R1-Zero got two boxes, and two rules: is it right, and did it use the tags."
+  },
+  {
+    "startSeconds": 317,
+    "endSeconds": 321,
+    "text": "The aha habit was already there. Training made it common."
+  },
+  {
+    "startSeconds": 321,
+    "endSeconds": 325,
+    "text": "And some of the length growth was just the penalty, spread thin."
+  },
+  {
+    "startSeconds": 325,
+    "endSeconds": 330,
+    "text": "But even with the bias fixed, all this thinking has a cost."
+  },
+  {
+    "startSeconds": 330,
+    "endSeconds": 335,
+    "text": "Ask a freshly trained reasoning model what two plus three is, and you might get this."
+  },
+  {
+    "startSeconds": 335,
+    "endSeconds": 339,
+    "text": "Three paragraphs? Two hundred tokens, to say five?!"
+  },
+  {
+    "startSeconds": 339,
+    "endSeconds": 343,
+    "text": "And every one of those tokens costs time and money."
+  },
+  {
+    "startSeconds": 343,
+    "endSeconds": 346,
+    "text": "So how do we make it think less, without making it dumber?"
+  },
+  {
+    "startSeconds": 346,
+    "endSeconds": 348,
+    "text": "That’s the next episode."
+  },
+  {
+    "startSeconds": 349,
+    "endSeconds": 353,
+    "text": "Watch the answers grow, in the interactive chart below this video."
+  },
+  {
+    "startSeconds": 353,
+    "endSeconds": 356,
+    "text": "See you in the next episode!"
+  }
+]

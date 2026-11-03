@@ -1,0 +1,302 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 7,
+    "text": "Here’s a Countdown answer. Sixty-six, equals twenty plus seven plus twenty-one plus eighteen."
+  },
+  {
+    "startSeconds": 7,
+    "endSeconds": 11,
+    "text": "It adds up. Every number used once. It’s right."
+  },
+  {
+    "startSeconds": 11,
+    "endSeconds": 15,
+    "text": "And our checker says... wrong. Zero."
+  },
+  {
+    "startSeconds": 15,
+    "endSeconds": 19,
+    "text": "Our own checker. The one we wrote for this course."
+  },
+  {
+    "startSeconds": 19,
+    "endSeconds": 25,
+    "text": "What happens next is the most important lesson of the whole capstone. So let’s do one, start to finish."
+  },
+  {
+    "startSeconds": 25,
+    "endSeconds": 29,
+    "text": "A worked example. Episode two."
+  },
+  {
+    "startSeconds": 30,
+    "endSeconds": 37,
+    "text": "Countdown has been on British TV since 1982. Some numbers, a target, and thirty seconds."
+  },
+  {
+    "startSeconds": 37,
+    "endSeconds": 40,
+    "text": "Wait, so where do we get thousands of puzzles?"
+  },
+  {
+    "startSeconds": 40,
+    "endSeconds": 49,
+    "text": "We make them. Pick four random numbers. Chain them with random operations. If you land on a whole number from one to a hundred, that’s the target."
+  },
+  {
+    "startSeconds": 48,
+    "endSeconds": 51,
+    "text": "Otherwise, try again."
+  },
+  {
+    "startSeconds": 51,
+    "endSeconds": 55,
+    "text": "We built the answer first, so no puzzle is ever impossible."
+  },
+  {
+    "startSeconds": 56,
+    "endSeconds": 61,
+    "text": "Milestone zero: unzip the starter repo, and run the self-test."
+  },
+  {
+    "startSeconds": 61,
+    "endSeconds": 68,
+    "text": "It checks every puzzle maker and reward, prints a few sample puzzles, and then: all self-tests passed."
+  },
+  {
+    "startSeconds": 68,
+    "endSeconds": 73,
+    "text": "Milestone one: the checker. Think of it as a strict referee."
+  },
+  {
+    "startSeconds": 73,
+    "endSeconds": 81,
+    "text": "Only numbers and the four operations. Every number exactly once. No dividing by zero. And hit the target."
+  },
+  {
+    "startSeconds": 81,
+    "endSeconds": 89,
+    "text": "And the answer is never run as code. It’s parsed into a tree, and checked piece by piece, with exact fractions."
+  },
+  {
+    "startSeconds": 88,
+    "endSeconds": 92,
+    "text": "So nobody can sneak code past it. Safe."
+  },
+  {
+    "startSeconds": 93,
+    "endSeconds": 95,
+    "text": "Two rewards are added together."
+  },
+  {
+    "startSeconds": 95,
+    "endSeconds": 100,
+    "text": "Neat tags earn half a point. Three of these four replies get that."
+  },
+  {
+    "startSeconds": 100,
+    "endSeconds": 104,
+    "text": "Being correct earns a whole point. Only one reply does."
+  },
+  {
+    "startSeconds": 104,
+    "endSeconds": 107,
+    "text": "So being right counts twice as much as being tidy."
+  },
+  {
+    "startSeconds": 108,
+    "endSeconds": 111,
+    "text": "So, back to our bug. What went wrong?"
+  },
+  {
+    "startSeconds": 111,
+    "endSeconds": 118,
+    "text": "The checker only looked at the left side of the equals sign. And sixty-six on its own doesn’t use any of the four numbers."
+  },
+  {
+    "startSeconds": 118,
+    "endSeconds": 121,
+    "text": "So it’s like reward hacking, but backwards?"
+  },
+  {
+    "startSeconds": 121,
+    "endSeconds": 129,
+    "text": "Exactly. Reward hacking scores a wrong answer as right. This is the mirror image: a right answer scored as wrong. A false negative."
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 136,
+    "text": "The lesson for your own task: test correct answers in unusual forms, not only cheating ones."
+  },
+  {
+    "startSeconds": 136,
+    "endSeconds": 141,
+    "text": "If we had trained with that bug, what happens to those correct answers?"
+  },
+  {
+    "startSeconds": 141,
+    "endSeconds": 143,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 149,
+    "endSeconds": 155,
+    "text": "A! Remember episode one? A reward of zero teaches nothing. Nothing moves."
+  },
+  {
+    "startSeconds": 155,
+    "endSeconds": 158,
+    "text": "That was before groups. It’s B."
+  },
+  {
+    "startSeconds": 159,
+    "endSeconds": 162,
+    "text": "In a group, the other answers score one."
+  },
+  {
+    "startSeconds": 162,
+    "endSeconds": 164,
+    "text": "So the group average is high."
+  },
+  {
+    "startSeconds": 164,
+    "endSeconds": 170,
+    "text": "And our correct answer, scored zero by the bug, lands below it. Its push is negative."
+  },
+  {
+    "startSeconds": 170,
+    "endSeconds": 175,
+    "text": "GRPO would quietly teach the model to stop writing a perfectly good answer."
+  },
+  {
+    "startSeconds": 175,
+    "endSeconds": 181,
+    "text": "Wow. A test caught that before any training. That’s why we attack the checker first!"
+  },
+  {
+    "startSeconds": 181,
+    "endSeconds": 189,
+    "text": "Milestone two: the baseline. Measure the untouched model on two hundred test puzzles, and read ten replies."
+  },
+  {
+    "startSeconds": 189,
+    "endSeconds": 195,
+    "text": "Then milestone three, a fifty-step pilot. You only want to know: can learning happen at all?"
+  },
+  {
+    "startSeconds": 194,
+    "endSeconds": 198,
+    "text": "Is the reward wobbling, but drifting up?"
+  },
+  {
+    "startSeconds": 197,
+    "endSeconds": 203,
+    "text": "Are there plenty of groups where answers score differently? If they all score the same, there’s no signal."
+  },
+  {
+    "startSeconds": 203,
+    "endSeconds": 207,
+    "text": "And are only a few replies being cut off at the length cap?"
+  },
+  {
+    "startSeconds": 207,
+    "endSeconds": 212,
+    "text": "If the reward is stuck at zero, make it easier. Three numbers instead of four."
+  },
+  {
+    "startSeconds": 213,
+    "endSeconds": 219,
+    "text": "Milestone four: three hundred steps. About one to two hours on a free GPU."
+  },
+  {
+    "startSeconds": 219,
+    "endSeconds": 227,
+    "text": "And look: groups of eight. No KL leash. A loss with no length bias. Every setting is something you’ve already met."
+  },
+  {
+    "startSeconds": 227,
+    "endSeconds": 230,
+    "text": "Oh! I actually know what all of these mean now."
+  },
+  {
+    "startSeconds": 231,
+    "endSeconds": 238,
+    "text": "Milestone five: measure again, on the same puzzles, and write it up. These numbers are made up, just to show the shape."
+  },
+  {
+    "startSeconds": 238,
+    "endSeconds": 244,
+    "text": "Before and after, side by side. Accuracy, and format. And length too."
+  },
+  {
+    "startSeconds": 244,
+    "endSeconds": 247,
+    "text": "And one answer it got wrong?"
+  },
+  {
+    "startSeconds": 247,
+    "endSeconds": 254,
+    "text": "Always. Make four from these numbers: it wrote something that makes six. Right idea, wrong arithmetic."
+  },
+  {
+    "startSeconds": 254,
+    "endSeconds": 260,
+    "text": "One run, one seed, one honest limitation. That’s a strong write-up."
+  },
+  {
+    "startSeconds": 260,
+    "endSeconds": 263,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 263,
+    "endSeconds": 266,
+    "text": "Build each puzzle from its answer, so none are impossible."
+  },
+  {
+    "startSeconds": 266,
+    "endSeconds": 271,
+    "text": "Test your checker with cheats, and with correct answers in odd forms."
+  },
+  {
+    "startSeconds": 270,
+    "endSeconds": 275,
+    "text": "And pilot first. Then report before and after, honestly."
+  },
+  {
+    "startSeconds": 275,
+    "endSeconds": 280,
+    "text": "Remember where we started? Tiny, getting three plus four wrong."
+  },
+  {
+    "startSeconds": 280,
+    "endSeconds": 287,
+    "text": "Then a treat, a nudge, a group, a leash. Rewards it couldn’t fool. Thinking it learned to keep short."
+  },
+  {
+    "startSeconds": 287,
+    "endSeconds": 290,
+    "text": "And now we’re training a real model, on a task we picked ourselves."
+  },
+  {
+    "startSeconds": 290,
+    "endSeconds": 297,
+    "text": "So pick your task. Measure honestly. And share what you build. We’d love to see it."
+  },
+  {
+    "startSeconds": 297,
+    "endSeconds": 300,
+    "text": "You taught a small AI to think."
+  },
+  {
+    "startSeconds": 301,
+    "endSeconds": 304,
+    "text": "Thank you so much for learning with us!"
+  },
+  {
+    "startSeconds": 304,
+    "endSeconds": 306,
+    "text": "See you out there!"
+  }
+]

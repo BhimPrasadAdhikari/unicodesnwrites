@@ -59,3 +59,8 @@ next-env.d.ts
 *.pem
 *.key
 *.p12
+
+# self-hosted course videos (uploaded separately, too large for git)
+/public/course-media/
+# free course downloads are shipped as zips on purpose
+!/public/courses/**/*.zip

@@ -1,0 +1,21 @@
+[
+  {"episode": "m01-welcome", "lesson": "welcome-and-setup", "title": "Teach a Small AI to Think", "module": "Module 1 · Welcome", "about": "Meet Tiny and Qwen, see what you'll build, and set up a free GPU to get your \"before\" score."},
+  {"episode": "m02-e1", "lesson": "answer-now-or-think-first", "title": "Answer Now, or Think First?", "module": "Module 2 · Episode 1", "about": "Why writing out the steps helps on hard problems, and what that thinking costs."},
+  {"episode": "m02-e2", "lesson": "how-reasoning-models-were-trained", "title": "How R1 Learned to Think", "module": "Module 2 · Episode 2", "about": "The DeepSeek-R1 recipe in plain words: R1-Zero, two simple rewards, longer answers and the \"aha\" moment."},
+  {"episode": "m03-e1", "lesson": "verifiable-rewards", "title": "Verifiable Rewards", "module": "Module 3 · Episode 1", "about": "Grading without a teacher: the format and correctness rewards behind R1-style training."},
+  {"episode": "m03-e2", "lesson": "when-rewards-go-wrong", "title": "When Rewards Go Wrong", "module": "Module 3 · Episode 2", "about": "Reward hacking: when a model scores high without doing what you wanted, and how to catch it."},
+  {"episode": "the-nudge-ep1", "lesson": "the-nudge", "title": "The Nudge", "module": "Module 4 · Episode 1", "about": "How a score teaches a model: one treat at a time."},
+  {"episode": "m04-e2", "lesson": "lab-reinforce-from-scratch", "title": "Learning From Mistakes", "module": "Module 4 · Episode 2", "about": "Baselines, step size, exploring, and REINFORCE in a few lines of numpy."},
+  {"episode": "m05-e1", "lesson": "groups-and-advantages", "title": "Groups and Advantages", "module": "Module 5 · Episode 1", "about": "The heart of GRPO: ask the same question several times and grade each answer against the group."},
+  {"episode": "m05-e2", "lesson": "clipping-and-the-kl-leash", "title": "Clipping and the KL Leash", "module": "Module 5 · Episode 2", "about": "Two safety brakes that keep GRPO training stable."},
+  {"episode": "m06-e1", "lesson": "setting-up-trl-on-colab", "title": "Setting Up a Real Run", "module": "Module 6 · Episode 1", "about": "Qwen2.5-0.5B, Hugging Face TRL and LoRA on a free Colab T4."},
+  {"episode": "m06-e2", "lesson": "lab-teach-qwen-arithmetic", "title": "Teach Qwen Word Problems", "module": "Module 6 · Episode 2", "about": "Your first real GRPO training run, and how to read what happened."},
+  {"episode": "m07-e1", "lesson": "what-healthy-training-looks-like", "title": "What Healthy Training Looks Like", "module": "Module 7 · Episode 1", "about": "The vital signs of a GRPO run and which curves to read together."},
+  {"episode": "m07-e2", "lesson": "debugging-a-bad-run", "title": "Debugging a Bad Run", "module": "Module 7 · Episode 2", "about": "Stuck, hacking, leashed and collapsed runs: how to tell them apart and fix them."},
+  {"episode": "m08-e1", "lesson": "format-and-the-aha-moment", "title": "The Aha Moment", "module": "Module 8 · Episode 1", "about": "What really grew when R1-Zero learned to think, and what Dr. GRPO found."},
+  {"episode": "m08-e2", "lesson": "shorter-thinking", "title": "Shorter Thinking", "module": "Module 8 · Episode 2", "about": "Making thinking shorter and cheaper without paying for wrong answers."},
+  {"episode": "m09-e1", "lesson": "distillation-vs-rl", "title": "Distillation vs RL", "module": "Module 9 · Episode 1", "about": "Copy a bigger model's worked answers, or learn from your own scored attempts?"},
+  {"episode": "m09-e2", "lesson": "lab-distill-reasoning-traces", "title": "Copy a Big Model's Thinking", "module": "Module 9 · Episode 2", "about": "A thousand worked answers and one free GPU: distilling reasoning into a small model."},
+  {"episode": "m10-e1", "lesson": "capstone-brief", "title": "The Capstone", "module": "Module 10 · Episode 1", "about": "Train your own reasoning model: pick a task, measure, train, re-measure honestly, share."},
+  {"episode": "m10-e2", "lesson": "capstone-walkthrough", "title": "A Worked Example", "module": "Module 10 · Episode 2", "about": "The capstone from start to finish on the Countdown puzzle."}
+]

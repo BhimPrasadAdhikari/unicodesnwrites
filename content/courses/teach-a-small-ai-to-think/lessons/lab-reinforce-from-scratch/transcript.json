@@ -1,0 +1,292 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 7,
+    "text": "Last time, Tiny said eight to three plus four. Wrong. Reward, zero."
+  },
+  {
+    "startSeconds": 7,
+    "endSeconds": 10,
+    "text": "And nothing moved. The mistake taught it nothing."
+  },
+  {
+    "startSeconds": 10,
+    "endSeconds": 14,
+    "text": "Now watch the same mistake, with one small change."
+  },
+  {
+    "startSeconds": 14,
+    "endSeconds": 17,
+    "text": "Eight shrinks! And seven grows!"
+  },
+  {
+    "startSeconds": 16,
+    "endSeconds": 22,
+    "text": "Now a mistake teaches something. And the change is an idea you already know from school."
+  },
+  {
+    "startSeconds": 23,
+    "endSeconds": 26,
+    "text": "Learning from mistakes. Episode two."
+  },
+  {
+    "startSeconds": 27,
+    "endSeconds": 32,
+    "text": "Picture two students. Both get forty percent on a test."
+  },
+  {
+    "startSeconds": 32,
+    "endSeconds": 35,
+    "text": "One of them usually scores twenty-five percent."
+  },
+  {
+    "startSeconds": 35,
+    "endSeconds": 38,
+    "text": "Then forty is brilliant! Party time."
+  },
+  {
+    "startSeconds": 38,
+    "endSeconds": 41,
+    "text": "The other one usually scores ninety."
+  },
+  {
+    "startSeconds": 40,
+    "endSeconds": 43,
+    "text": "Uh oh. Then forty is a disaster."
+  },
+  {
+    "startSeconds": 43,
+    "endSeconds": 50,
+    "text": "Same score. Opposite news. What matters is the score, compared with the usual score."
+  },
+  {
+    "startSeconds": 50,
+    "endSeconds": 57,
+    "text": "That’s the whole idea. Instead of the raw reward, we use the reward, minus the usual reward."
+  },
+  {
+    "startSeconds": 57,
+    "endSeconds": 62,
+    "text": "In papers, the usual reward is called the baseline, and the difference is called the advantage."
+  },
+  {
+    "startSeconds": 62,
+    "endSeconds": 68,
+    "text": "For Tiny right now, the usual reward is about twenty-two percent, because that’s how often it says seven."
+  },
+  {
+    "startSeconds": 68,
+    "endSeconds": 75,
+    "text": "So when it says eight, the advantage is zero minus point two two. Negative. So eight gets pushed down."
+  },
+  {
+    "startSeconds": 75,
+    "endSeconds": 78,
+    "text": "And when it says seven?"
+  },
+  {
+    "startSeconds": 78,
+    "endSeconds": 85,
+    "text": "One minus point two two. Plus point seven eight. Seven goes up. Now every answer teaches something."
+  },
+  {
+    "startSeconds": 86,
+    "endSeconds": 90,
+    "text": "Second knob: how big a nudge. Think of a shower tap."
+  },
+  {
+    "startSeconds": 90,
+    "endSeconds": 94,
+    "text": "Turn it a hair, and you’re waiting forever for warm water."
+  },
+  {
+    "startSeconds": 94,
+    "endSeconds": 96,
+    "text": "Crank it, and you’re scalded."
+  },
+  {
+    "startSeconds": 96,
+    "endSeconds": 104,
+    "text": "Same with Tiny. Start every answer at twenty-five percent, reward seven just once, and change the step size."
+  },
+  {
+    "startSeconds": 104,
+    "endSeconds": 114,
+    "text": "Step a half: seven goes to thirty-five percent. Step two: seventy-one. Step ten: basically a hundred, from one lucky answer."
+  },
+  {
+    "startSeconds": 114,
+    "endSeconds": 117,
+    "text": "Total certainty from one try? That’s reckless."
+  },
+  {
+    "startSeconds": 117,
+    "endSeconds": 124,
+    "text": "In papers, this knob is the learning rate. Too small is slow. Too big jumps to conclusions."
+  },
+  {
+    "startSeconds": 125,
+    "endSeconds": 128,
+    "text": "Third: you can’t reward what you never try."
+  },
+  {
+    "startSeconds": 128,
+    "endSeconds": 132,
+    "text": "Like ordering the same dish at the same restaurant, every single time."
+  },
+  {
+    "startSeconds": 132,
+    "endSeconds": 141,
+    "text": "Exactly. You’d never find out the special is better. If Tiny gives seven almost no chance, it almost never says it, and never sees it rewarded."
+  },
+  {
+    "startSeconds": 141,
+    "endSeconds": 149,
+    "text": "So we keep some randomness, and sample several answers to each question. More tries, more chances to stumble on something good."
+  },
+  {
+    "startSeconds": 150,
+    "endSeconds": 156,
+    "text": "Now, a test of the baseline. Give every answer ten bonus points, just for showing up."
+  },
+  {
+    "startSeconds": 155,
+    "endSeconds": 162,
+    "text": "Seven still beats eight by exactly the same amount. With no baseline, what happens to learning?"
+  },
+  {
+    "startSeconds": 162,
+    "endSeconds": 164,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 170,
+    "endSeconds": 175,
+    "text": "A. Nothing changes. Seven’s still the best answer, so it still wins."
+  },
+  {
+    "startSeconds": 175,
+    "endSeconds": 179,
+    "text": "That’s the trap. It’s C. Learning falls apart."
+  },
+  {
+    "startSeconds": 179,
+    "endSeconds": 185,
+    "text": "These are real results from the lab code. Twenty runs each, sixty steps."
+  },
+  {
+    "startSeconds": 185,
+    "endSeconds": 189,
+    "text": "Honest scores, no baseline: seven reaches ninety-seven percent."
+  },
+  {
+    "startSeconds": 189,
+    "endSeconds": 197,
+    "text": "Add ten points for everyone: twenty-three percent. Lower than where it started! And the runs disagree wildly."
+  },
+  {
+    "startSeconds": 196,
+    "endSeconds": 199,
+    "text": "But why?!"
+  },
+  {
+    "startSeconds": 199,
+    "endSeconds": 207,
+    "text": "Every answer that comes up gets a big positive score, so every answer gets pushed up. Whatever happens to come up early snowballs."
+  },
+  {
+    "startSeconds": 206,
+    "endSeconds": 214,
+    "text": "Subtract the usual score, and the ten points cancel out. Ninety-six percent. The baseline buys reliability."
+  },
+  {
+    "startSeconds": 214,
+    "endSeconds": 218,
+    "text": "And here’s the whole thing in numpy. A few lines."
+  },
+  {
+    "startSeconds": 218,
+    "endSeconds": 220,
+    "text": "Roll Tiny’s die eight times."
+  },
+  {
+    "startSeconds": 220,
+    "endSeconds": 225,
+    "text": "Look up each score, and subtract the batch’s average. That’s the baseline."
+  },
+  {
+    "startSeconds": 225,
+    "endSeconds": 228,
+    "text": "Nudge each answer by its advantage."
+  },
+  {
+    "startSeconds": 228,
+    "endSeconds": 232,
+    "text": "And take a step, sized by the learning rate."
+  },
+  {
+    "startSeconds": 231,
+    "endSeconds": 234,
+    "text": "Wait, that’s it? That’s the algorithm?"
+  },
+  {
+    "startSeconds": 234,
+    "endSeconds": 241,
+    "text": "That’s it. Twenty-five percent to ninety-six, in sixty steps. In papers, it’s called REINFORCE."
+  },
+  {
+    "startSeconds": 242,
+    "endSeconds": 245,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 244,
+    "endSeconds": 249,
+    "text": "Compare each reward with the usual reward, and mistakes start teaching."
+  },
+  {
+    "startSeconds": 249,
+    "endSeconds": 254,
+    "text": "Pick the step size carefully. Too small is slow, and too big is reckless."
+  },
+  {
+    "startSeconds": 254,
+    "endSeconds": 258,
+    "text": "And keep exploring, because you can’t reward what you never try."
+  },
+  {
+    "startSeconds": 259,
+    "endSeconds": 261,
+    "text": "Okay, but here’s what bugs me."
+  },
+  {
+    "startSeconds": 261,
+    "endSeconds": 267,
+    "text": "Tiny only ever gets one question. A real model gets thousands. Some easy, some brutal."
+  },
+  {
+    "startSeconds": 267,
+    "endSeconds": 273,
+    "text": "Right. On an easy one, the usual score might be high. On a hard one, really low."
+  },
+  {
+    "startSeconds": 273,
+    "endSeconds": 278,
+    "text": "So one average for everything isn’t fair. Usual... compared to what?"
+  },
+  {
+    "startSeconds": 278,
+    "endSeconds": 288,
+    "text": "Compare each answer with other answers to the same question. A group. Next episode: groups and advantages, the heart of GRPO."
+  },
+  {
+    "startSeconds": 288,
+    "endSeconds": 293,
+    "text": "Run the REINFORCE lab, and try the plus ten experiment yourself."
+  },
+  {
+    "startSeconds": 292,
+    "endSeconds": 295,
+    "text": "See you in the next episode!"
+  }
+]

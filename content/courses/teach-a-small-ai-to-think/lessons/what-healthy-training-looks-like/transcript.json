@@ -1,0 +1,257 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 4,
+    "text": "Here are two training runs. Watch the reward."
+  },
+  {
+    "startSeconds": 4,
+    "endSeconds": 7,
+    "text": "Both climbing to the top! Two great runs."
+  },
+  {
+    "startSeconds": 7,
+    "endSeconds": 10,
+    "text": "One of them learned nothing at all."
+  },
+  {
+    "startSeconds": 10,
+    "endSeconds": 12,
+    "text": "What? Which one?"
+  },
+  {
+    "startSeconds": 12,
+    "endSeconds": 18,
+    "text": "Run B. Its reward is nearly perfect, but its real accuracy never left five percent."
+  },
+  {
+    "startSeconds": 18,
+    "endSeconds": 20,
+    "text": "So a rising reward can lie?!"
+  },
+  {
+    "startSeconds": 20,
+    "endSeconds": 26,
+    "text": "It can. By the end of this video, you’ll read a run like a doctor reads a chart, and catch it."
+  },
+  {
+    "startSeconds": 27,
+    "endSeconds": 30,
+    "text": "What healthy training looks like. Episode one."
+  },
+  {
+    "startSeconds": 32,
+    "endSeconds": 39,
+    "text": "A doctor never judges your health from one number. Temperature, pulse, blood pressure: together, they tell the story."
+  },
+  {
+    "startSeconds": 39,
+    "endSeconds": 42,
+    "text": "So a training run has vital signs too?"
+  },
+  {
+    "startSeconds": 42,
+    "endSeconds": 52,
+    "text": "Seven of them, logged for you. Reward. Its spread. The share of all-same groups. Answer length. KL. Entropy. And the clip ratio."
+  },
+  {
+    "startSeconds": 52,
+    "endSeconds": 57,
+    "text": "Plus one you measure yourself: accuracy, on questions the model never trains on."
+  },
+  {
+    "startSeconds": 58,
+    "endSeconds": 62,
+    "text": "Let’s start with reward, on Tiny’s healthy run."
+  },
+  {
+    "startSeconds": 62,
+    "endSeconds": 69,
+    "text": "A slow start, while almost every group is all wrong. Then a steep climb. Then a plateau, as the easy gains run out."
+  },
+  {
+    "startSeconds": 69,
+    "endSeconds": 72,
+    "text": "It’s an S! A lazy S."
+  },
+  {
+    "startSeconds": 72,
+    "endSeconds": 79,
+    "text": "That’s the classic healthy shape. On a real model it’s noisier, and rarely reaches the top. But look for the same story."
+  },
+  {
+    "startSeconds": 80,
+    "endSeconds": 86,
+    "text": "Next, the fuel gauge. Remember: a group where every answer scores the same teaches nothing."
+  },
+  {
+    "startSeconds": 86,
+    "endSeconds": 93,
+    "text": "This curve is the share of those silent groups. At the start, about six in ten, because almost everything is wrong."
+  },
+  {
+    "startSeconds": 93,
+    "endSeconds": 97,
+    "text": "Then it dips! More groups disagree, so there’s more fuel."
+  },
+  {
+    "startSeconds": 97,
+    "endSeconds": 104,
+    "text": "And then it climbs again, past nine in ten. But this time, the silent groups are the ones where every answer is right."
+  },
+  {
+    "startSeconds": 104,
+    "endSeconds": 108,
+    "text": "So climbing towards one can mean success... or being stuck?"
+  },
+  {
+    "startSeconds": 108,
+    "endSeconds": 114,
+    "text": "Exactly. Which is why you never read one curve alone. Check the reward right next to it."
+  },
+  {
+    "startSeconds": 115,
+    "endSeconds": 121,
+    "text": "Now, entropy: how unsure the model is. High means it’s exploring. Low means it’s confident."
+  },
+  {
+    "startSeconds": 121,
+    "endSeconds": 126,
+    "text": "So if entropy is falling fast, is that good, or bad?"
+  },
+  {
+    "startSeconds": 125,
+    "endSeconds": 128,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 134,
+    "endSeconds": 139,
+    "text": "A! Good. Confident means it’s learned. Lower is better."
+  },
+  {
+    "startSeconds": 138,
+    "endSeconds": 143,
+    "text": "Tempting, but no. It’s C. It depends on what the reward is doing."
+  },
+  {
+    "startSeconds": 143,
+    "endSeconds": 147,
+    "text": "Confidence is only good when it’s earned."
+  },
+  {
+    "startSeconds": 147,
+    "endSeconds": 154,
+    "text": "Here’s Tiny’s healthy run again. Accuracy rises... while entropy falls, at the same time."
+  },
+  {
+    "startSeconds": 153,
+    "endSeconds": 156,
+    "text": "Confidence, earned by being right!"
+  },
+  {
+    "startSeconds": 156,
+    "endSeconds": 168,
+    "text": "Exactly. Now picture entropy crashing just as fast, while the reward stays flat. Confident, and wrong. In papers, that’s entropy collapse. You’ll meet it next episode."
+  },
+  {
+    "startSeconds": 168,
+    "endSeconds": 172,
+    "text": "Two more. Answer length: how much the model writes."
+  },
+  {
+    "startSeconds": 172,
+    "endSeconds": 184,
+    "text": "It can rise as the model learns to think in more steps, or fall as it drops waffle. Both are fine, as long as accuracy rises too. Growing long without getting better is the warning sign."
+  },
+  {
+    "startSeconds": 184,
+    "endSeconds": 186,
+    "text": "And KL is the leash distance?"
+  },
+  {
+    "startSeconds": 186,
+    "endSeconds": 193,
+    "text": "Right. It starts at zero, and should rise slowly and smoothly. Sudden spikes mean the steps are too big."
+  },
+  {
+    "startSeconds": 193,
+    "endSeconds": 200,
+    "text": "And the clip ratio? With one update per batch, it sits near zero. That’s normal, not a bug."
+  },
+  {
+    "startSeconds": 200,
+    "endSeconds": 204,
+    "text": "Put it all together, and here’s the healthy chart."
+  },
+  {
+    "startSeconds": 204,
+    "endSeconds": 209,
+    "text": "Reward rises, then flattens. Held-out accuracy rises with it."
+  },
+  {
+    "startSeconds": 209,
+    "endSeconds": 213,
+    "text": "Silent groups well below one. Length changes smoothly."
+  },
+  {
+    "startSeconds": 213,
+    "endSeconds": 218,
+    "text": "KL small, and slowly rising. Entropy, a gentle decline."
+  },
+  {
+    "startSeconds": 218,
+    "endSeconds": 224,
+    "text": "No single row proves health. But when they all agree, the run is very likely fine."
+  },
+  {
+    "startSeconds": 224,
+    "endSeconds": 227,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 227,
+    "endSeconds": 231,
+    "text": "Read several curves together, as trends. Never one alone."
+  },
+  {
+    "startSeconds": 231,
+    "endSeconds": 234,
+    "text": "The share of all-same groups is your fuel gauge."
+  },
+  {
+    "startSeconds": 234,
+    "endSeconds": 238,
+    "text": "And falling entropy is only good when the reward is rising."
+  },
+  {
+    "startSeconds": 239,
+    "endSeconds": 243,
+    "text": "That’s healthy. But you’ll meet plenty of patients that aren’t."
+  },
+  {
+    "startSeconds": 242,
+    "endSeconds": 250,
+    "text": "A run that’s stuck. A run that’s hacking the grader. One that’s collapsed. One on a leash that’s far too tight."
+  },
+  {
+    "startSeconds": 250,
+    "endSeconds": 255,
+    "text": "Wait. When the curves disagree, how do I tell which one I’ve got? And then what do I do?"
+  },
+  {
+    "startSeconds": 255,
+    "endSeconds": 260,
+    "text": "Next episode: four broken runs, and how to fix each one."
+  },
+  {
+    "startSeconds": 261,
+    "endSeconds": 266,
+    "text": "Switch between the presets in the training-run visual below this video, and watch the curves change."
+  },
+  {
+    "startSeconds": 266,
+    "endSeconds": 269,
+    "text": "See you in the next episode!"
+  }
+]

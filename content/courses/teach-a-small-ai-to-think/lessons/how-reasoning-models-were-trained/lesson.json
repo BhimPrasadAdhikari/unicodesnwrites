@@ -1,0 +1,168 @@
+{
+  "key": "how-reasoning-models-were-trained",
+  "slug": "how-reasoning-models-were-trained",
+  "title": "How R1-style reasoning models were trained",
+  "summary": "A plain-language walk through the DeepSeek-R1 paper: R1-Zero's pure reinforcement learning with two simple rewards, the \"aha moment\", the four-stage recipe behind R1, and why distillation won on small models.",
+  "type": "paper-walkthrough",
+  "durationMinutes": 22,
+  "learningObjectives": [
+    "Tell apart DeepSeek-R1-Zero, DeepSeek-R1 and the R1-Distill models.",
+    "Name the two rule-based rewards used for R1-Zero and explain why a neural reward model was avoided.",
+    "Describe in one paragraph how GRPO judges which answers to push up without a critic model.",
+    "Describe what changed as R1-Zero trained: accuracy, response length and the aha moment.",
+    "List the four stages of the R1 recipe and say what each fixes.",
+    "Explain the paper's distillation versus RL comparison and what it means for small models."
+  ],
+  "concepts": [
+    "DeepSeek-R1-Zero",
+    "DeepSeek-R1",
+    "base model",
+    "rule-based reward",
+    "GRPO",
+    "response length growth",
+    "aha moment",
+    "cold start",
+    "language consistency reward",
+    "rejection sampling",
+    "distillation"
+  ],
+  "interactive": {
+    "component": "length-aha",
+    "title": "Watch answers grow longer",
+    "caption": "Follow response length and accuracy over an R1-Zero-style training run and find the marked aha moment. The chart is illustrative of the pattern the paper describes, not its exact data."
+  },
+  "studyGuide": {
+    "mentalModel": "Think of R1-Zero as a student locked in an exam hall with a marking machine. The machine only says right or wrong, plus whether the working was in the working box. Nobody teaches method. Over thousands of papers, the student writes longer working, starts double-checking, and scores far higher, but their handwriting is a mess and they switch languages. R1 is the same student given a few neat example scripts first and a marking rule for language. The distilled models are younger students who copy the best student's scripts, and that turns out to work better for them than sitting the marking machine alone.",
+    "keyIdeas": [
+      "R1-Zero was trained with pure RL (GRPO) from DeepSeek-V3-Base, with no supervised examples of reasoning first.",
+      "Its rewards were rule-based: accuracy (is the final answer right?) and format (is the thinking inside think tags?). A neural reward model was avoided because of reward hacking risk and cost.",
+      "GRPO (DeepSeekMath, Shao et al., 2024) compares each answer with the average of a group of answers to the same question, so no critic model is needed.",
+      "During training R1-Zero's AIME 2024 pass@1 rose from 15.6% to 71.0% (as reported), its answers grew longer unprompted, and it showed an aha moment of self-checking.",
+      "R1-Zero was hard to read and mixed languages; R1 added a cold start, a language consistency reward, rejection sampling plus fine-tuning, and a final RL stage.",
+      "Distilling R1 into Qwen-32B beat RL directly on Qwen-32B (72.6 vs 47.0 on AIME 2024, as reported)."
+    ],
+    "misconceptions": [
+      "\"R1 was trained with pure RL.\" That was R1-Zero; R1 also used a cold-start fine-tune and rejection-sampled fine-tuning.",
+      "\"The model was rewarded for writing long answers.\" Length was never rewarded; it grew because longer thinking led to more correct answers.",
+      "\"R1 used an AI judge to grade maths.\" Maths and code were graded by rule-based checks; reward models were only used for general behavior in the last stage.",
+      "\"Distillation results mean RL is useless for small models.\" RL is how the teacher was made, works when no teacher exists, and can polish a distilled model."
+    ],
+    "recallPrompts": [
+      "What base model did R1-Zero start from, and what is a base model?",
+      "Name R1-Zero's two rewards and how each is checked.",
+      "Why did the authors avoid neural reward models for reasoning?",
+      "What were R1-Zero's two main problems, and which R1 stage addresses each?",
+      "What did the Qwen-32B comparison show?",
+      "Name the two unsuccessful attempts the paper reports."
+    ],
+    "explainBackPrompt": "Explain to a friend how DeepSeek got R1-Zero to reason without showing it any worked examples, what went wrong with it, and why the smaller distilled models were trained by copying instead of with reinforcement learning."
+  },
+  "quiz": [
+    {
+      "key": "r1-zero-rewards",
+      "prompt": "Which two rewards were used to train R1-Zero?",
+      "options": [
+        "Helpfulness and harmlessness scores from human raters",
+        "A reward model's score and a length bonus",
+        "Accuracy of the final answer and correct use of the think-tag format",
+        "Number of steps written and number of words checked"
+      ],
+      "correctOption": 2,
+      "explanation": "R1-Zero used two rule-based rewards checked by code: an accuracy reward for the final answer and a format reward for putting the thinking between think tags."
+    },
+    {
+      "key": "why-no-reward-model",
+      "prompt": "Why did the R1 authors avoid neural reward models when training reasoning?",
+      "options": [
+        "The model being trained may learn to fool a learned judge (reward hacking), and retraining the judge adds cost.",
+        "Neural reward models cannot read maths.",
+        "They had no GPUs left to run one.",
+        "Reward models only work with PPO."
+      ],
+      "correctOption": 0,
+      "explanation": "The paper says neural reward models may suffer from reward hacking at large scale and need retraining, which adds cost and complexity. Rule-based checks are cheap and hard to fool."
+    },
+    {
+      "key": "length-growth",
+      "prompt": "During R1-Zero training, average response length kept growing. Why?",
+      "options": [
+        "A length bonus was added to the reward.",
+        "The template asked for at least 1,000 words.",
+        "The model was copying longer human-written solutions.",
+        "Longer thinking led to more correct answers, and correct answers were rewarded."
+      ],
+      "correctOption": 3,
+      "explanation": "Length was never rewarded directly. The model discovered that spending more tokens thinking (and re-checking) made right answers more likely, so that behavior was strengthened."
+    },
+    {
+      "key": "r1-zero-problem",
+      "prompt": "What was the main weakness of R1-Zero that the full R1 recipe set out to fix?",
+      "options": [
+        "It could not solve any maths problems.",
+        "Its output was hard to read and mixed languages.",
+        "It was too slow to load on a GPU.",
+        "It refused to use the think tags."
+      ],
+      "correctOption": 1,
+      "explanation": "R1-Zero reasoned well but its working was hard to follow and switched languages. R1 added a cold-start fine-tune on readable examples and a language consistency reward."
+    },
+    {
+      "key": "distill-vs-rl",
+      "prompt": "The paper compared Qwen-32B trained with RL directly against Qwen-32B distilled from R1. What did it find?",
+      "options": [
+        "RL directly beat distillation on every benchmark.",
+        "They scored exactly the same.",
+        "Distillation beat RL directly on every benchmark tried, for example 72.6 vs 47.0 on AIME 2024.",
+        "Neither method improved the model."
+      ],
+      "correctOption": 2,
+      "explanation": "As reported, the distilled model beat the RL-only model across benchmarks. The authors concluded that distilling a strong model into a small one works very well, while RL alone on small models needs huge compute."
+    },
+    {
+      "key": "grpo-baseline",
+      "prompt": "How does GRPO decide whether an answer was better than expected, without a critic model?",
+      "options": [
+        "It compares the answer's score with the average score of a group of answers to the same question.",
+        "It asks a human to rate each answer.",
+        "It compares the answer with the longest answer in the dataset.",
+        "It uses a fixed threshold of 0.5 for every question."
+      ],
+      "correctOption": 0,
+      "explanation": "GRPO samples a group of answers per question and uses the group's mean (and spread) of rewards as the baseline. That replaces PPO's separate critic model and saves memory."
+    }
+  ],
+  "resources": [
+    {
+      "key": "r1-paper-map",
+      "title": "R1 paper map (cheat sheet)",
+      "description": "One page: the two models, the four-stage recipe, the key numbers and the vocabulary of the DeepSeek-R1 paper.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/r1-paper-map.pdf"
+    },
+    {
+      "key": "r1-paper",
+      "title": "DeepSeek-R1 paper (DeepSeek-AI, 2025)",
+      "description": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2501.12948"
+    },
+    {
+      "key": "deepseekmath-paper",
+      "title": "DeepSeekMath paper (Shao et al., 2024)",
+      "description": "The paper that introduced GRPO.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2402.03300"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "claim-check",
+      "title": "True or false: checking claims about R1",
+      "hints": [
+        "Keep the R1 paper map cheat sheet open.",
+        "Be careful to separate R1-Zero from R1: many wrong claims mix them up.",
+        "For each false claim, write the corrected version in one sentence."
+      ]
+    }
+  ]
+}

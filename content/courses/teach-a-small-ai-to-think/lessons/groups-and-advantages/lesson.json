@@ -1,0 +1,159 @@
+{
+  "key": "groups-and-advantages",
+  "slug": "groups-and-advantages",
+  "title": "Groups and advantages: the heart of GRPO",
+  "summary": "GRPO asks the model the same question several times and grades each answer against the group's own average. That one idea replaces the expensive critic model and turns plain right/wrong scores into a clear learning signal.",
+  "type": "concept",
+  "durationMinutes": 16,
+  "learningObjectives": [
+    "Explain what an advantage is and why reward minus a baseline beats raw reward",
+    "Compute group-normalized advantages for a group of right/wrong answers by hand",
+    "Explain why groups where every answer scores the same teach the model nothing",
+    "Describe what GRPO saves compared with PPO's critic, and what it costs"
+  ],
+  "concepts": [
+    "advantage",
+    "baseline",
+    "group sampling",
+    "group mean and standard deviation",
+    "critic-free RL",
+    "zero-variance groups"
+  ],
+  "studyGuide": {
+    "mentalModel": "A class answers the same question eight times. Nobody gets an absolute grade; each answer is told how far above or below the class average it landed, measured in 'typical differences'. Above average gets more likely next time, below average gets less likely. If the whole class scores the same, nobody learns anything from that question.",
+    "keyIdeas": [
+      "Advantage = how much better than expected an answer was. GRPO nudges by advantage, not raw reward.",
+      "The baseline is the mean reward of a group of G answers to the same prompt, so no critic network is needed.",
+      "Dividing by the group's standard deviation makes a rare success or rare failure count for more (for example +2.64 for the only right answer out of 8).",
+      "Advantages within a group always sum to zero: probability moves from worse answers to better ones.",
+      "All-same groups (all right or all wrong) give zero advantage. TRL logs their share as frac_reward_zero_std."
+    ],
+    "misconceptions": [
+      "GRPO does not need a model answer or a teacher; it only needs a rule that scores each answer.",
+      "A positive advantage does not mean the answer is correct in an absolute sense; it means it beat the group average.",
+      "Bigger groups are not free: every extra answer has to be generated, which is usually the slowest part of training.",
+      "Dividing by the standard deviation is a design choice, not a law; Dr. GRPO (2025) argues for dropping it."
+    ],
+    "recallPrompts": [
+      "In a group of 8 with exactly one correct answer, which answer gets the largest advantage, and roughly how large?",
+      "Why does comparing answers to the same prompt remove question difficulty from the signal?",
+      "What happens to the advantages when all 8 answers are wrong?",
+      "What extra model does PPO train that GRPO does not?"
+    ],
+    "explainBackPrompt": "Explain to a friend, without formulas, how GRPO decides which of eight answers to the same question to encourage, and why a question the model always gets wrong does not help training."
+  },
+  "quiz": [
+    {
+      "key": "what-is-baseline",
+      "prompt": "In GRPO, what plays the role of the baseline (the expected score) for a given prompt?",
+      "options": [
+        "A separate critic network trained to predict the score",
+        "The mean reward of the group of answers sampled for that prompt",
+        "The reward of the best answer in the batch",
+        "A fixed number chosen before training, such as 0.5"
+      ],
+      "correctOption": 1,
+      "explanation": "GRPO samples G answers to the same prompt and uses their average reward as the baseline. That is exactly what lets it drop PPO's critic model."
+    },
+    {
+      "key": "lone-success",
+      "prompt": "A group of 8 answers has exactly one correct answer (reward 1) and seven wrong ones (reward 0). Using advantage = (r - mean) / (std + 1e-4), which statement is true?",
+      "options": [
+        "Every answer gets advantage 0 because the group mostly failed",
+        "The correct answer gets about +1 and each wrong one about -1",
+        "The wrong answers get the biggest advantages because there are more of them",
+        "The correct answer gets a large advantage (about +2.64) and each wrong answer a small negative one (about -0.38)"
+      ],
+      "correctOption": 3,
+      "explanation": "Mean is 0.125 and std is about 0.331, so the lone success is (1 - 0.125) / 0.331 = +2.64 and each failure is (0 - 0.125) / 0.331 = -0.38. A rare success is a big deal."
+    },
+    {
+      "key": "all-wrong",
+      "prompt": "Early in training, all 8 answers to a hard question are wrong. What does GRPO learn from this group?",
+      "options": [
+        "Nothing: every advantage is zero",
+        "It strongly pushes all 8 wrong answers down",
+        "It pushes the most common wrong answer up",
+        "It copies the correct answer from the dataset"
+      ],
+      "correctOption": 0,
+      "explanation": "With identical rewards, the mean equals each reward and the spread is zero, so every advantage is 0. The group has no information about which direction is better."
+    },
+    {
+      "key": "sum-of-advantages",
+      "prompt": "What do the normalized advantages of one group always add up to?",
+      "options": [
+        "The number of correct answers",
+        "One",
+        "Zero",
+        "The group size G"
+      ],
+      "correctOption": 2,
+      "explanation": "Subtracting the mean makes the values sum to zero, and dividing by a positive number keeps it that way. GRPO only moves probability from worse answers to better ones within a group."
+    },
+    {
+      "key": "small-groups",
+      "prompt": "Tiny Adder starts by guessing uniformly among 19 answers. Why does a group size of G = 2 learn so slowly at the start?",
+      "options": [
+        "Because the learning rate is automatically halved",
+        "Because about 90% of 2-answer groups are all wrong, so most groups give zero advantage",
+        "Because two answers can never disagree",
+        "Because GRPO requires at least 8 answers to run"
+      ],
+      "correctOption": 1,
+      "explanation": "The chance both guesses miss is (18/19)^2, about 0.90. Nine in ten groups carry no signal, so learning crawls. With G = 8 it is about 65%, still high but workable."
+    },
+    {
+      "key": "dr-grpo-std",
+      "prompt": "What change does the Dr. GRPO paper (Liu et al., 2025) suggest about the advantage formula?",
+      "options": [
+        "Stop dividing by the group's standard deviation, which over-weights very easy and very hard questions",
+        "Use a critic network again",
+        "Only reward the single best answer in each group",
+        "Replace the group mean with the median"
+      ],
+      "correctOption": 0,
+      "explanation": "Dr. GRPO points out a difficulty bias from the std division and a length bias in the loss, and removes both. TRL exposes the first as scale_rewards."
+    }
+  ],
+  "interactive": {
+    "component": "group-advantage",
+    "title": "Grade a group of eight",
+    "caption": "Click answers to flip them between correct and incorrect. Watch how one lone success gets a big advantage, and how an all-same group gives every answer zero."
+  },
+  "resources": [
+    {
+      "key": "deepseekmath-paper",
+      "title": "DeepSeekMath (Shao et al., 2024), the paper that introduced GRPO",
+      "description": "Section 4 describes GRPO and how the group replaces the value model.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2402.03300"
+    },
+    {
+      "key": "grpo-cheatsheet",
+      "title": "GRPO cheat sheet",
+      "description": "One page: the GRPO step, advantage formula, clipping, KL and the main knobs.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/grpo-cheatsheet.pdf"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "advantages-by-hand",
+      "title": "Compute a group's advantages by hand",
+      "hints": [
+        "Start with the mean: count the 1s and divide by 8.",
+        "Standard deviation here is sqrt(p * (1 - p)) when rewards are only 0 or 1 and p is the mean.",
+        "Check that your eight advantages add up to (almost exactly) zero."
+      ]
+    },
+    {
+      "key": "partial-credit-group",
+      "title": "Advantages with partial credit",
+      "hints": [
+        "Rewards no longer have to be 0 or 1; the same formula still works.",
+        "Use Python or a calculator for the standard deviation (population std, divide by n)."
+      ]
+    }
+  ]
+}

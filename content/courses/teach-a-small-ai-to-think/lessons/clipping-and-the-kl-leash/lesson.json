@@ -1,0 +1,164 @@
+{
+  "key": "clipping-and-the-kl-leash",
+  "slug": "clipping-and-the-kl-leash",
+  "title": "Clipping and the KL leash",
+  "summary": "GRPO has two safety brakes: clipping stops one batch of answers from moving the model too far, and the KL leash keeps the model loosely tied to where it started. Learn when each one matters and why modern recipes often loosen them.",
+  "type": "concept",
+  "durationMinutes": 17,
+  "learningObjectives": [
+    "Explain the probability ratio and why it only drifts from 1 when you take several updates per batch",
+    "Predict when clipping stops the gradient for a given advantage sign, ratio and epsilon",
+    "Describe what the KL penalty and its strength beta do, and what a too-tight leash looks like",
+    "Explain DAPO's clip-higher and why many verifiable-reward recipes set beta to zero"
+  ],
+  "concepts": [
+    "probability ratio",
+    "PPO clipping",
+    "epsilon and epsilon_high",
+    "trust region",
+    "KL divergence",
+    "reference model",
+    "beta",
+    "clip-higher"
+  ],
+  "studyGuide": {
+    "mentalModel": "Two brakes. Clipping is a speed limit for one batch: once a good answer is 20% more likely than when it was sampled (or a bad one 20% less likely), stop pushing it. The KL leash is a leash back to the starting model: you can wander, but the farther you go the harder it pulls. Beta is how strong the pull is.",
+    "keyIdeas": [
+      "Ratio = probability now / probability when sampled. It is exactly 1 on the first update of a batch.",
+      "Clipping only matters when you reuse a batch for several updates (ppo_epochs in the toy, num_iterations in TRL).",
+      "Clipping stops pushing in the direction the advantage wanted once the ratio leaves [1 - eps, 1 + eps]; it never blocks a correction the other way.",
+      "The KL penalty compares the model with a frozen reference copy of the starting model; beta sets its strength.",
+      "DAPO's clip-higher widens the upper band (e.g. 0.28) so rare answers can grow; DAPO and TRL's default use beta = 0."
+    ],
+    "misconceptions": [
+      "Clipping does not clip the reward or the advantage; it stops the gradient for answers that already moved enough.",
+      "The KL reference is not the model from the previous step; it is the frozen starting model.",
+      "A bigger beta is not automatically safer: on Tiny Adder beta = 0.5 freezes learning almost completely.",
+      "Clipping is not always faster or better on a toy problem; it is insurance against damage that the toy cannot show."
+    ],
+    "recallPrompts": [
+      "With eps = 0.2 and a positive advantage, at what ratio does the gradient stop?",
+      "Why is the ratio always 1 on the first update of each batch?",
+      "What is the difference between what clipping compares against and what the KL leash compares against?",
+      "What does DAPO's clip-higher change, and what problem does it address?"
+    ],
+    "explainBackPrompt": "Explain to a friend the difference between a speed limit and a leash, and how GRPO uses one of each to keep training stable."
+  },
+  "quiz": [
+    {
+      "key": "ratio-meaning",
+      "prompt": "An answer had probability 0.10 when it was sampled. After two inner update steps it has probability 0.13. What is its ratio?",
+      "options": ["0.77", "0.03", "1.3", "13"],
+      "correctOption": 2,
+      "explanation": "Ratio = new / old = 0.13 / 0.10 = 1.3. The answer is now 30% more likely than when it was sampled."
+    },
+    {
+      "key": "clip-positive",
+      "prompt": "With eps = 0.2, an answer with a positive advantage now has ratio 1.3. What does clipping do?",
+      "options": [
+        "Stops pushing this answer up: its gradient becomes zero",
+        "Pushes it up twice as hard",
+        "Flips its advantage to negative",
+        "Removes the answer from the dataset"
+      ],
+      "correctOption": 0,
+      "explanation": "The ratio is above 1 + eps = 1.2 in the direction the advantage wanted, so the answer has moved enough for this batch and stops contributing."
+    },
+    {
+      "key": "clip-wrong-way",
+      "prompt": "With eps = 0.2, a BAD answer (negative advantage) has ratio 1.5: it accidentally became more likely. Is its gradient clipped?",
+      "options": [
+        "Yes, any ratio outside [0.8, 1.2] is clipped",
+        "Yes, but only on the next batch",
+        "No, and its advantage is reset to zero",
+        "No: clipping only blocks moving too far in the intended direction, so the correction still flows"
+      ],
+      "correctOption": 3,
+      "explanation": "For a negative advantage, clipping triggers only when the ratio drops below 1 - eps. A bad answer that rose keeps getting pushed down."
+    },
+    {
+      "key": "kl-reference",
+      "prompt": "What does the KL penalty compare the current model against?",
+      "options": [
+        "The model from one step ago",
+        "A frozen copy of the model from the start of training (the reference)",
+        "A larger teacher model",
+        "The reward function"
+      ],
+      "correctOption": 1,
+      "explanation": "The reference model is frozen. The KL term grows as the trained model's answer distribution drifts away from it, scaled by beta."
+    },
+    {
+      "key": "tight-leash",
+      "prompt": "On Tiny Adder with default settings, beta = 0.5 gave a reward of about 0.06 after 200 steps, versus 0.86 with beta = 0. What is the best explanation?",
+      "options": [
+        "The reward function is buggy",
+        "The group size is too large",
+        "The leash pulls back toward the uniform reference as hard as the reward pushes forward, so the model stays near random guessing",
+        "Clipping is blocking every update"
+      ],
+      "correctOption": 2,
+      "explanation": "A too-strong KL pull cancels the learning signal. This is the tight-leash preset in the training-run visualization."
+    },
+    {
+      "key": "clip-higher",
+      "prompt": "Why does DAPO use a larger upper clip bound (for example 0.28) than lower bound (0.2)?",
+      "options": [
+        "So that low-probability answers have room to grow, which helps keep exploration and diversity",
+        "To make training use less memory",
+        "Because negative advantages are always wrong",
+        "To remove the need for a reward function"
+      ],
+      "correctOption": 0,
+      "explanation": "With a symmetric band, an answer at 0.01 can only rise to 0.012 per batch. Clip-higher loosens the upper limit to fight entropy collapse."
+    }
+  ],
+  "interactive": {
+    "component": "clip-explorer",
+    "title": "Find where the brake kicks in",
+    "caption": "Drag the ratio, flip the advantage sign and change epsilon. Watch where the clipped objective goes flat, which is exactly where the gradient stops."
+  },
+  "resources": [
+    {
+      "key": "ppo-paper",
+      "title": "Proximal Policy Optimization Algorithms (Schulman et al., 2017)",
+      "description": "Where the clipped objective comes from.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/1707.06347"
+    },
+    {
+      "key": "dapo-paper",
+      "title": "DAPO: An Open-Source LLM Reinforcement Learning System at Scale (2025)",
+      "description": "Clip-higher, dynamic sampling, token-level loss and overlong reward shaping.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2503.14476"
+    },
+    {
+      "key": "grpo-cheatsheet",
+      "title": "GRPO cheat sheet",
+      "description": "One page: the GRPO step, advantage formula, clipping, KL and the main knobs.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/grpo-cheatsheet.pdf"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "clip-table",
+      "title": "Fill in the clipping table",
+      "hints": [
+        "First decide whether the ratio is inside [1 - eps, 1 + eps].",
+        "If it is outside, ask: did it go too far in the direction the advantage wanted?",
+        "The clipped objective is min(ratio * A, clip(ratio, 1 - eps, 1 + eps) * A)."
+      ]
+    },
+    {
+      "key": "leash-sweep",
+      "title": "Sweep beta on Tiny Adder",
+      "hints": [
+        "Import train from grpo_tiny_adder.py and call it with different beta values.",
+        "Look at the last entry of the returned history list.",
+        "Compare entropy as well as reward: what does the leash do to the spread of answers?"
+      ]
+    }
+  ]
+}

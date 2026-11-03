@@ -1,0 +1,292 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 3,
+    "text": "This is Tiny."
+  },
+  {
+    "startSeconds": 3,
+    "endSeconds": 8,
+    "text": "Tiny is a very small AI. And Tiny is... terrible at maths."
+  },
+  {
+    "startSeconds": 8,
+    "endSeconds": 13,
+    "text": "Let me try! Ask it three plus four, and... eight! Six?! Twelve!"
+  },
+  {
+    "startSeconds": 13,
+    "endSeconds": 16,
+    "text": "Four times out of five, it’s wrong."
+  },
+  {
+    "startSeconds": 17,
+    "endSeconds": 19,
+    "text": "Now watch."
+  },
+  {
+    "startSeconds": 19,
+    "endSeconds": 24,
+    "text": "Sixty rounds later, Tiny gets it right nine times out of ten!"
+  },
+  {
+    "startSeconds": 24,
+    "endSeconds": 26,
+    "text": "And here’s the strange part."
+  },
+  {
+    "startSeconds": 26,
+    "endSeconds": 30,
+    "text": "Nobody ever told Tiny the answer. Not once."
+  },
+  {
+    "startSeconds": 30,
+    "endSeconds": 34,
+    "text": "Wait. Nobody told it? Then how on earth did it learn?"
+  },
+  {
+    "startSeconds": 34,
+    "endSeconds": 41,
+    "text": "That’s exactly what this video is about. And it’s the same trick that taught DeepSeek R1 to reason."
+  },
+  {
+    "startSeconds": 41,
+    "endSeconds": 44,
+    "text": "The nudge. Episode one."
+  },
+  {
+    "startSeconds": 45,
+    "endSeconds": 49,
+    "text": "You already know this trick. You’ve probably used it on a dog."
+  },
+  {
+    "startSeconds": 49,
+    "endSeconds": 54,
+    "text": "Oh, like teaching a puppy to sit? You can’t exactly explain the word sit to a puppy."
+  },
+  {
+    "startSeconds": 54,
+    "endSeconds": 59,
+    "text": "Exactly. So you wait. And the moment it happens to sit..."
+  },
+  {
+    "startSeconds": 59,
+    "endSeconds": 60,
+    "text": "Treat!"
+  },
+  {
+    "startSeconds": 60,
+    "endSeconds": 64,
+    "text": "It has no idea why. But next time, it sits a little sooner."
+  },
+  {
+    "startSeconds": 64,
+    "endSeconds": 70,
+    "text": "Rewarded things happen more often. That’s the whole trick. Now, let’s do it to Tiny."
+  },
+  {
+    "startSeconds": 70,
+    "endSeconds": 73,
+    "text": "Here’s what’s going on inside Tiny’s head."
+  },
+  {
+    "startSeconds": 73,
+    "endSeconds": 78,
+    "text": "For three plus four, Tiny isn’t sure. Every answer has a chance."
+  },
+  {
+    "startSeconds": 78,
+    "endSeconds": 82,
+    "text": "Six gets about a third. Eight, thirty percent."
+  },
+  {
+    "startSeconds": 82,
+    "endSeconds": 86,
+    "text": "Hang on. And seven, the right answer? Only about one in five?"
+  },
+  {
+    "startSeconds": 86,
+    "endSeconds": 94,
+    "text": "Yep. When Tiny answers, it’s like rolling a loaded die. Mostly its favourites. Sometimes not."
+  },
+  {
+    "startSeconds": 94,
+    "endSeconds": 97,
+    "text": "Ooh, let’s roll it a few times."
+  },
+  {
+    "startSeconds": 97,
+    "endSeconds": 101,
+    "text": "Six. Eight. Seven! Six. Twelve."
+  },
+  {
+    "startSeconds": 101,
+    "endSeconds": 106,
+    "text": "Same question, different answers. Remember that. It’s going to matter."
+  },
+  {
+    "startSeconds": 106,
+    "endSeconds": 113,
+    "text": "Now, Tiny says seven. Our grader checks it, and gives Tiny a treat: a reward of one."
+  },
+  {
+    "startSeconds": 113,
+    "endSeconds": 116,
+    "text": "So what happens to the chance of seven?"
+  },
+  {
+    "startSeconds": 116,
+    "endSeconds": 118,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 124,
+    "endSeconds": 129,
+    "text": "I’m going with A! It got a treat, so now it knows the answer is seven. Right?"
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 136,
+    "text": "Close, but no. It’s B. It goes up a little. Not to a hundred percent. Just a nudge."
+  },
+  {
+    "startSeconds": 136,
+    "endSeconds": 141,
+    "text": "One treat doesn’t make Tiny certain. It just makes seven a bit more likely next time."
+  },
+  {
+    "startSeconds": 142,
+    "endSeconds": 144,
+    "text": "Here’s the nudge."
+  },
+  {
+    "startSeconds": 144,
+    "endSeconds": 148,
+    "text": "Seven earned a treat, so seven becomes a little more likely."
+  },
+  {
+    "startSeconds": 148,
+    "endSeconds": 152,
+    "text": "After one step, it goes from twenty-two percent to forty-six!"
+  },
+  {
+    "startSeconds": 152,
+    "endSeconds": 155,
+    "text": "And the others shrink to make room?"
+  },
+  {
+    "startSeconds": 155,
+    "endSeconds": 161,
+    "text": "Right. Six, eight and twelve all shrink. The chances always add up to a hundred."
+  },
+  {
+    "startSeconds": 161,
+    "endSeconds": 164,
+    "text": "Stop and think about that for a second."
+  },
+  {
+    "startSeconds": 164,
+    "endSeconds": 167,
+    "text": "Nobody told Tiny that the answer is seven."
+  },
+  {
+    "startSeconds": 167,
+    "endSeconds": 169,
+    "text": "And nobody explained addition!"
+  },
+  {
+    "startSeconds": 169,
+    "endSeconds": 173,
+    "text": "Tiny only heard one thing: that was good."
+  },
+  {
+    "startSeconds": 174,
+    "endSeconds": 177,
+    "text": "Now do that again. And again."
+  },
+  {
+    "startSeconds": 177,
+    "endSeconds": 181,
+    "text": "Ask, roll, grade, nudge. Sixty rounds."
+  },
+  {
+    "startSeconds": 181,
+    "endSeconds": 186,
+    "text": "Every time Tiny gets it right, seven creeps up. And notice these flat stretches."
+  },
+  {
+    "startSeconds": 186,
+    "endSeconds": 189,
+    "text": "Hmm. What are those flat bits?"
+  },
+  {
+    "startSeconds": 189,
+    "endSeconds": 198,
+    "text": "Hold on to that question. Twenty rounds in, seven is at about forty percent. Sixty rounds in, Tiny is right nine times out of ten!"
+  },
+  {
+    "startSeconds": 198,
+    "endSeconds": 205,
+    "text": "No single step did much. Together, they changed Tiny’s mind. That, really, is what training is."
+  },
+  {
+    "startSeconds": 206,
+    "endSeconds": 208,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 208,
+    "endSeconds": 212,
+    "text": "Tiny doesn’t have one answer. It has chances."
+  },
+  {
+    "startSeconds": 212,
+    "endSeconds": 215,
+    "text": "A treat makes the answer it gave a bit more likely."
+  },
+  {
+    "startSeconds": 215,
+    "endSeconds": 218,
+    "text": "And lots of small nudges add up to real learning."
+  },
+  {
+    "startSeconds": 219,
+    "endSeconds": 222,
+    "text": "But there’s a problem. Remember those flat stretches?"
+  },
+  {
+    "startSeconds": 222,
+    "endSeconds": 225,
+    "text": "Watch what happens when Tiny gets it wrong."
+  },
+  {
+    "startSeconds": 225,
+    "endSeconds": 230,
+    "text": "Tiny says eight. Wrong. Reward: zero."
+  },
+  {
+    "startSeconds": 229,
+    "endSeconds": 234,
+    "text": "And the nudge is zero, times anything. Nothing moves."
+  },
+  {
+    "startSeconds": 234,
+    "endSeconds": 240,
+    "text": "Wait. So a mistake teaches Tiny absolutely nothing? But that’s most of its answers!"
+  },
+  {
+    "startSeconds": 240,
+    "endSeconds": 247,
+    "text": "Exactly. In the next episode, we fix that, with one simple idea you already know from school."
+  },
+  {
+    "startSeconds": 247,
+    "endSeconds": 252,
+    "text": "Try nudging Tiny’s chances yourself, in the tool below this video."
+  },
+  {
+    "startSeconds": 252,
+    "endSeconds": 254,
+    "text": "See you in the next episode!"
+  }
+]

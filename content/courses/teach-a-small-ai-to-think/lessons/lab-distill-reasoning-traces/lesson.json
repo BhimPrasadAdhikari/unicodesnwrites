@@ -1,0 +1,165 @@
+{
+  "key": "lab-distill-reasoning-traces",
+  "slug": "lab-distill-reasoning-traces",
+  "title": "Lab: copy a big model's thinking into a small one",
+  "summary": "Fine-tune Qwen2.5-0.5B-Instruct on about a thousand R1-style reasoning traces from an open dataset, using TRL's SFTTrainer and LoRA on a free Colab T4, then compare accuracy, format and answer length before and after on unseen GSM8K problems.",
+  "type": "concept",
+  "durationMinutes": 30,
+  "learningObjectives": [
+    "Choose an openly licensed dataset of reasoning traces and inspect it before training.",
+    "Rewrite teacher traces into a <think>/<answer> conversational prompt-completion dataset for TRL.",
+    "Filter traces by token length to fit a free T4, and explain how filtering shapes the student's style.",
+    "Configure SFTTrainer with LoRA, completion-only loss and fp16 for a T4.",
+    "Measure accuracy, format rate and answer length before and after training with greedy decoding on held-out problems.",
+    "Read student replies to tell copied style apart from copied skill."
+  ],
+  "concepts": [
+    "supervised fine-tuning",
+    "reasoning traces",
+    "prompt-completion dataset",
+    "chat template",
+    "LoRA",
+    "completion-only loss",
+    "fp16 on T4",
+    "greedy evaluation",
+    "held-out test set"
+  ],
+  "studyGuide": {
+    "mentalModel": "You're giving a student a stack of a top student's marked exam scripts and asking them to practise writing answers exactly like those scripts, word by word. You picked the stack, so you decide what they copy: if you only hand over the neat, shorter scripts, that's the style they'll learn. Then you give them a fresh exam they've never seen, and compare the marks, the neatness and how much they write, with their marks from before.",
+    "keyIdeas": [
+      "Sequence-level distillation is just SFT on a teacher's saved traces; the teacher model doesn't need to run.",
+      "We used camel-ai/gsm8k_distilled (MIT): about 7,500 GSM8K training problems with R1-style <think> traces and a boxed answer.",
+      "Each trace is rewritten as a prompt (system + problem) and a completion (<think>…</think><answer>N</answer>) in chat-message form.",
+      "Traces longer than 1,024 tokens are dropped to fit a T4; this also biases the student toward the teacher's shorter answers.",
+      "LoRA trains small add-on matrices, completion_only_loss grades only the reply, and fp16 replaces bf16 on a T4.",
+      "Evaluation uses greedy decoding on the GSM8K test split, which the traces never saw, and records accuracy, format and tokens.",
+      "Format and length often change before accuracy does; accuracy is the honest measure of copied skill."
+    ],
+    "misconceptions": [
+      "\"Distillation needs access to the teacher model.\" A dataset of its traces is enough.",
+      "\"If format reaches 100%, the student has learned to reason.\" Format shows it copied the layout, not that the reasoning works.",
+      "\"Longer answers after distillation mean better reasoning.\" The student copies the teacher's length whether or not it helps.",
+      "\"Testing on a few training problems is fine.\" Only held-out problems show whether the skill generalizes."
+    ],
+    "recallPrompts": [
+      "What columns does camel-ai/gsm8k_distilled have, and which ones do we use?",
+      "Why do we drop traces longer than 1,024 tokens, and what side effect does that have?",
+      "What does completion_only_loss=True change during training?",
+      "Why do we use greedy decoding for the before/after comparison?",
+      "Why is the grader lenient (answer tag, then boxed, then last number)?"
+    ],
+    "explainBackPrompt": "Explain to a friend how you taught a small model to \"think\" by copying a bigger model's worked answers, and how you checked whether it really learned the skill or just the style. No code; use the exam-scripts picture or your own."
+  },
+  "quiz": [
+    {
+      "key": "q1-dataset",
+      "prompt": "What does the camel-ai/gsm8k_distilled dataset provide for this lab?",
+      "options": [
+        "GSM8K training problems with R1-style <think> reasoning traces and a boxed final answer",
+        "The weights of DeepSeek-R1",
+        "GSM8K test problems with their answers hidden",
+        "A reward model for maths"
+      ],
+      "correctOption": 0,
+      "explanation": "Each row has a problem, a reasoning_solution with a <think> block and a \\boxed{} answer, the original GSM8K solution, and a success flag. We train on the traces and grade on the separate GSM8K test split."
+    },
+    {
+      "key": "q2-completion-only",
+      "prompt": "What does completion_only_loss=True do in SFTConfig?",
+      "options": [
+        "It stops training after one epoch",
+        "It removes the system prompt",
+        "It computes the loss only on the teacher's reply, not on the prompt",
+        "It makes the model generate shorter completions"
+      ],
+      "correctOption": 2,
+      "explanation": "With a prompt-completion dataset, the model is graded only on predicting the completion tokens. Learning to repeat the question back would waste capacity."
+    },
+    {
+      "key": "q3-fp16",
+      "prompt": "Why does the script set fp16=True and bf16=False on a free Colab T4?",
+      "options": [
+        "fp16 gives more accurate results than bf16",
+        "The T4 GPU does not support bfloat16",
+        "LoRA only works in fp16",
+        "TRL requires fp16 for SFT"
+      ],
+      "correctOption": 1,
+      "explanation": "TRL turns on bf16 by default, but the T4 has no bfloat16 support, so the script checks torch.cuda.is_bf16_supported() and falls back to float16 mixed precision."
+    },
+    {
+      "key": "q4-filter",
+      "prompt": "Dropping traces longer than 1,024 tokens has which side effect?",
+      "options": [
+        "The student learns from the teacher's shorter answers, nudging it toward a shorter style",
+        "The student can no longer use <think> tags",
+        "The test set gets smaller",
+        "Accuracy is guaranteed to drop"
+      ],
+      "correctOption": 0,
+      "explanation": "Distillation copies style as well as skill. Filtering to shorter traces means the student copies the teacher's more concise moments."
+    },
+    {
+      "key": "q5-reading",
+      "prompt": "After training, format is near 100% and average tokens tripled, but accuracy barely moved. What's the best reading?",
+      "options": [
+        "The run was a complete success",
+        "The evaluation must be broken",
+        "LoRA is not working",
+        "The student copied the teacher's style (layout and length) more than its skill"
+      ],
+      "correctOption": 3,
+      "explanation": "Format and length are easy to copy; accuracy shows whether the reasoning actually works. Read replies to see where the student's copied reasoning breaks down."
+    }
+  ],
+  "resources": [
+    {
+      "key": "distill-notebook",
+      "title": "Lab notebook: distill reasoning traces",
+      "description": "The full lab as a Colab notebook: data, before/after evaluation and SFT with LoRA on a free T4.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/08-distill-reasoning.ipynb"
+    },
+    {
+      "key": "gsm8k-distilled-dataset",
+      "title": "camel-ai/gsm8k_distilled",
+      "description": "The MIT-licensed dataset of R1-style reasoning traces on GSM8K training problems.",
+      "kind": "dataset",
+      "url": "https://huggingface.co/datasets/camel-ai/gsm8k_distilled"
+    },
+    {
+      "key": "gsm8k-dataset",
+      "title": "GSM8K",
+      "description": "The grade-school maths benchmark; we grade on its test split.",
+      "kind": "dataset",
+      "url": "https://huggingface.co/datasets/openai/gsm8k"
+    },
+    {
+      "key": "trl-sft-docs",
+      "title": "TRL SFTTrainer documentation",
+      "description": "Dataset formats, completion-only loss, PEFT/LoRA and SFTConfig options.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/trl/main/en/sft_trainer"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "strict-grader",
+      "title": "Add a strict grader next to the lenient one",
+      "hints": [
+        "Use ANSWER_RE.findall and check the list has exactly one item.",
+        "Strip commas and $ before looking for numbers.",
+        "Return None whenever any rule fails, so None never equals the gold answer."
+      ]
+    },
+    {
+      "key": "fewer-traces",
+      "title": "How many traces does a small student need?",
+      "hints": [
+        "Change only N_TRAIN and num_train_epochs between runs.",
+        "Run the before evaluation once and reuse its numbers.",
+        "Restart the Colab runtime between runs to free GPU memory."
+      ]
+    }
+  ]
+}

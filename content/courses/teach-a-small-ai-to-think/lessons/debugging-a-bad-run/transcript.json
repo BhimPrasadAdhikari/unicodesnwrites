@@ -1,0 +1,272 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 6,
+    "text": "Every practitioner has a story like this. The reward climbs beautifully, all night."
+  },
+  {
+    "startSeconds": 6,
+    "endSeconds": 11,
+    "text": "Eleven p.m., nice. Two a.m., even better. Seven a.m..."
+  },
+  {
+    "startSeconds": 11,
+    "endSeconds": 16,
+    "text": "And in the morning, the model answers every single question with the same three words."
+  },
+  {
+    "startSeconds": 16,
+    "endSeconds": 19,
+    "text": "Oh no. That’s horrifying."
+  },
+  {
+    "startSeconds": 18,
+    "endSeconds": 26,
+    "text": "Or the run that sat at zero for two hours, because the grader wanted lowercase answer tags, and the model wrote a capital A."
+  },
+  {
+    "startSeconds": 26,
+    "endSeconds": 33,
+    "text": "Bad runs are normal. What matters is spotting them early, and knowing which knob to turn. By the end of this video, you will."
+  },
+  {
+    "startSeconds": 34,
+    "endSeconds": 38,
+    "text": "Debugging a bad run. Episode two."
+  },
+  {
+    "startSeconds": 39,
+    "endSeconds": 44,
+    "text": "When a run looks wrong, go through these in order. Most problems turn up by step two."
+  },
+  {
+    "startSeconds": 44,
+    "endSeconds": 50,
+    "text": "One: read ten real answers. Most bugs are obvious in the raw text."
+  },
+  {
+    "startSeconds": 50,
+    "endSeconds": 55,
+    "text": "Two: run the grader by hand, on answers I write myself. Right, wrong, and badly formatted."
+  },
+  {
+    "startSeconds": 55,
+    "endSeconds": 65,
+    "text": "Three: check the fuel gauge. Four: compare the reward with held-out accuracy. Five: entropy, length and KL, together."
+  },
+  {
+    "startSeconds": 65,
+    "endSeconds": 67,
+    "text": "And change one knob at a time!"
+  },
+  {
+    "startSeconds": 68,
+    "endSeconds": 77,
+    "text": "Patient one: stuck at zero. The reward sits on the floor, and the fuel gauge reads nearly one. Almost every group is all wrong."
+  },
+  {
+    "startSeconds": 77,
+    "endSeconds": 80,
+    "text": "So there’s no signal. Nothing to learn from."
+  },
+  {
+    "startSeconds": 80,
+    "endSeconds": 87,
+    "text": "Here’s Tiny with groups of just two answers, next to the usual eight. For the first fifty steps, it barely moves."
+  },
+  {
+    "startSeconds": 87,
+    "endSeconds": 96,
+    "text": "On a real model, the usual causes are a grader that never fires, answers cut off before they finish, or a task that’s simply too hard."
+  },
+  {
+    "startSeconds": 96,
+    "endSeconds": 101,
+    "text": "So: test the grader, raise the length limit, use easier questions, or bigger groups."
+  },
+  {
+    "startSeconds": 102,
+    "endSeconds": 108,
+    "text": "Patient two: reward hacking. The reward climbs nicely, but held-out accuracy doesn’t."
+  },
+  {
+    "startSeconds": 108,
+    "endSeconds": 115,
+    "text": "Read the answers, and you find things like this. A think block with one dot in it. Still earns the format reward."
+  },
+  {
+    "startSeconds": 115,
+    "endSeconds": 119,
+    "text": "Or three different answers at once, hoping the grader picks the right one?!"
+  },
+  {
+    "startSeconds": 119,
+    "endSeconds": 129,
+    "text": "Exactly. GRPO optimizes the reward you wrote, not the goal you meant. When it hacks, the algorithm is working. The grader is the bug."
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 138,
+    "text": "So tighten it. Exactly one answer tag, a single number, compared with equals. And always keep a held-out check you never train on."
+  },
+  {
+    "startSeconds": 138,
+    "endSeconds": 147,
+    "text": "Here’s a mystery patient. The reward is rising, but very slowly. KL stays tiny the whole run. And the groups disagree just fine."
+  },
+  {
+    "startSeconds": 147,
+    "endSeconds": 149,
+    "text": "Which patient is it?"
+  },
+  {
+    "startSeconds": 149,
+    "endSeconds": 151,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 158,
+    "endSeconds": 162,
+    "text": "A, stuck! Slow reward, barely moving. Classic stuck."
+  },
+  {
+    "startSeconds": 162,
+    "endSeconds": 166,
+    "text": "Close, but it’s B. A leash that’s too tight."
+  },
+  {
+    "startSeconds": 166,
+    "endSeconds": 173,
+    "text": "Stuck has no signal: the groups all agree. Here the signal is fine, but the leash cancels most of every step."
+  },
+  {
+    "startSeconds": 174,
+    "endSeconds": 180,
+    "text": "On Tiny, accuracy after two hundred steps: with no leash, eighty-four percent."
+  },
+  {
+    "startSeconds": 180,
+    "endSeconds": 184,
+    "text": "With a leash of zero point zero five, sixty-eight."
+  },
+  {
+    "startSeconds": 184,
+    "endSeconds": 188,
+    "text": "And at zero point five, just seven percent. Chance level."
+  },
+  {
+    "startSeconds": 188,
+    "endSeconds": 195,
+    "text": "The fix: loosen the leash, or switch it off. For right-or-wrong rewards, many recipes use zero."
+  },
+  {
+    "startSeconds": 196,
+    "endSeconds": 203,
+    "text": "Patient four is the scary one: collapse. Tiny can’t honestly fake this one, so this chart is an illustration."
+  },
+  {
+    "startSeconds": 203,
+    "endSeconds": 211,
+    "text": "Entropy crashes towards zero, early. And the correctness reward stops improving, at about zero point two."
+  },
+  {
+    "startSeconds": 211,
+    "endSeconds": 214,
+    "text": "Confident, and wrong. Just like last time!"
+  },
+  {
+    "startSeconds": 215,
+    "endSeconds": 220,
+    "text": "And here’s what a group looks like after collapse. Eight answers, all the same."
+  },
+  {
+    "startSeconds": 220,
+    "endSeconds": 225,
+    "text": "All forty-two. All wrong. So the spread is zero, and every advantage is zero!"
+  },
+  {
+    "startSeconds": 225,
+    "endSeconds": 230,
+    "text": "No signal left to climb back out with. That’s why you catch collapse early."
+  },
+  {
+    "startSeconds": 230,
+    "endSeconds": 238,
+    "text": "The fixes: lower the learning rate, use clip-higher, keep the sampling temperature up, and restart from the last healthy checkpoint."
+  },
+  {
+    "startSeconds": 239,
+    "endSeconds": 241,
+    "text": "So here’s your cheat sheet."
+  },
+  {
+    "startSeconds": 241,
+    "endSeconds": 247,
+    "text": "Flat at zero, fuel gauge near one: stuck. Read answers, and test the grader."
+  },
+  {
+    "startSeconds": 247,
+    "endSeconds": 251,
+    "text": "Reward up, held-out flat: hacking. Fix the grader."
+  },
+  {
+    "startSeconds": 251,
+    "endSeconds": 256,
+    "text": "Entropy crashing, groups identical: collapse. Lower the learning rate."
+  },
+  {
+    "startSeconds": 256,
+    "endSeconds": 260,
+    "text": "And a slow reward with tiny KL: loosen the leash."
+  },
+  {
+    "startSeconds": 261,
+    "endSeconds": 263,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 263,
+    "endSeconds": 268,
+    "text": "Read real answers and test the grader first. Most bugs live there."
+  },
+  {
+    "startSeconds": 268,
+    "endSeconds": 271,
+    "text": "Always compare the reward with held-out accuracy."
+  },
+  {
+    "startSeconds": 271,
+    "endSeconds": 275,
+    "text": "And catch collapse early, then restart from a healthy checkpoint."
+  },
+  {
+    "startSeconds": 276,
+    "endSeconds": 281,
+    "text": "You can now read a run, and fix a broken one. But there’s one curve we haven’t talked about."
+  },
+  {
+    "startSeconds": 281,
+    "endSeconds": 288,
+    "text": "The most famous curve in reasoning training: answers getting longer and longer, as the model learns to think."
+  },
+  {
+    "startSeconds": 288,
+    "endSeconds": 294,
+    "text": "Wait. And somewhere in there, the model had an aha moment? Like it caught its own mistake?"
+  },
+  {
+    "startSeconds": 294,
+    "endSeconds": 299,
+    "text": "That’s what the researchers called it. Next episode, we find out what it really was."
+  },
+  {
+    "startSeconds": 299,
+    "endSeconds": 304,
+    "text": "Diagnose each preset yourself, in the training-run visual below this video."
+  },
+  {
+    "startSeconds": 304,
+    "endSeconds": 306,
+    "text": "See you in the next episode!"
+  }
+]

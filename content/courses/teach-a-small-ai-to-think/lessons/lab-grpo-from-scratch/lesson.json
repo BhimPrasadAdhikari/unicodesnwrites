@@ -1,0 +1,144 @@
+{
+  "key": "lab-grpo-from-scratch",
+  "slug": "lab-grpo-from-scratch",
+  "title": "Lab: GRPO from scratch on Tiny Adder",
+  "summary": "Build a complete GRPO trainer in under 100 lines of numpy and teach a lookup-table model to add, using only right/wrong verdicts. Then swap in a buggy grader and watch reward hacking happen.",
+  "type": "concept",
+  "durationMinutes": 30,
+  "learningObjectives": [
+    "Implement one GRPO step: group sampling, normalized advantages and the REINFORCE nudge with a group baseline",
+    "Add optional clipping over several inner steps and a KL pull toward a reference",
+    "Read a training log of reward, accuracy and entropy and explain the slow start and S-curve",
+    "Recognize reward hacking when reward rises but true accuracy stays flat"
+  ],
+  "concepts": [
+    "Tiny Adder",
+    "logit table",
+    "group sampling",
+    "REINFORCE with group baseline",
+    "entropy",
+    "reward hacking",
+    "held-out accuracy"
+  ],
+  "studyGuide": {
+    "mentalModel": "A table of 100 rows (one per sum) by 19 columns (one per answer), all zeros at the start. Each step, ask 16 questions, take 8 guesses each, grade them, and shift each row's scores toward the guesses that beat their group's average. A grader that pays for the wrong thing gets exactly what it pays for.",
+    "keyIdeas": [
+      "One GRPO step = sample a batch, sample a group per prompt, grade, normalize within the group, nudge.",
+      "The nudge onehot(k) - softmax(L) raises the sampled answer and lowers the rest in proportion to their probability.",
+      "With ppo_epochs = 1 the ratio is 1 and clipping never fires; the update is plain REINFORCE with a group baseline.",
+      "The slow start comes from silent all-wrong groups; once a few right answers appear, a feedback loop gives an S-curve.",
+      "Reward is measured by the grader, accuracy by the truth. When they split, suspect the grader."
+    ],
+    "misconceptions": [
+      "A flat first stretch is not automatically failure; check whether any groups have non-zero reward spread.",
+      "Falling entropy is not always collapse; here it falls because the model becomes confidently right.",
+      "A rising reward curve does not prove the model learned the task; the buggy grader's reward rises while accuracy stays at chance.",
+      "The toy's exact numbers depend on the random seed and implementation; the shapes are what transfer."
+    ],
+    "recallPrompts": [
+      "List the five things that happen in one GRPO training step.",
+      "Why does the honest run barely improve for the first 50 steps?",
+      "In the buggy run, why does reward start near 0.55 instead of 0.05?",
+      "Which logged number would reveal reward hacking, and why?"
+    ],
+    "explainBackPrompt": "Explain to a friend how a table of numbers can learn to add from nothing but right/wrong feedback, and how a badly written grader can make it look like it learned when it did not."
+  },
+  "quiz": [
+    {
+      "key": "start-accuracy",
+      "prompt": "All Tiny Adder logits start at zero. What is the model's accuracy before any training?",
+      "options": ["0%", "About 5% (1 in 19)", "50%", "About 10% (1 in 10)"],
+      "correctOption": 1,
+      "explanation": "Zero logits mean a uniform distribution over 19 answers, so each guess is right with probability 1/19, about 0.05."
+    },
+    {
+      "key": "slow-start",
+      "prompt": "In the healthy run, reward stays near 0.1 for about the first 50 steps. Why?",
+      "options": [
+        "The learning rate warms up slowly by design",
+        "The reward function only switches on after step 50",
+        "Clipping blocks the first 50 steps",
+        "Most groups of 8 random guesses contain no right answer, so their advantages are zero and they teach nothing"
+      ],
+      "correctOption": 3,
+      "explanation": "With 1-in-19 guesses, about 65% of groups are all wrong. Only the lucky groups produce a learning signal until right answers become more common."
+    },
+    {
+      "key": "nudge-term",
+      "prompt": "In the update ratio * A * (onehot(k) - p_new), what does (onehot(k) - p_new) do when A is positive?",
+      "options": [
+        "Raises the score of the sampled answer k and lowers the others in proportion to their probability",
+        "Sets every score to zero",
+        "Raises every answer equally",
+        "Copies the true sum into the table"
+      ],
+      "correctOption": 0,
+      "explanation": "onehot(k) has a 1 at k, and subtracting the current probabilities lowers every answer a little, so the sampled answer gains relative to the rest."
+    },
+    {
+      "key": "hacking-signal",
+      "prompt": "With buggy=True, reward climbs to about 0.81 by step 200. Which observation proves the model has not learned addition?",
+      "options": [
+        "Entropy falls a little",
+        "Reward started above 0.5",
+        "Accuracy against the true sum stays at about 0.05, pure chance",
+        "The run finished in seconds"
+      ],
+      "correctOption": 2,
+      "explanation": "Accuracy is measured against the truth, not the grader. Flat accuracy with rising reward is the signature of reward hacking."
+    },
+    {
+      "key": "ppo-epochs-one",
+      "prompt": "With the default ppo_epochs = 1, what does clipping do in grpo_tiny_adder.py?",
+      "options": [
+        "It clips every negative advantage",
+        "Nothing: the ratio is exactly 1 on the only inner step, so no answer is ever clipped",
+        "It halves the learning rate",
+        "It removes the KL term"
+      ],
+      "correctOption": 1,
+      "explanation": "The ratio compares the current policy with the one that sampled the answers. On the first (and only) inner step they are identical, so ratio = 1, which is always inside the band."
+    }
+  ],
+  "interactive": {
+    "component": "training-run",
+    "title": "Train Tiny Adder in your browser",
+    "caption": "Start with the healthy preset, then try stuck, hacking and tight leash. Keep one eye on accuracy: it is judged against the true sum, not the grader."
+  },
+  "resources": [
+    {
+      "key": "grpo-from-scratch-notebook",
+      "title": "GRPO from scratch notebook (CPU)",
+      "description": "Runs grpo_tiny_adder.py, plots reward, accuracy and entropy, and compares the buggy grader and the four presets. No GPU needed.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/04-grpo-from-scratch.ipynb"
+    },
+    {
+      "key": "grpo-cheatsheet",
+      "title": "GRPO cheat sheet",
+      "description": "One page: the GRPO step, advantage formula, clipping, KL and the main knobs.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/grpo-cheatsheet.pdf"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "group-size-sweep",
+      "title": "How big should the group be?",
+      "hints": [
+        "Call train(G=g) for g in 2, 4, 8, 16 and read the last history entry.",
+        "Also find the first step where accuracy passes 0.5.",
+        "Think about cost: each step samples batch x G answers."
+      ]
+    },
+    {
+      "key": "fix-the-grader",
+      "title": "Write a grader that is harder to hack",
+      "hints": [
+        "The buggy grader ignores a and b. Any honest grader must use them.",
+        "Try partial credit: 1 for the exact sum, 0.5 for being off by one.",
+        "Check both reward and accuracy: does partial credit help the slow start?"
+      ]
+    }
+  ]
+}

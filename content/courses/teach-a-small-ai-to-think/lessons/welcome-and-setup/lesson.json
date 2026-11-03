@@ -1,0 +1,144 @@
+{
+  "key": "welcome-and-setup",
+  "slug": "welcome-and-setup",
+  "title": "Welcome: what you'll build, and setting up",
+  "summary": "See the whole course at a glance, meet the small model you will teach to reason, and run your first notebook on a free GPU to get a \"before\" score you will beat later.",
+  "type": "concept",
+  "durationMinutes": 15,
+  "learningObjectives": [
+    "Describe what you will build in this course and the path from Module 1 to the capstone.",
+    "Explain why we train a small open model (Qwen2.5-0.5B-Instruct) instead of a big one.",
+    "Explain why GSM8K answers can be checked by a computer without a human.",
+    "Set up Google Colab with a free T4 GPU and run the hello GPU notebook.",
+    "Record a baseline score out of 20 and describe the kinds of mistakes the model makes."
+  ],
+  "concepts": [
+    "reasoning model",
+    "reinforcement learning",
+    "Qwen2.5-0.5B-Instruct",
+    "GSM8K",
+    "Tiny Adder toy",
+    "Google Colab GPU",
+    "baseline score"
+  ],
+  "studyGuide": {
+    "mentalModel": "Think of the course as coaching a quick but careless student. The student (a small open model) already knows most single steps of grade-school maths, but rushes and slips. You will not hand it worked examples. Instead you will set it questions with checkable answers (GSM8K), score each attempt automatically, and reward the habits that lead to right answers. Tiny Adder is the practice pitch where you try every coaching move first; Colab's free GPU is the gym where the real training happens.",
+    "keyIdeas": [
+      "The course follows the DeepSeek-R1 idea: let the model try, score its answers automatically, and nudge it toward the high-scoring ones.",
+      "Qwen2.5-0.5B-Instruct is small enough to train on a free Colab T4 and weak enough at maths that you can see it improve.",
+      "GSM8K puts the final answer after ####, so a few lines of code can grade any answer.",
+      "Tiny Adder is a toy that learns single-digit sums with the same method, so every idea can be seen before it is used on a real model.",
+      "Your score out of 20 in the hello GPU notebook is your starting line; you will compare against it after training."
+    ],
+    "misconceptions": [
+      "\"You need an expensive GPU to train a reasoning model.\" A free Colab T4 is enough for a 0.5B model and the methods in this course.",
+      "\"The model gets maths wrong because it cannot do arithmetic.\" Often it can do each step; it skips steps, copies numbers wrongly or never states a final answer.",
+      "\"You must finish every lab to understand the course.\" The videos, articles and visualizations explain every idea; the labs are for hands-on practice.",
+      "\"Training means showing the model lots of worked solutions.\" That is supervised fine-tuning; this course mainly uses reinforcement learning from automatic scores."
+    ],
+    "recallPrompts": [
+      "Name the model you will train and say why it was chosen.",
+      "What does the #### in a GSM8K solution make possible?",
+      "What is Tiny Adder and why does the course use it?",
+      "List the accounts and tools you need before the next lesson.",
+      "What score did your model get out of 20, and what were its most common mistakes?"
+    ],
+    "explainBackPrompt": "Explain to a friend who has never trained a model what this course will do, why a computer can grade maths word problems on its own, and why we practise on a toy before training a real model."
+  },
+  "quiz": [
+    {
+      "key": "why-small-model",
+      "prompt": "Why does the course train Qwen2.5-0.5B-Instruct rather than a much larger model?",
+      "options": [
+        "Larger models cannot learn from rewards.",
+        "It fits on a free Colab GPU, trains quickly and has visible room to improve.",
+        "Small models are always better at maths.",
+        "It is the only open model available."
+      ],
+      "correctOption": 1,
+      "explanation": "The small model fits on a free T4, so experiments take minutes to hours, and its shaky maths means you can clearly see progress. Larger models can learn from rewards too; they are just too big for a free GPU."
+    },
+    {
+      "key": "gsm8k-hashes",
+      "prompt": "In GSM8K, the final answer appears after ####. Why does that matter for this course?",
+      "options": [
+        "It tells the model where to stop writing.",
+        "It hides the answer from the model during training.",
+        "It makes the dataset smaller to download.",
+        "It lets a short program check any answer without a human."
+      ],
+      "correctOption": 3,
+      "explanation": "Because the gold number is always in the same place, code can pull it out and compare it with the model's final number. Automatic checking is what lets the model learn from scores instead of from a human teacher."
+    },
+    {
+      "key": "tiny-adder-purpose",
+      "prompt": "What is Tiny Adder used for in the course?",
+      "options": [
+        "A toy that learns single-digit sums with the same method, so you can see each idea quickly",
+        "A calculator the model is allowed to call during training",
+        "A smaller version of GSM8K used for the final exam",
+        "A plugin that speeds up Colab"
+      ],
+      "correctOption": 0,
+      "explanation": "Tiny Adder answers a + b for single digits and learns with the same method used on Qwen. It is small enough to train in your browser in a second, which makes ideas easy to see."
+    },
+    {
+      "key": "wrong-answer-patterns",
+      "prompt": "You read the model's wrong answers in the hello GPU notebook. Which pattern are you most likely to see?",
+      "options": [
+        "It refuses to answer maths questions.",
+        "It answers in a different language every time.",
+        "It skips a step, copies a number wrongly or never states a final number.",
+        "It always gives the answer to the previous question."
+      ],
+      "correctOption": 2,
+      "explanation": "The model can usually do individual steps, but it rushes. Skipped steps, copying slips and missing final answers are the habits that reinforcement learning will help fix."
+    },
+    {
+      "key": "no-gpu-fallback",
+      "prompt": "Colab will not give you a T4 GPU right now. What is the best thing to do?",
+      "options": [
+        "Buy a new graphics card before continuing.",
+        "Skip the course; it cannot work without a GPU.",
+        "Run the model on your phone instead.",
+        "Wait and try later, and meanwhile do the CPU-only labs in Modules 2 to 4."
+      ],
+      "correctOption": 3,
+      "explanation": "Free GPU availability varies. The labs in Modules 2 to 4 (rewards, REINFORCE, GRPO on Tiny Adder) run on a normal CPU, so you can keep learning while you wait."
+    }
+  ],
+  "resources": [
+    {
+      "key": "hello-gpu-notebook",
+      "title": "Hello GPU notebook",
+      "description": "Check your free Colab GPU, install the pinned course libraries, load Qwen2.5-0.5B-Instruct and grade it on 20 GSM8K questions. About 5 to 8 minutes on a T4.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/00-hello-gpu.ipynb"
+    },
+    {
+      "key": "qwen-model-card",
+      "title": "Qwen2.5-0.5B-Instruct model card",
+      "description": "The official Hugging Face page for the model you will train.",
+      "kind": "link",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct"
+    },
+    {
+      "key": "gsm8k-dataset",
+      "title": "GSM8K dataset",
+      "description": "The grade-school maths word problems used to test and train the model.",
+      "kind": "dataset",
+      "url": "https://huggingface.co/datasets/openai/gsm8k"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "baseline-report",
+      "title": "Write your baseline report",
+      "hints": [
+        "Run every cell of the hello GPU notebook in order with a T4 runtime.",
+        "Section 8 prints one full wrong answer; change the index to see others.",
+        "Put each mistake into a simple bucket such as skipped step, copying slip, misread question or no final number."
+      ]
+    }
+  ]
+}

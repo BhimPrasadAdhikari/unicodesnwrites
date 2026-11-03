@@ -1,0 +1,150 @@
+{
+  "key": "the-nudge",
+  "slug": "the-nudge",
+  "title": "The nudge: making good answers more likely",
+  "summary": "How a score actually changes a model: logits, softmax and the one-line REINFORCE nudge that makes better-than-usual answers more likely, plus why the learning rate and the baseline matter so much.",
+  "type": "concept",
+  "durationMinutes": 18,
+  "learningObjectives": [
+    "Describe a model as a probability machine and explain what training changes.",
+    "Explain logits and softmax in plain words, including why raising one answer lowers the others.",
+    "State the REINFORCE nudge in words and apply it once by hand.",
+    "Explain how advantage, direction and learning rate each shape the size of a nudge.",
+    "Explain why subtracting a baseline gives a cleaner learning signal than raw scores.",
+    "Explain why an answer that is never sampled can never be learned."
+  ],
+  "concepts": [
+    "policy",
+    "probability distribution",
+    "logits",
+    "softmax",
+    "advantage",
+    "baseline",
+    "REINFORCE",
+    "policy gradient",
+    "learning rate",
+    "collapse",
+    "exploration"
+  ],
+  "interactive": {
+    "component": "policy-nudge",
+    "title": "Nudge a model yourself",
+    "caption": "Reward one of four answers and watch the probabilities shift. Compare rewarding a rare answer with a likely one, then try a tiny and a huge learning rate."
+  },
+  "studyGuide": {
+    "mentalModel": "Picture a mixing desk with one volume dial per possible answer. Softmax shares out 100% of the sound by how loud each dial is. After each attempt, you check the score: better than usual, turn that answer's dial up a notch; worse than usual, turn it down. Turning one dial up automatically makes the others quieter. The learning rate is how big a notch you turn.",
+    "keyIdeas": [
+      "Training changes the probabilities the model gives to each possible answer.",
+      "The model stores logits; softmax turns them into probabilities that sum to 100%, so raising one answer lowers the rest.",
+      "The REINFORCE nudge: change in logits = learning rate x advantage x (onehot(k) - probs), for the sampled answer k (Williams, 1992).",
+      "Rare answers that score well get a noticeable boost; answers already near 100% barely move; below-average answers are pushed down.",
+      "Too small a learning rate is slow; too large leaps to conclusions from one sample and can collapse onto one answer.",
+      "Advantage = score minus baseline. A baseline cancels points that every answer gets, so only better-than-usual answers are pushed up.",
+      "An answer is only nudged if it is sampled, so exploration matters."
+    ],
+    "misconceptions": [
+      "\"The model stores probabilities directly.\" It stores logits; softmax turns them into probabilities.",
+      "\"Rewarding one answer only changes that answer.\" Because probabilities must sum to 100%, every other answer changes too.",
+      "\"A positive score always means push that answer up.\" What matters is the advantage: a positive score below the usual level pushes the answer down.",
+      "\"A bigger learning rate just means faster learning.\" Too big a step can lock the model onto one answer after a single lucky sample."
+    ],
+    "recallPrompts": [
+      "What does softmax do, and why does raising one logit lower the others' probabilities?",
+      "Say the REINFORCE nudge in one plain sentence.",
+      "Why does an answer at 99% barely move when rewarded?",
+      "What goes wrong with a learning rate that is far too large?",
+      "Why do we subtract a baseline from the score?",
+      "Why can a model never learn an answer it never samples?"
+    ],
+    "explainBackPrompt": "Explain to a friend how giving a model a score after it answers can make that answer more likely next time, using the idea of volume dials, and why we compare each score with the usual score instead of using it directly."
+  },
+  "quiz": [
+    {
+      "key": "softmax-share",
+      "prompt": "You raise the logit of one answer and leave the others alone. What happens to the other answers' probabilities?",
+      "options": [
+        "They all go down a little, because probabilities must add up to 100%.",
+        "They stay exactly the same.",
+        "They all go up by the same amount.",
+        "They become zero."
+      ],
+      "correctOption": 0,
+      "explanation": "Softmax shares out 100% of the probability. Giving one answer a bigger share necessarily shrinks everyone else's, even though their logits did not change."
+    },
+    {
+      "key": "direction-size",
+      "prompt": "The rewarded answer already has probability 0.95. Compared with rewarding an answer at 0.10 (same advantage, same learning rate), its logit moves...",
+      "options": [
+        "much more, because it is the favorite",
+        "exactly the same amount",
+        "much less, because the direction for it is 1 - 0.95 = 0.05",
+        "not at all, because rewards only affect rare answers"
+      ],
+      "correctOption": 2,
+      "explanation": "The direction for the chosen answer is 1 minus its probability. Near 100% that is tiny, so the nudge almost vanishes. A rare answer at 0.10 gets a direction of 0.9."
+    },
+    {
+      "key": "negative-advantage",
+      "prompt": "An answer is sampled and gets a negative advantage. What does the nudge do?",
+      "options": [
+        "Nothing; only positive advantages cause updates.",
+        "Pushes that answer up anyway.",
+        "Resets all logits to zero.",
+        "Pushes that answer down and shares its lost probability among the others."
+      ],
+      "correctOption": 3,
+      "explanation": "The same direction is multiplied by a negative number, so the sampled answer's logit falls and the other answers gain, in proportion to how likely they already were."
+    },
+    {
+      "key": "big-lr",
+      "prompt": "With a learning rate of 10, one lucky reward takes an answer from 25% to almost 100%. Why is that a problem?",
+      "options": [
+        "It uses too much GPU memory.",
+        "The model leaps to certainty from one sample and then rarely tries anything else, so it can lock onto a wrong answer.",
+        "Softmax cannot handle large logits.",
+        "It is not a problem; faster is always better."
+      ],
+      "correctOption": 1,
+      "explanation": "Once an answer is near 100%, the model almost never samples alternatives, so it cannot discover if they are better. This is collapse."
+    },
+    {
+      "key": "baseline-purpose",
+      "prompt": "Every answer gets 10 points just for trying, plus up to 1.5 extra for good ones. Why does subtracting the batch average help?",
+      "options": [
+        "It makes all rewards negative, which trains faster.",
+        "It removes the need for a learning rate.",
+        "The shared 10 points cancel out, so only better-than-usual answers are pushed up and worse ones down.",
+        "It hides the rewards from the model."
+      ],
+      "correctOption": 2,
+      "explanation": "Without a baseline, every sampled answer, right or wrong, has a big positive score and gets pushed up. Subtracting the average leaves only the differences, which is the real signal."
+    }
+  ],
+  "resources": [
+    {
+      "key": "reinforce-notebook",
+      "title": "REINFORCE lab notebook",
+      "description": "Try the nudge in numpy on the four-answer model, with a plot. CPU only.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/03-reinforce-lab.ipynb"
+    },
+    {
+      "key": "deepseekmath-paper",
+      "title": "DeepSeekMath paper (Shao et al., 2024)",
+      "description": "Introduces GRPO, which uses this nudge with a group-average baseline.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2402.03300"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "nudge-by-hand",
+      "title": "One nudge, by hand",
+      "hints": [
+        "onehot(k) is 1 for the sampled answer and 0 for the rest.",
+        "The direction always adds up to zero; use that to check your arithmetic.",
+        "A negative advantage flips the sign of every number in the change row."
+      ]
+    }
+  ]
+}

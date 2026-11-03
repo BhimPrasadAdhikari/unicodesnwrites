@@ -1,0 +1,161 @@
+{
+  "key": "setting-up-trl-on-colab",
+  "slug": "setting-up-trl-on-colab",
+  "title": "Setting up a real run on a free GPU",
+  "summary": "Swap the Tiny Adder table for Qwen2.5-0.5B-Instruct and set up a real GRPO run with Hugging Face TRL on a free Colab T4: rewards, config, LoRA adapters, memory limits and a before/after evaluation on held-out questions.",
+  "type": "concept",
+  "durationMinutes": 22,
+  "learningObjectives": [
+    "Map each GRPO symbol to its TRL GRPOConfig option",
+    "Write TRL reward functions that read dataset columns and return one float per completion",
+    "Explain why the script uses LoRA, fp16 and small batches on a free T4",
+    "Plan a run: smoke test, baseline evaluation, training, held-out evaluation"
+  ],
+  "concepts": [
+    "TRL GRPOTrainer",
+    "GRPOConfig",
+    "reward function signature",
+    "GSM8K",
+    "LoRA adapters",
+    "mixed precision fp16",
+    "held-out evaluation",
+    "Colab T4 limits"
+  ],
+  "studyGuide": {
+    "mentalModel": "Same loop as Tiny Adder, bigger engine. TRL is the engine; you pick the knobs. A free T4 is a small garage: about 15 GB, no fast bfloat16, limited time. So you bring a small model, train only a thin LoRA add-on, keep answers short and groups modest, and always check the result on questions the model never trained on.",
+    "keyIdeas": [
+      "num_generations is the group size G; per_device_train_batch_size x gradient_accumulation_steps counts completions and must be a multiple of G.",
+      "Reward functions receive completions plus dataset columns as keyword arguments and return a list of floats; TRL sums multiple rewards.",
+      "beta, epsilon, epsilon_high, loss_type and scale_rewards are the equation choices; loss_type='dapo' and beta=0.0 are TRL's defaults.",
+      "LoRA trains under 2% of the weights and makes the KL reference free (adapter switched off).",
+      "A T4 needs bf16=False, fp16=True; evaluate before and after on the GSM8K test split."
+    ],
+    "misconceptions": [
+      "TRL batch sizes count completions, not questions: 16 completions with G = 8 is only 2 questions per step.",
+      "A higher training reward is not proof of better maths; only the held-out evaluation shows that.",
+      "LoRA is not a weaker kind of RL; the GRPO loss is the same, only the set of trainable weights is smaller.",
+      "Runtime estimates are rough; answer length changes during training and changes the speed."
+    ],
+    "recallPrompts": [
+      "Which GRPOConfig option is the group size, and what must the completions-per-step be divisible by?",
+      "What two arguments does correctness_reward use, and where does the second one come from?",
+      "Why does the script set fp16=True and bf16=False?",
+      "Why is the KL reference model almost free when training with LoRA?"
+    ],
+    "explainBackPrompt": "Explain to a friend how the Tiny Adder loop turns into a real training run on Qwen with TRL, and the three things you change to make it fit on a free Colab GPU."
+  },
+  "quiz": [
+    {
+      "key": "group-option",
+      "prompt": "Which GRPOConfig option sets the GRPO group size G?",
+      "options": ["per_device_train_batch_size", "num_iterations", "num_generations", "max_completion_length"],
+      "correctOption": 2,
+      "explanation": "num_generations is how many completions are sampled per prompt, the G in the equation. num_iterations is the number of inner updates per batch."
+    },
+    {
+      "key": "prompts-per-step",
+      "prompt": "With per_device_train_batch_size=8, gradient_accumulation_steps=2 and num_generations=8 on one GPU, how many distinct questions does each optimizer step use?",
+      "options": ["2", "8", "16", "128"],
+      "correctOption": 0,
+      "explanation": "TRL counts completions: 8 x 2 = 16 completions per step, which is 16 / 8 = 2 questions, each with a group of 8 answers."
+    },
+    {
+      "key": "reward-signature",
+      "prompt": "Why can correctness_reward(completions, answer, **kwargs) read the gold answer?",
+      "options": [
+        "TRL downloads the answer from the internet",
+        "The GSM8K dataset has an answer column, and TRL passes dataset columns to reward functions as keyword arguments",
+        "The model writes the gold answer inside its thinking",
+        "The answer is hard-coded in the system prompt"
+      ],
+      "correctOption": 1,
+      "explanation": "Extra dataset columns are passed to each reward function by name. The **kwargs catches everything else TRL sends."
+    },
+    {
+      "key": "t4-precision",
+      "prompt": "Why does the script set bf16=False and fp16=True?",
+      "options": [
+        "fp16 gives higher accuracy than bf16 on every GPU",
+        "TRL does not support bf16",
+        "bf16 doubles the reward",
+        "The free Colab T4 lacks fast bfloat16 support, and TRL turns bf16 on by default"
+      ],
+      "correctOption": 3,
+      "explanation": "GRPOConfig defaults bf16 to True when fp16 is not set. On a T4 we keep float32 weights and use fp16 mixed precision."
+    },
+    {
+      "key": "why-heldout",
+      "prompt": "Why does the lab evaluate on the GSM8K test split before and after training?",
+      "options": [
+        "To measure real improvement on questions the model never trained on, and catch reward hacking",
+        "Because TRL requires it to start training",
+        "To make training faster",
+        "Because the training split has no answers"
+      ],
+      "correctOption": 0,
+      "explanation": "The training reward can rise for the wrong reasons (as the Tiny Adder's buggy grader showed). Held-out accuracy is the honest measure."
+    },
+    {
+      "key": "lora-reference",
+      "prompt": "With LoRA and beta > 0, how does TRL get the reference model's probabilities cheaply?",
+      "options": [
+        "It skips the KL term entirely",
+        "It loads a second full copy of the model on the CPU",
+        "It runs the same base model with the LoRA adapter switched off",
+        "It asks a larger teacher model"
+      ],
+      "correctOption": 2,
+      "explanation": "The base weights are frozen, so the base model without the adapter is exactly the starting model, the reference."
+    }
+  ],
+  "resources": [
+    {
+      "key": "grpo-qwen-notebook",
+      "title": "GRPO on Qwen + GSM8K notebook (Colab T4)",
+      "description": "The full run: pinned installs, baseline evaluation, GRPO training with train_grpo.py, plots, after evaluation, saving and optional Hub upload.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/05-grpo-qwen-gsm8k.ipynb"
+    },
+    {
+      "key": "trl-grpo-docs",
+      "title": "TRL GRPO Trainer documentation",
+      "description": "Official reference for GRPOConfig, reward functions and logged metrics.",
+      "kind": "link",
+      "url": "https://huggingface.co/docs/trl/main/en/grpo_trainer"
+    },
+    {
+      "key": "gsm8k-dataset",
+      "title": "GSM8K on the Hugging Face Hub",
+      "description": "About 8.5k grade-school maths word problems; answers end with #### and the final number.",
+      "kind": "dataset",
+      "url": "https://huggingface.co/datasets/openai/gsm8k"
+    },
+    {
+      "key": "lora-paper",
+      "title": "LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021)",
+      "description": "The paper behind the small trainable adapters.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2106.09685"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "fit-the-budget",
+      "title": "Re-plan the batch for a tighter GPU",
+      "hints": [
+        "Completions per step = per_device_train_batch_size x gradient_accumulation_steps (on one GPU).",
+        "That number must be a multiple of num_generations.",
+        "Halving the micro-batch and doubling accumulation keeps the step the same size."
+      ]
+    },
+    {
+      "key": "add-a-reward",
+      "title": "Add a gentle length reward",
+      "hints": [
+        "A reward function takes completions and **kwargs and returns one float per completion.",
+        "Count words or characters of completion_text(c).",
+        "Keep it small compared with correctness, or the model will optimize length instead of maths."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,292 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 6,
+    "text": "Meet Qwen. A real language model, with half a billion numbers inside."
+  },
+  {
+    "startSeconds": 6,
+    "endSeconds": 11,
+    "text": "Tiny’s big sibling! And we’re training it... on a free GPU?"
+  },
+  {
+    "startSeconds": 11,
+    "endSeconds": 17,
+    "text": "On a free one, in about an hour. But there’s a catch. Everything has to fit in about fifteen gigabytes."
+  },
+  {
+    "startSeconds": 17,
+    "endSeconds": 24,
+    "text": "The model. Its gradients. The optimizer’s notes. And eight answers for every question."
+  },
+  {
+    "startSeconds": 24,
+    "endSeconds": 26,
+    "text": "Out of memory! It doesn’t fit!"
+  },
+  {
+    "startSeconds": 26,
+    "endSeconds": 34,
+    "text": "Not like that, it doesn’t. Making it fit is the whole puzzle. By the end of this video, you’ll know every knob that does it."
+  },
+  {
+    "startSeconds": 34,
+    "endSeconds": 38,
+    "text": "Setting up a real run. Episode one."
+  },
+  {
+    "startSeconds": 39,
+    "endSeconds": 47,
+    "text": "In Colab, you change the runtime type to a T4 GPU. Three facts about that card shape everything."
+  },
+  {
+    "startSeconds": 46,
+    "endSeconds": 50,
+    "text": "About fifteen gigabytes of usable memory."
+  },
+  {
+    "startSeconds": 50,
+    "endSeconds": 53,
+    "text": "And what’s this? No b f sixteen?"
+  },
+  {
+    "startSeconds": 53,
+    "endSeconds": 60,
+    "text": "It’s a number format most tutorials assume. The T4 can’t do it fast, so we use f p sixteen instead."
+  },
+  {
+    "startSeconds": 59,
+    "endSeconds": 65,
+    "text": "And free sessions time out, so the run should finish in about an hour, saving checkpoints as it goes."
+  },
+  {
+    "startSeconds": 66,
+    "endSeconds": 71,
+    "text": "The good news: it’s the loop you already know. Only the plumbing changes."
+  },
+  {
+    "startSeconds": 71,
+    "endSeconds": 73,
+    "text": "So what actually changes?"
+  },
+  {
+    "startSeconds": 73,
+    "endSeconds": 80,
+    "text": "Random sums become GSM8K: about eight and a half thousand grade-school word problems."
+  },
+  {
+    "startSeconds": 80,
+    "endSeconds": 86,
+    "text": "The group size stays at eight. The grader becomes two rewards: format, and correctness."
+  },
+  {
+    "startSeconds": 86,
+    "endSeconds": 94,
+    "text": "Answers grow from one token to up to two hundred and fifty-six. And the learning rate becomes tiny: one in a hundred thousand."
+  },
+  {
+    "startSeconds": 94,
+    "endSeconds": 100,
+    "text": "Here are the two rewards. Each one gets a batch of answers, and returns one score per answer."
+  },
+  {
+    "startSeconds": 100,
+    "endSeconds": 105,
+    "text": "The format reward pays half a point for the exact think-then-answer shape."
+  },
+  {
+    "startSeconds": 105,
+    "endSeconds": 109,
+    "text": "The correctness reward pays a full point when the final number matches."
+  },
+  {
+    "startSeconds": 109,
+    "endSeconds": 112,
+    "text": "Wait, where does answer come from?"
+  },
+  {
+    "startSeconds": 112,
+    "endSeconds": 120,
+    "text": "The dataset has a column called answer, and the trainer passes it in by name. The scores add up, so tidy and correct earns one and a half."
+  },
+  {
+    "startSeconds": 120,
+    "endSeconds": 123,
+    "text": "And why is format only worth half?"
+  },
+  {
+    "startSeconds": 123,
+    "endSeconds": 128,
+    "text": "Because if neat paid as much as right, the model could get rich by being neat and wrong."
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 136,
+    "text": "Now the settings. Two of them set the batch: eight per micro-batch, times two accumulation steps. Sixteen."
+  },
+  {
+    "startSeconds": 136,
+    "endSeconds": 140,
+    "text": "So how many questions does each training step see?"
+  },
+  {
+    "startSeconds": 140,
+    "endSeconds": 142,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 149,
+    "endSeconds": 153,
+    "text": "That one’s easy. It says sixteen, so sixteen questions. A!"
+  },
+  {
+    "startSeconds": 153,
+    "endSeconds": 159,
+    "text": "Sneaky, isn’t it? It’s B. Batch sizes count answers, not questions."
+  },
+  {
+    "startSeconds": 159,
+    "endSeconds": 165,
+    "text": "Sixteen answers is two questions, with a group of eight each. Small, but it’s what fits."
+  },
+  {
+    "startSeconds": 166,
+    "endSeconds": 170,
+    "text": "Here’s the rest of the config. You’ve met every knob already."
+  },
+  {
+    "startSeconds": 170,
+    "endSeconds": 174,
+    "text": "Num generations is the group size: eight."
+  },
+  {
+    "startSeconds": 174,
+    "endSeconds": 179,
+    "text": "Max completion length is the thinking budget: two hundred and fifty-six tokens."
+  },
+  {
+    "startSeconds": 179,
+    "endSeconds": 185,
+    "text": "Beta is the leash. We use a small one, zero point zero four, mostly so you can see its curve."
+  },
+  {
+    "startSeconds": 185,
+    "endSeconds": 189,
+    "text": "And epsilon is the fence! With the wider top, one point two eight."
+  },
+  {
+    "startSeconds": 189,
+    "endSeconds": 196,
+    "text": "Exactly. And the last line is for the T4: f p sixteen on, b f sixteen off."
+  },
+  {
+    "startSeconds": 197,
+    "endSeconds": 204,
+    "text": "Even so, training all half a billion numbers means memory for each one, its gradient, and two optimizer notes."
+  },
+  {
+    "startSeconds": 204,
+    "endSeconds": 206,
+    "text": "That’s like four copies of the model!"
+  },
+  {
+    "startSeconds": 206,
+    "endSeconds": 213,
+    "text": "So we freeze the model, and clip a thin, trainable add-on beside some of its layers. It’s called LoRA."
+  },
+  {
+    "startSeconds": 213,
+    "endSeconds": 221,
+    "text": "Like clipping a lens onto a camera, instead of rebuilding the camera. About nine million numbers, under two percent of the model."
+  },
+  {
+    "startSeconds": 220,
+    "endSeconds": 223,
+    "text": "And the frozen starting copy, for the leash?"
+  },
+  {
+    "startSeconds": 223,
+    "endSeconds": 228,
+    "text": "Free! Switch the add-on off, and there’s the original model."
+  },
+  {
+    "startSeconds": 228,
+    "endSeconds": 231,
+    "text": "Last piece: how will you know it worked?"
+  },
+  {
+    "startSeconds": 231,
+    "endSeconds": 238,
+    "text": "First, a baseline: the untrained model, on two hundred test questions it never trains on."
+  },
+  {
+    "startSeconds": 237,
+    "endSeconds": 241,
+    "text": "Then a ten-step smoke test, just to check nothing crashes."
+  },
+  {
+    "startSeconds": 241,
+    "endSeconds": 249,
+    "text": "Then the real run: two hundred and fifty steps. Our estimate is roughly an hour. An estimate, not a promise."
+  },
+  {
+    "startSeconds": 249,
+    "endSeconds": 252,
+    "text": "And then the same two hundred questions again!"
+  },
+  {
+    "startSeconds": 252,
+    "endSeconds": 257,
+    "text": "Exactly. The difference is your result. Because the training reward alone can lie."
+  },
+  {
+    "startSeconds": 258,
+    "endSeconds": 260,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 260,
+    "endSeconds": 264,
+    "text": "It’s the same loop as Tiny’s. The knobs are just plumbing."
+  },
+  {
+    "startSeconds": 264,
+    "endSeconds": 269,
+    "text": "Batch sizes count answers, not questions, and LoRA makes it all fit."
+  },
+  {
+    "startSeconds": 269,
+    "endSeconds": 273,
+    "text": "And you measure before and after, on questions the model never saw."
+  },
+  {
+    "startSeconds": 274,
+    "endSeconds": 276,
+    "text": "So you press train."
+  },
+  {
+    "startSeconds": 276,
+    "endSeconds": 280,
+    "text": "And for the next hour, numbers scroll past. Lots of numbers."
+  },
+  {
+    "startSeconds": 280,
+    "endSeconds": 287,
+    "text": "Wait. The reward just went down. Is it working? Is it broken? How would I even know?"
+  },
+  {
+    "startSeconds": 287,
+    "endSeconds": 292,
+    "text": "Next episode, we run it for real, and learn exactly what to look at."
+  },
+  {
+    "startSeconds": 292,
+    "endSeconds": 296,
+    "text": "Open the notebook for this lesson, and run the smoke test."
+  },
+  {
+    "startSeconds": 296,
+    "endSeconds": 298,
+    "text": "See you in the next episode!"
+  }
+]

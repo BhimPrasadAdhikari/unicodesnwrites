@@ -1,0 +1,178 @@
+{
+  "key": "distillation-vs-rl",
+  "slug": "distillation-vs-rl",
+  "title": "Distillation vs RL: which one, when",
+  "summary": "Distillation teaches a small model by copying a bigger model's worked answers; RL teaches it from its own scored attempts. You'll see why DeepSeek found distillation beat RL on small models, what s1 and LIMO showed about small curated datasets, and how to choose or combine the two.",
+  "type": "concept",
+  "durationMinutes": 20,
+  "learningObjectives": [
+    "Explain the difference between learning from a teacher's answers (distillation) and from your own scored attempts (RL).",
+    "Describe soft labels and how temperature changes them, and explain why reasoning-model distillation usually uses SFT on written traces instead.",
+    "Summarize DeepSeek's comparison of distilling R1 into Qwen-32B versus running large-scale RL on Qwen-32B directly.",
+    "Describe what the s1 and LIMO papers showed about small, carefully curated reasoning datasets, and their limits.",
+    "Choose between distillation, RL, or distillation followed by RL for a given situation."
+  ],
+  "concepts": [
+    "distillation",
+    "teacher and student",
+    "soft labels",
+    "temperature",
+    "sequence-level distillation",
+    "supervised fine-tuning",
+    "R1-Distill models",
+    "s1 and budget forcing",
+    "LIMO",
+    "cold start"
+  ],
+  "studyGuide": {
+    "mentalModel": "Learning a hard dish: you can experiment in the kitchen, tasting and adjusting hundreds of times (RL), or copy a great chef's recipe notebook step by step (distillation). Copying is fast and reliable but you'll rarely cook better than the chef. Experimenting is slow and only works if you sometimes get it right by chance, but it can take you beyond any notebook. Most good cooks copy first, then experiment.",
+    "keyIdeas": [
+      "RL learns from the model's own attempts and one score per attempt; distillation learns from a teacher's answers with a target for every token.",
+      "Classic distillation (Hinton, Vinyals and Dean, 2015) matches the teacher's soft probabilities; temperature above 1 flattens them so near-misses become visible.",
+      "Reasoning-model distillation usually means SFT on the teacher's written traces: no teacher probabilities, just saved text.",
+      "DeepSeek fine-tuned six Qwen and Llama models (1.5B to 70B) on about 800k samples curated with R1, using SFT only.",
+      "On Qwen-32B, distillation beat large-scale RL directly: 72.6% vs 47.0% on AIME 2024, and higher on MATH-500, GPQA Diamond and LiveCodeBench.",
+      "RL struggles on small models because it can only reinforce good reasoning it happens to sample.",
+      "s1 used 1,000 curated examples and budget forcing; LIMO reported strong results from 817 examples in its first version; both used 32B models.",
+      "Strong recipes combine both: SFT first (DeepSeek-R1's cold start, or distillation), then RL with a checkable reward."
+    ],
+    "misconceptions": [
+      "\"Distillation needs the teacher model running.\" Sequence-level distillation only needs a dataset of the teacher's saved traces.",
+      "\"Distilled students can easily surpass their teacher.\" Imitation tends to top out around the teacher's level.",
+      "\"1,000 examples is enough for any model.\" s1 and LIMO used 32B models and heavily filtered data; tiny models and random traces may not get the same results.",
+      "\"Distillation and RL are rivals; pick one.\" The strongest recipes usually do SFT first, then RL."
+    ],
+    "recallPrompts": [
+      "What does a soft label tell a student that a hard label doesn't?",
+      "What did DeepSeek compare at 32B, and what were the AIME 2024 scores?",
+      "Why does RL struggle to teach long reasoning to a small model?",
+      "What is budget forcing in the s1 paper?",
+      "Give one situation where RL is the better choice than distillation."
+    ],
+    "explainBackPrompt": "Explain to a friend why a small model learns reasoning faster by copying a big model's worked answers than by trial and error with a score, and when trial and error is still worth it. Use the kitchen picture or your own analogy."
+  },
+  "quiz": [
+    {
+      "key": "q1-signal",
+      "prompt": "Why is distillation usually more sample-efficient than RL?",
+      "options": [
+        "It uses a higher learning rate",
+        "Distillation never needs a GPU",
+        "RL can only be used on maths",
+        "Every token of a teacher trace comes with a target, while RL gives one score for a whole attempt"
+      ],
+      "correctOption": 3,
+      "explanation": "In SFT on traces, the model is told the right next token at every position. In RL, a whole attempt earns a single number and the model must work out which tokens deserved the credit."
+    },
+    {
+      "key": "q2-temperature",
+      "prompt": "What happens to a teacher's probabilities when you raise the distillation temperature above 1?",
+      "options": [
+        "They flatten out, so near-miss answers get more visible probability",
+        "They sharpen, so only the top answer remains",
+        "They stay exactly the same",
+        "They no longer add up to 1"
+      ],
+      "correctOption": 0,
+      "explanation": "Dividing logits by a temperature above 1 shrinks the gaps between them, spreading probability toward the other answers. That makes the teacher's ranking of near-misses easier to learn from."
+    },
+    {
+      "key": "q3-deepseek",
+      "prompt": "At 32B parameters, what did DeepSeek report on AIME 2024?",
+      "options": [
+        "RL directly scored 72.6% and distillation 47.0%",
+        "Both scored about 60%",
+        "Distillation from R1 scored 72.6%, RL directly on Qwen-32B-Base scored 47.0%",
+        "They only tested RL"
+      ],
+      "correctOption": 2,
+      "explanation": "R1-Distill-Qwen-32B reached 72.6% pass@1 on AIME 2024, while R1-Zero-Qwen-32B (over 10,000 RL steps on the same base) reached 47.0%. Distillation also won on MATH-500, GPQA Diamond and LiveCodeBench."
+    },
+    {
+      "key": "q4-small-data",
+      "prompt": "Which statement about s1 and LIMO is accurate?",
+      "options": [
+        "They show any 0.5B model can match o1 with 1,000 random examples",
+        "They fine-tuned 32B models on about 1,000 (s1) and 817 (LIMO, first version) carefully curated examples with strong results",
+        "They used pure RL with no fine-tuning",
+        "They trained on 800,000 samples"
+      ],
+      "correctOption": 1,
+      "explanation": "Both papers used strong 32B models and heavily curated small datasets. Their results don't automatically carry over to much smaller models or randomly chosen traces."
+    },
+    {
+      "key": "q5-zero-accuracy",
+      "prompt": "Your small model gets 0% on a task: every sampled answer in every group is wrong. What's the best next step?",
+      "options": [
+        "Run GRPO longer; it will eventually learn",
+        "Raise the KL penalty beta",
+        "Increase the learning rate tenfold",
+        "Get it off zero first by distilling from a stronger model or using easier problems, then use RL"
+      ],
+      "correctOption": 3,
+      "explanation": "When every answer in a group gets the same reward, all advantages are zero and GRPO has no signal. Distillation or an easier curriculum gives RL something to reinforce."
+    }
+  ],
+  "interactive": {
+    "component": "distill-compare",
+    "title": "Teacher vs student",
+    "caption": "Slide the temperature to soften or sharpen the teacher's distribution, then switch between hard and soft labels to see what the student is asked to match."
+  },
+  "resources": [
+    {
+      "key": "deepseek-r1-paper",
+      "title": "DeepSeek-R1 (DeepSeek-AI, 2025)",
+      "description": "See the distillation section for the R1-Distill models and the distillation vs RL comparison.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2501.12948"
+    },
+    {
+      "key": "s1-paper",
+      "title": "s1: Simple test-time scaling (Muennighoff et al., 2025)",
+      "description": "1,000 curated examples and budget forcing.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2501.19393"
+    },
+    {
+      "key": "limo-paper",
+      "title": "LIMO: Less Is More for Reasoning (Ye et al., 2025)",
+      "description": "Strong maths reasoning from a few hundred carefully chosen examples.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2502.03387"
+    },
+    {
+      "key": "hinton-distillation",
+      "title": "Distilling the Knowledge in a Neural Network (Hinton et al., 2015)",
+      "description": "The original paper on soft labels and temperature.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/1503.02531"
+    },
+    {
+      "key": "distill-vs-rl-cheatsheet",
+      "title": "Distillation vs RL cheat sheet",
+      "description": "One page: how each works, what DeepSeek found, and a decision table.",
+      "kind": "cheatsheet",
+      "url": "/courses/teach-a-small-ai-to-think/cheatsheets/distillation-vs-rl.pdf"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "soft-labels",
+      "title": "See what temperature does to soft labels",
+      "hints": [
+        "Divide every logit by the temperature first.",
+        "Subtract the largest scaled value before math.exp to avoid overflow.",
+        "Divide each exponential by their sum so the probabilities add up to 1."
+      ]
+    },
+    {
+      "key": "choose-the-method",
+      "title": "Distill, RL, or both?",
+      "hints": [
+        "Ask: do teacher traces exist for this task?",
+        "Ask: does the model ever get an answer right? GRPO needs mixed groups.",
+        "Ask: do you need to beat the best available model?"
+      ]
+    }
+  ]
+}

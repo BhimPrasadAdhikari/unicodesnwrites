@@ -1,0 +1,277 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 8,
+    "text": "Natalia sold clips to forty-eight friends in April, and half as many in May. How many altogether?"
+  },
+  {
+    "startSeconds": 8,
+    "endSeconds": 11,
+    "text": "Seventy-two. A ten-year-old can do that."
+  },
+  {
+    "startSeconds": 11,
+    "endSeconds": 14,
+    "text": "Now watch a half-billion-number model try."
+  },
+  {
+    "startSeconds": 14,
+    "endSeconds": 19,
+    "text": "Half of forty-eight is... thirty-four?! Eighty-two? Oh no."
+  },
+  {
+    "startSeconds": 19,
+    "endSeconds": 26,
+    "text": "Today we make it better, with nothing but a rule that checks the final number. And you’ll learn how to judge what really changed."
+  },
+  {
+    "startSeconds": 26,
+    "endSeconds": 30,
+    "text": "Teach Qwen word problems. Episode two."
+  },
+  {
+    "startSeconds": 31,
+    "endSeconds": 36,
+    "text": "The whole project is seven stages, and Tiny is going to walk them for us."
+  },
+  {
+    "startSeconds": 36,
+    "endSeconds": 43,
+    "text": "Set up. A smoke test. A baseline. Then the long part: training, roughly an hour."
+  },
+  {
+    "startSeconds": 42,
+    "endSeconds": 47,
+    "text": "Then curves, a second test, and saving the model. Got it."
+  },
+  {
+    "startSeconds": 46,
+    "endSeconds": 54,
+    "text": "Those times are estimates, not measurements. Answers get longer as it learns, and longer answers take longer to write."
+  },
+  {
+    "startSeconds": 54,
+    "endSeconds": 59,
+    "text": "Stage one is the most skipped, and the most important: the baseline."
+  },
+  {
+    "startSeconds": 59,
+    "endSeconds": 61,
+    "text": "Can’t I just train it, and see if it’s good?"
+  },
+  {
+    "startSeconds": 61,
+    "endSeconds": 69,
+    "text": "Good compared with what? Scientists don’t test a medicine without a control group. Your control group is the untrained model."
+  },
+  {
+    "startSeconds": 69,
+    "endSeconds": 78,
+    "text": "Two hundred test questions, two numbers. Accuracy: the right number, inside the answer tags. And format rate: did it use the exact shape?"
+  },
+  {
+    "startSeconds": 78,
+    "endSeconds": 81,
+    "text": "Write both down before training. Got it."
+  },
+  {
+    "startSeconds": 82,
+    "endSeconds": 85,
+    "text": "Here’s a subtle catch. Look at this answer."
+  },
+  {
+    "startSeconds": 85,
+    "endSeconds": 89,
+    "text": "Forty-eight plus twenty-four, seventy-two. That’s right!"
+  },
+  {
+    "startSeconds": 89,
+    "endSeconds": 95,
+    "text": "The maths is right. But there are no answer tags, so our accuracy counts it as wrong."
+  },
+  {
+    "startSeconds": 95,
+    "endSeconds": 98,
+    "text": "Wait, what? It got it right, and it scores zero?"
+  },
+  {
+    "startSeconds": 98,
+    "endSeconds": 106,
+    "text": "On purpose. It matches the training reward. But it means part of any improvement might be format alone. Keep that in mind."
+  },
+  {
+    "startSeconds": 107,
+    "endSeconds": 114,
+    "text": "Then the real run. Every five steps, you get a line like this. It looks scary. It isn’t."
+  },
+  {
+    "startSeconds": 113,
+    "endSeconds": 120,
+    "text": "Format reward: half a point at most. Hope for it to rise, often early and fast."
+  },
+  {
+    "startSeconds": 120,
+    "endSeconds": 125,
+    "text": "Correctness: one at most. Hope for a slow, noisy drift upward."
+  },
+  {
+    "startSeconds": 125,
+    "endSeconds": 128,
+    "text": "And mean length is how long the answers are?"
+  },
+  {
+    "startSeconds": 128,
+    "endSeconds": 134,
+    "text": "In tokens. Just watch it doesn’t slam into the limit of two hundred and fifty-six."
+  },
+  {
+    "startSeconds": 134,
+    "endSeconds": 141,
+    "text": "This one is the fraction of groups where all eight answers scored the same. Those teach nothing, so it shouldn’t sit near one."
+  },
+  {
+    "startSeconds": 141,
+    "endSeconds": 145,
+    "text": "And the last one is the leash: small, and slowly rising."
+  },
+  {
+    "startSeconds": 146,
+    "endSeconds": 150,
+    "text": "And expect noise. Each step only sees two questions."
+  },
+  {
+    "startSeconds": 150,
+    "endSeconds": 155,
+    "text": "So one easy question makes a step look brilliant, and the next one looks awful?"
+  },
+  {
+    "startSeconds": 155,
+    "endSeconds": 164,
+    "text": "Exactly. So judge the trend over twenty or thirty steps. A healthy run often looks something like this. An example, not a promise."
+  },
+  {
+    "startSeconds": 164,
+    "endSeconds": 169,
+    "text": "Format climbs first, because tags are easy. Correctness follows, slowly."
+  },
+  {
+    "startSeconds": 170,
+    "endSeconds": 177,
+    "text": "Training ends, and you test again. Say the format rate went up a lot, but accuracy only went up a little."
+  },
+  {
+    "startSeconds": 177,
+    "endSeconds": 178,
+    "text": "Did the run fail?"
+  },
+  {
+    "startSeconds": 178,
+    "endSeconds": 181,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 187,
+    "endSeconds": 192,
+    "text": "A. Honestly? It learned the tags, not the maths. That’s a fail."
+  },
+  {
+    "startSeconds": 191,
+    "endSeconds": 197,
+    "text": "Harsh! It’s B. That’s normal for two hundred and fifty steps on a model this small."
+  },
+  {
+    "startSeconds": 197,
+    "endSeconds": 206,
+    "text": "Even the DeepSeek-R1 team found small models gain more from copying a big model’s reasoning than from this kind of training alone. So set your hopes honestly."
+  },
+  {
+    "startSeconds": 207,
+    "endSeconds": 214,
+    "text": "Then the most underrated step: read some real answers. Numbers tell you how much changed. Answers tell you what changed."
+  },
+  {
+    "startSeconds": 214,
+    "endSeconds": 218,
+    "text": "Is the thinking real, or just filler?"
+  },
+  {
+    "startSeconds": 218,
+    "endSeconds": 224,
+    "text": "Is the arithmetic right? Small models love to set it up perfectly, then miss forty-eight divided by two."
+  },
+  {
+    "startSeconds": 224,
+    "endSeconds": 229,
+    "text": "Did it game the format? An almost empty think block still earns the format reward."
+  },
+  {
+    "startSeconds": 229,
+    "endSeconds": 232,
+    "text": "And did it get cut off, mid-sentence?"
+  },
+  {
+    "startSeconds": 232,
+    "endSeconds": 241,
+    "text": "Finally, save it. Merge the add-on into the model, and upload it, private by default. Colab deletes everything when the session ends."
+  },
+  {
+    "startSeconds": 240,
+    "endSeconds": 243,
+    "text": "And then write it up?"
+  },
+  {
+    "startSeconds": 243,
+    "endSeconds": 253,
+    "text": "Five lines. Setup. Before and after. One sentence per curve. One answer that improved, and one that didn’t. And the one knob you’d change next."
+  },
+  {
+    "startSeconds": 254,
+    "endSeconds": 256,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 256,
+    "endSeconds": 260,
+    "text": "Measure a baseline first. It’s your control group."
+  },
+  {
+    "startSeconds": 260,
+    "endSeconds": 264,
+    "text": "Judge the trend over many steps, not single jumps."
+  },
+  {
+    "startSeconds": 263,
+    "endSeconds": 267,
+    "text": "And read real answers, then report what happened honestly."
+  },
+  {
+    "startSeconds": 268,
+    "endSeconds": 271,
+    "text": "So your run is done, and your curves are on screen."
+  },
+  {
+    "startSeconds": 271,
+    "endSeconds": 274,
+    "text": "All nine of them."
+  },
+  {
+    "startSeconds": 274,
+    "endSeconds": 281,
+    "text": "Nine plots?! Which ones do I actually look at? And how do I know if my run is healthy, or just looks healthy?"
+  },
+  {
+    "startSeconds": 280,
+    "endSeconds": 284,
+    "text": "Next episode: the vital signs."
+  },
+  {
+    "startSeconds": 284,
+    "endSeconds": 288,
+    "text": "Run the notebook, and write your five-line report."
+  },
+  {
+    "startSeconds": 287,
+    "endSeconds": 290,
+    "text": "See you in the next episode!"
+  }
+]

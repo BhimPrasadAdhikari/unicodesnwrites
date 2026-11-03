@@ -1,0 +1,96 @@
+{
+  "title": "Teach a Small AI to Think",
+  "slug": "teach-a-small-ai-to-think",
+  "eyebrow": "Flagship course · Reasoning models",
+  "summary": "Take a small open model that gets maths word problems wrong and teach it to reason step by step with reinforcement learning, the method behind DeepSeek-R1. On a free GPU, explained from the ground up.",
+  "description": "Reasoning models like DeepSeek-R1 and OpenAI's o-series changed what AI can do. They don't just answer: they think first, check their work and fix their own mistakes. Most courses stop at using them. This one shows you how they're made, and has you make one.\n\nYou'll start with a small open model (Qwen2.5, half a billion parameters) that answers grade-school maths badly. Step by step you'll learn how to grade its answers without a human teacher, how a score can nudge a model toward better answers, and how GRPO, the training method DeepSeek made famous, turns that nudge into something stable enough to run. Then you'll run it for real on a free Google Colab GPU, read the training curves like a pro, spot reward hacking before it fools you, teach the model a thinking format, keep its thinking short, and copy a bigger model's reasoning into a smaller one.\n\nEvery idea comes three ways: a short premium video, an interactive visualization you can play with in the browser (including a real GRPO run you can watch learn), and a written lesson with a line-by-line code walkthrough. Quizzes check your understanding, exercises come with full solutions, and notebooks, cheat sheets and a starter repo are yours to keep. You finish by training and sharing your own reasoning model on a task you choose.",
+  "topic": "llm-training",
+  "level": "intermediate",
+  "coverImage": "",
+  "tags": ["Reasoning models", "Reinforcement learning", "GRPO", "DeepSeek-R1", "Fine-tuning", "Distillation", "Hugging Face TRL"],
+  "prerequisites": [
+    "You can open a Python notebook and run its cells",
+    "You can read a short for loop and a function (we explain every line we write)",
+    "School-level maths: averages and percentages. No calculus needed",
+    "A free Google account for Colab and a free Hugging Face account"
+  ],
+  "learningOutcomes": [
+    "Explain in plain words what makes a reasoning model different, and how R1-style models were trained",
+    "Write reward functions that grade answers automatically, and spot reward hacking",
+    "Understand policy gradients and GRPO well enough to implement them from scratch in numpy",
+    "Train a real small model with GRPO on a free Colab GPU and measure the improvement",
+    "Read training curves (reward, length, KL, entropy) and debug a run that's going wrong",
+    "Teach a thinking format, control how long a model thinks, and distill reasoning into a smaller model",
+    "Ship your own reasoning model to the Hugging Face Hub as a capstone project"
+  ],
+  "audience": [
+    "Curious learners who've heard about reasoning models and want to really understand them",
+    "Students and developers who want a hands-on project beyond prompting and RAG",
+    "Engineers who use LLMs at work and want to customize one with reinforcement learning"
+  ],
+  "instructorName": "Bhim Prasad Adhikari",
+  "featured": false,
+  "status": "draft",
+  "modules": [
+    {
+      "key": "welcome",
+      "title": "Welcome",
+      "description": "What you'll build, how the course works, and getting a free GPU ready.",
+      "lessons": ["welcome-and-setup"]
+    },
+    {
+      "key": "what-thinking-means",
+      "title": "What \"thinking\" means for an AI",
+      "description": "Why giving a model room to think helps, and the story of how R1-style reasoning models were trained.",
+      "lessons": ["answer-now-or-think-first", "how-reasoning-models-were-trained"]
+    },
+    {
+      "key": "rewards",
+      "title": "Rewards: grading without a teacher",
+      "description": "Verifiable rewards, writing your own reward functions, and what happens when rewards go wrong.",
+      "lessons": ["verifiable-rewards", "lab-write-reward-functions", "when-rewards-go-wrong"]
+    },
+    {
+      "key": "learning-from-a-score",
+      "title": "Learning from a score",
+      "description": "Policy gradients drawn on paper, then built from scratch in a few lines of numpy.",
+      "lessons": ["the-nudge", "lab-reinforce-from-scratch"]
+    },
+    {
+      "key": "grpo-step-by-step",
+      "title": "GRPO step by step",
+      "description": "Groups, advantages, clipping and the KL leash, then GRPO from scratch and the equation read line by line.",
+      "lessons": ["groups-and-advantages", "clipping-and-the-kl-leash", "lab-grpo-from-scratch", "reading-the-grpo-equation"]
+    },
+    {
+      "key": "first-real-run",
+      "title": "Your first real run",
+      "description": "Set up Hugging Face TRL on a free Colab GPU and teach Qwen to solve maths word problems.",
+      "lessons": ["setting-up-trl-on-colab", "lab-teach-qwen-arithmetic"]
+    },
+    {
+      "key": "reading-training-curves",
+      "title": "Reading the training curves",
+      "description": "What healthy training looks like, and how to debug collapse, hacking and runs stuck at zero.",
+      "lessons": ["what-healthy-training-looks-like", "debugging-a-bad-run"]
+    },
+    {
+      "key": "format-length-aha",
+      "title": "Format, length and the \"aha\" moment",
+      "description": "Teaching a thinking format, where the famous \"aha\" moment comes from, and keeping thinking short.",
+      "lessons": ["format-and-the-aha-moment", "shorter-thinking"]
+    },
+    {
+      "key": "distillation",
+      "title": "Distillation",
+      "description": "When to copy a bigger model's reasoning instead of running RL, and how to do it.",
+      "lessons": ["distillation-vs-rl", "lab-distill-reasoning-traces"]
+    },
+    {
+      "key": "capstone",
+      "title": "Capstone",
+      "description": "Train, evaluate and share your own reasoning model on a task you pick.",
+      "lessons": ["capstone-brief", "capstone-walkthrough"]
+    }
+  ]
+}

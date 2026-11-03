@@ -1,0 +1,292 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 5,
+    "text": "Same model, same size, trained two ways."
+  },
+  {
+    "startSeconds": 5,
+    "endSeconds": 9,
+    "text": "This one learned by trial and error, like everything we’ve done so far."
+  },
+  {
+    "startSeconds": 9,
+    "endSeconds": 13,
+    "text": "And this one just copied the worked answers of a much bigger model."
+  },
+  {
+    "startSeconds": 13,
+    "endSeconds": 17,
+    "text": "Wait. The copier wins? By that much?"
+  },
+  {
+    "startSeconds": 17,
+    "endSeconds": 23,
+    "text": "On every test they tried. By the end, you’ll know why, and when copying isn’t enough."
+  },
+  {
+    "startSeconds": 23,
+    "endSeconds": 27,
+    "text": "Distillation versus RL. Episode one."
+  },
+  {
+    "startSeconds": 28,
+    "endSeconds": 33,
+    "text": "Think about learning to cook a hard dish. You can experiment in the kitchen."
+  },
+  {
+    "startSeconds": 33,
+    "endSeconds": 38,
+    "text": "Try something, taste it, adjust, try again. Hundreds of times."
+  },
+  {
+    "startSeconds": 37,
+    "endSeconds": 42,
+    "text": "Or you can borrow a great chef’s recipe notebook, and copy their steps, notes and all."
+  },
+  {
+    "startSeconds": 42,
+    "endSeconds": 45,
+    "text": "Copying sounds way faster."
+  },
+  {
+    "startSeconds": 45,
+    "endSeconds": 54,
+    "text": "It is. But you’ll only ever be as good as the notebook. In AI, experimenting is RL. Copying the notebook is called distillation."
+  },
+  {
+    "startSeconds": 54,
+    "endSeconds": 60,
+    "text": "Here’s the real difference. With RL, a whole attempt earns just one number."
+  },
+  {
+    "startSeconds": 59,
+    "endSeconds": 63,
+    "text": "So the model has to work out which part of the answer deserved it?"
+  },
+  {
+    "startSeconds": 63,
+    "endSeconds": 70,
+    "text": "Exactly. With distillation, the student sees the teacher’s finished answer, every step included."
+  },
+  {
+    "startSeconds": 70,
+    "endSeconds": 75,
+    "text": "So every single word comes with a right answer: this is what the next word should be."
+  },
+  {
+    "startSeconds": 75,
+    "endSeconds": 81,
+    "text": "That’s a far richer signal. In practice, it just means fine-tuning on the teacher’s written-out answers."
+  },
+  {
+    "startSeconds": 82,
+    "endSeconds": 85,
+    "text": "That’s what DeepSeek did, with R1 as the teacher."
+  },
+  {
+    "startSeconds": 85,
+    "endSeconds": 91,
+    "text": "They curated about eight hundred thousand samples with it, around six hundred thousand of them with reasoning."
+  },
+  {
+    "startSeconds": 91,
+    "endSeconds": 94,
+    "text": "Then they fine-tuned six smaller open models on them."
+  },
+  {
+    "startSeconds": 94,
+    "endSeconds": 98,
+    "text": "Copying only. No reinforcement learning at all."
+  },
+  {
+    "startSeconds": 98,
+    "endSeconds": 102,
+    "text": "And then they did the fair test, right? Same model, both ways?"
+  },
+  {
+    "startSeconds": 103,
+    "endSeconds": 107,
+    "text": "Yes. They took the same thirty-two billion parameter base model."
+  },
+  {
+    "startSeconds": 107,
+    "endSeconds": 114,
+    "text": "One copy got large-scale RL for over ten thousand steps. Here are its scores on four tests."
+  },
+  {
+    "startSeconds": 113,
+    "endSeconds": 118,
+    "text": "Now the copy that copied R1. Every bar goes up."
+  },
+  {
+    "startSeconds": 118,
+    "endSeconds": 122,
+    "text": "And by the most on the hardest tests: competition maths, and coding."
+  },
+  {
+    "startSeconds": 122,
+    "endSeconds": 125,
+    "text": "So RL is just... worse?"
+  },
+  {
+    "startSeconds": 126,
+    "endSeconds": 128,
+    "text": "Why did trial and error lose here?"
+  },
+  {
+    "startSeconds": 128,
+    "endSeconds": 131,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 137,
+    "endSeconds": 142,
+    "text": "C! It just needed more training. Give it longer and it catches up."
+  },
+  {
+    "startSeconds": 142,
+    "endSeconds": 147,
+    "text": "Tempting, but they trained it for over ten thousand steps. It’s B."
+  },
+  {
+    "startSeconds": 147,
+    "endSeconds": 155,
+    "text": "Remember how GRPO learns. It can only make good answers more likely if it samples some in the first place."
+  },
+  {
+    "startSeconds": 155,
+    "endSeconds": 162,
+    "text": "A smaller model, on a hard problem, tries six times. Zero. Zero. Zero, every time."
+  },
+  {
+    "startSeconds": 162,
+    "endSeconds": 165,
+    "text": "All the same score, so there’s nothing to learn."
+  },
+  {
+    "startSeconds": 165,
+    "endSeconds": 168,
+    "text": "Like a group where nobody ever gets a treat."
+  },
+  {
+    "startSeconds": 168,
+    "endSeconds": 174,
+    "text": "Right. Distillation skips that search. It just hands the student the good chain of reasoning."
+  },
+  {
+    "startSeconds": 173,
+    "endSeconds": 176,
+    "text": "Oh, so copying gives it something to aim at!"
+  },
+  {
+    "startSeconds": 177,
+    "endSeconds": 184,
+    "text": "Eight hundred thousand examples sounds like a lot. Two 2025 papers asked: how few would do?"
+  },
+  {
+    "startSeconds": 184,
+    "endSeconds": 189,
+    "text": "A paper called s1 used just one thousand carefully chosen examples."
+  },
+  {
+    "startSeconds": 189,
+    "endSeconds": 195,
+    "text": "Another, called LIMO, used eight hundred and seventeen. Both got strong maths results."
+  },
+  {
+    "startSeconds": 195,
+    "endSeconds": 199,
+    "text": "Eight hundred?! So Tiny only needs a thousand examples!"
+  },
+  {
+    "startSeconds": 199,
+    "endSeconds": 206,
+    "text": "Careful. Both used thirty-two billion parameter models. A tiny model has much less knowledge to unlock."
+  },
+  {
+    "startSeconds": 206,
+    "endSeconds": 211,
+    "text": "And every example was filtered hard. A thousand random answers is not the same thing."
+  },
+  {
+    "startSeconds": 212,
+    "endSeconds": 215,
+    "text": "So which one should we use?"
+  },
+  {
+    "startSeconds": 214,
+    "endSeconds": 223,
+    "text": "Often, both. Copy first to learn the habit of thinking, then experiment with GRPO to sharpen it on your exact task."
+  },
+  {
+    "startSeconds": 223,
+    "endSeconds": 231,
+    "text": "DeepSeek-R1 itself did that: a small copying stage first, then RL. And the student starts RL already getting some answers right."
+  },
+  {
+    "startSeconds": 231,
+    "endSeconds": 237,
+    "text": "One warning: students copy the teacher’s habits too. Including thinking for a long time."
+  },
+  {
+    "startSeconds": 238,
+    "endSeconds": 240,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 240,
+    "endSeconds": 245,
+    "text": "RL learns from one score. Distillation gets the right next word, every time."
+  },
+  {
+    "startSeconds": 245,
+    "endSeconds": 250,
+    "text": "On smaller models, copying R1 beat trial and error, by a lot."
+  },
+  {
+    "startSeconds": 250,
+    "endSeconds": 254,
+    "text": "And the best recipe is often: copy first, then experiment."
+  },
+  {
+    "startSeconds": 255,
+    "endSeconds": 261,
+    "text": "So let’s try it, on Tiny’s big sibling, Qwen, the real half-a-billion-parameter model."
+  },
+  {
+    "startSeconds": 261,
+    "endSeconds": 266,
+    "text": "We’ll show it about a thousand worked answers from a reasoning model’s notebook."
+  },
+  {
+    "startSeconds": 266,
+    "endSeconds": 269,
+    "text": "Long ones. Full of wait, let me check."
+  },
+  {
+    "startSeconds": 269,
+    "endSeconds": 277,
+    "text": "Hang on. If it copies everything... does it copy the skill? Or just the style? All the waits, and none of the checking?"
+  },
+  {
+    "startSeconds": 277,
+    "endSeconds": 280,
+    "text": "That’s exactly what we’ll measure."
+  },
+  {
+    "startSeconds": 279,
+    "endSeconds": 282,
+    "text": "Next episode, on a free GPU."
+  },
+  {
+    "startSeconds": 283,
+    "endSeconds": 288,
+    "text": "For the curious: slide a teacher’s temperature, in the tool below this video."
+  },
+  {
+    "startSeconds": 288,
+    "endSeconds": 291,
+    "text": "See you in the next episode!"
+  }
+]

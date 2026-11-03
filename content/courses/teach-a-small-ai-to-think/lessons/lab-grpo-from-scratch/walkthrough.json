@@ -1,0 +1,76 @@
+{
+  "title": "GRPO from scratch: grpo_tiny_adder.py",
+  "files": ["grpo_tiny_adder.py"],
+  "steps": [
+    {
+      "title": "The model is a table",
+      "markdown": "Tiny Adder's whole brain is a table of logits `L[a][b][k]`: one row per question `a + b`, one score per answer `k = 0..18`. The only dependency is numpy.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 1,
+      "endLine": 8
+    },
+    {
+      "title": "Softmax: scores to probabilities",
+      "markdown": "Softmax turns a row of scores into probabilities that add up to 1. Subtracting the max first is a standard trick to avoid overflow; it does not change the result. All-zero scores give every answer probability 1/19.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 11,
+      "endLine": 13
+    },
+    {
+      "title": "The grader, honest and buggy",
+      "markdown": "The honest reward is 1 when the answer equals the true sum. The buggy one pays for any even number. Flip `buggy=True` later to watch reward hacking.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 16,
+      "endLine": 20
+    },
+    {
+      "title": "Group-relative advantages",
+      "markdown": "The heart of GRPO in one line: subtract the group's mean reward, divide by its spread. The `1e-4` avoids dividing by zero when every answer in the group scored the same (then every advantage is 0).",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 23,
+      "endLine": 26
+    },
+    {
+      "title": "The nudge, with clipping",
+      "markdown": "For each sampled answer, the ratio compares its probability now with when it was sampled (exactly 1 on the first inner step). If it has already moved more than `eps` in the direction its advantage wants, it is skipped. Otherwise `ratio * A * (onehot - p_new)` raises answer `k` and lowers the others in proportion to their probability.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 29,
+      "endLine": 40
+    },
+    {
+      "title": "Average, leash, step",
+      "markdown": "The nudge is averaged over the group. The KL leash is a simple pull of the logits back toward the reference table, scaled by `beta` (a readable stand-in for the exact KL gradient). Then take a step of size `lr`. With `ppo_epochs > 1` the loop repeats on the same samples, which is when clipping matters.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 41,
+      "endLine": 46
+    },
+    {
+      "title": "Measuring against the truth",
+      "markdown": "Accuracy is the model's probability of the TRUE sum, averaged over all 100 questions, so it ignores the grader entirely. Entropy measures how spread out the answers are: about 2.94 for pure guessing, near 0 for always the same answer.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 49,
+      "endLine": 55
+    },
+    {
+      "title": "The training loop",
+      "markdown": "Each step: 16 random questions, a group of `G` sampled answers for each, grade, compute advantages, update that question's row. The policy table `L` and the frozen reference `L_ref` both start at zero.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 58,
+      "endLine": 73
+    },
+    {
+      "title": "History for plotting",
+      "markdown": "After every step we record mean reward, accuracy and entropy. `train()` returns this list, which the notebook plots and the in-browser visualization reproduces.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 74,
+      "endLine": 81
+    },
+    {
+      "title": "Run both experiments",
+      "markdown": "Running the file trains once with the honest grader and once with the buggy one, printing a log line every 25 steps. Compare the reward and accuracy columns.",
+      "file": "grpo_tiny_adder.py",
+      "startLine": 84,
+      "endLine": 88
+    }
+  ]
+}

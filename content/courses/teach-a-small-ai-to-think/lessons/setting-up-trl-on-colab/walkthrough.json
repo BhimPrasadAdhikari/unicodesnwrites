@@ -1,0 +1,76 @@
+{
+  "title": "A real GRPO run: train_grpo.py",
+  "files": ["train_grpo.py"],
+  "steps": [
+    {
+      "title": "Pinned versions and imports",
+      "markdown": "The script targets trl 1.16.0, transformers 5.20.2, peft 0.21.2 and datasets 5.1.0 on a free Colab T4. It needs a GPU. `GRPOConfig` holds the knobs; `GRPOTrainer` runs the loop.",
+      "file": "train_grpo.py",
+      "startLine": 1,
+      "endLine": 15
+    },
+    {
+      "title": "Model and instructions",
+      "markdown": "Qwen2.5-0.5B-Instruct is small enough to train on a T4. The system prompt asks for thinking inside `<think>` tags and only the final number inside `<answer>` tags, the format our reward checks.",
+      "file": "train_grpo.py",
+      "startLine": 17,
+      "endLine": 21
+    },
+    {
+      "title": "Parsing helpers",
+      "markdown": "Same rules as `rewards.py` from the rewards lab. `completion_text` handles both plain strings and chat messages, `parse_number` takes the last number and ignores commas, and `is_correct` compares the number inside `<answer>` with the number after `####` in GSM8K's solution.",
+      "file": "train_grpo.py",
+      "startLine": 23,
+      "endLine": 42
+    },
+    {
+      "title": "Two reward functions",
+      "markdown": "TRL calls each reward with `completions` plus dataset columns as keyword arguments (here `answer`) and expects one float per completion. Format pays 0.5, correctness pays 1.0; TRL adds them and logs each separately.",
+      "file": "train_grpo.py",
+      "startLine": 45,
+      "endLine": 52
+    },
+    {
+      "title": "Turning GSM8K into chats",
+      "markdown": "Each question becomes a `prompt` column in chat format (system + user). The original `answer` column is kept, so the correctness reward can read it.",
+      "file": "train_grpo.py",
+      "startLine": 55,
+      "endLine": 62
+    },
+    {
+      "title": "GRPOConfig: the equation as settings",
+      "markdown": "Batch sizes count completions: 8 per micro-batch x 2 accumulation steps = 16 = 2 questions x a group of 8. `beta`, `epsilon`, `epsilon_high`, `loss_type` and `scale_rewards` are the symbols from the GRPO equation. `fp16=True` with float32 weights because a T4 has no fast bfloat16.",
+      "file": "train_grpo.py",
+      "startLine": 66,
+      "endLine": 87
+    },
+    {
+      "title": "LoRA adapters and the trainer",
+      "markdown": "LoRA freezes the base model and trains small adapters on the attention and MLP projections. With a PEFT model, TRL gets reference probabilities by switching the adapter off, so the KL term costs almost no memory. `save_model` writes just the adapter.",
+      "file": "train_grpo.py",
+      "startLine": 90,
+      "endLine": 103
+    },
+    {
+      "title": "Loading a model for evaluation",
+      "markdown": "Load the base model in fp16 on the GPU with left padding (needed for batched generation). If an adapter folder is given, attach it and merge it into the weights.",
+      "file": "train_grpo.py",
+      "startLine": 106,
+      "endLine": 112
+    },
+    {
+      "title": "Held-out evaluation",
+      "markdown": "Ask the first `n` GSM8K test questions, which training never sees, with greedy decoding so results are repeatable. Report accuracy and the share of answers in the requested format.",
+      "file": "train_grpo.py",
+      "startLine": 115,
+      "endLine": 130
+    },
+    {
+      "title": "Command line",
+      "markdown": "`--eval-only` scores the untrained model (your baseline). Without it, the script trains for `--max-steps` steps and then scores the trained adapter.",
+      "file": "train_grpo.py",
+      "startLine": 133,
+      "endLine": 144
+    }
+  ]
+}

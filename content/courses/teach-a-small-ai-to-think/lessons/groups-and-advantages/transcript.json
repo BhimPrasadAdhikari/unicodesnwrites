@@ -1,0 +1,312 @@
+[
+  {
+    "startSeconds": 1,
+    "endSeconds": 5,
+    "text": "Tiny just answered three plus four. Seven!"
+  },
+  {
+    "startSeconds": 4,
+    "endSeconds": 9,
+    "text": "Yes! Right answer. Reward of one. Treat time!"
+  },
+  {
+    "startSeconds": 9,
+    "endSeconds": 12,
+    "text": "Hmm. But was that actually good news?"
+  },
+  {
+    "startSeconds": 12,
+    "endSeconds": 14,
+    "text": "What do you mean? Right is right."
+  },
+  {
+    "startSeconds": 15,
+    "endSeconds": 20,
+    "text": "Picture two questions. On an easy one, all eight of Tiny’s tries score one."
+  },
+  {
+    "startSeconds": 20,
+    "endSeconds": 24,
+    "text": "On a hard one, just one try out of eight scores one."
+  },
+  {
+    "startSeconds": 24,
+    "endSeconds": 30,
+    "text": "Oh. So the same one means nothing on the easy question... and it’s gold on the hard one!"
+  },
+  {
+    "startSeconds": 29,
+    "endSeconds": 38,
+    "text": "Exactly. A score only means something next to the usual score. By the end of this video, you’ll know the trick that gets that usual score for free."
+  },
+  {
+    "startSeconds": 39,
+    "endSeconds": 42,
+    "text": "Groups and advantages. Episode one."
+  },
+  {
+    "startSeconds": 43,
+    "endSeconds": 50,
+    "text": "Here’s how a clever teacher does it. She asks the whole class the same question: seven plus five."
+  },
+  {
+    "startSeconds": 49,
+    "endSeconds": 56,
+    "text": "And collects eight answers. Twelve, thirteen, twelve, eleven, two, twelve, seventy-five, fourteen!"
+  },
+  {
+    "startSeconds": 56,
+    "endSeconds": 63,
+    "text": "Three of them said twelve, the right answer. So the class average is three out of eight: about zero point three eight."
+  },
+  {
+    "startSeconds": 63,
+    "endSeconds": 68,
+    "text": "So nobody gets a mark out of ten. Just: better than the class, or worse?"
+  },
+  {
+    "startSeconds": 68,
+    "endSeconds": 75,
+    "text": "Exactly. The three twelves beat the average, and the other five fall below it. That’s the whole idea of a group."
+  },
+  {
+    "startSeconds": 76,
+    "endSeconds": 82,
+    "text": "Last episode, we compared each answer with the usual score. But where does the usual score come from?"
+  },
+  {
+    "startSeconds": 82,
+    "endSeconds": 89,
+    "text": "The older method, PPO, hires a critic: a second network that tries to predict the usual score."
+  },
+  {
+    "startSeconds": 89,
+    "endSeconds": 91,
+    "text": "A second network? How big?"
+  },
+  {
+    "startSeconds": 91,
+    "endSeconds": 97,
+    "text": "Usually about as big as the model you’re training. Double the memory. And the critic can be wrong, too."
+  },
+  {
+    "startSeconds": 97,
+    "endSeconds": 104,
+    "text": "GRPO, from the DeepSeekMath paper in 2024, simply fires the critic."
+  },
+  {
+    "startSeconds": 104,
+    "endSeconds": 107,
+    "text": "Ha! And uses the class average instead."
+  },
+  {
+    "startSeconds": 108,
+    "endSeconds": 112,
+    "text": "Let’s do it properly. The same question, asked eight times."
+  },
+  {
+    "startSeconds": 112,
+    "endSeconds": 116,
+    "text": "The grader checks each one. Three right, five wrong."
+  },
+  {
+    "startSeconds": 116,
+    "endSeconds": 122,
+    "text": "Average: zero point three eight. That’s Tiny’s own success rate on this exact question, right now."
+  },
+  {
+    "startSeconds": 122,
+    "endSeconds": 129,
+    "text": "One more number: the spread, how far apart the scores are. Here, about zero point four eight."
+  },
+  {
+    "startSeconds": 129,
+    "endSeconds": 134,
+    "text": "Each answer’s advantage is its reward, minus the average, divided by the spread."
+  },
+  {
+    "startSeconds": 134,
+    "endSeconds": 139,
+    "text": "So the twelves get plus one point two nine... and the wrong ones, minus zero point seven seven."
+  },
+  {
+    "startSeconds": 139,
+    "endSeconds": 147,
+    "text": "Above zero: make that answer more likely. Below zero: less likely. And they always add up to zero."
+  },
+  {
+    "startSeconds": 147,
+    "endSeconds": 154,
+    "text": "Your turn. Two groups. In one, only one answer out of eight is right. In the other, four are right."
+  },
+  {
+    "startSeconds": 154,
+    "endSeconds": 157,
+    "text": "Which right answer gets the bigger push?"
+  },
+  {
+    "startSeconds": 157,
+    "endSeconds": 159,
+    "text": "Pause, and have a guess."
+  },
+  {
+    "startSeconds": 165,
+    "endSeconds": 171,
+    "text": "Easy. A! Right is right. A treat’s a treat, so they get the same push."
+  },
+  {
+    "startSeconds": 171,
+    "endSeconds": 177,
+    "text": "Nice try, but no. It’s B. The lone right answer gets a much bigger push."
+  },
+  {
+    "startSeconds": 176,
+    "endSeconds": 180,
+    "text": "When something rare happens, the group notices."
+  },
+  {
+    "startSeconds": 180,
+    "endSeconds": 183,
+    "text": "Here’s the group with just one right answer."
+  },
+  {
+    "startSeconds": 183,
+    "endSeconds": 187,
+    "text": "Whoa, that twelve shoots right up! Plus two point six four!"
+  },
+  {
+    "startSeconds": 187,
+    "endSeconds": 194,
+    "text": "And each wrong answer gets only a gentle push down, minus zero point three eight. Being wrong was normal here."
+  },
+  {
+    "startSeconds": 194,
+    "endSeconds": 199,
+    "text": "The rare success stands out. That’s exactly the answer we want more of."
+  },
+  {
+    "startSeconds": 200,
+    "endSeconds": 203,
+    "text": "Line them up and you can hear the logic."
+  },
+  {
+    "startSeconds": 203,
+    "endSeconds": 207,
+    "text": "A lone right answer: plus two point six four. A big deal."
+  },
+  {
+    "startSeconds": 207,
+    "endSeconds": 210,
+    "text": "A coin flip, four out of eight: plus one."
+  },
+  {
+    "startSeconds": 210,
+    "endSeconds": 218,
+    "text": "And if seven are right, the surprise is the one mistake. It gets the big push down: minus two point six four."
+  },
+  {
+    "startSeconds": 217,
+    "endSeconds": 221,
+    "text": "So the push is bigger when the result is more surprising."
+  },
+  {
+    "startSeconds": 222,
+    "endSeconds": 227,
+    "text": "But watch this. Nine plus eight, and every single answer is wrong."
+  },
+  {
+    "startSeconds": 226,
+    "endSeconds": 232,
+    "text": "Average zero. Spread zero. So every advantage is... zero?"
+  },
+  {
+    "startSeconds": 232,
+    "endSeconds": 239,
+    "text": "Zero. This group teaches Tiny nothing at all. And if all eight were right? Same thing. Nothing."
+  },
+  {
+    "startSeconds": 239,
+    "endSeconds": 245,
+    "text": "Huh. That’s kind of honest, actually. If everyone’s wrong, nobody knows which way is better."
+  },
+  {
+    "startSeconds": 245,
+    "endSeconds": 251,
+    "text": "And at the start, that happens a lot. Tiny is guessing from nineteen possible answers."
+  },
+  {
+    "startSeconds": 251,
+    "endSeconds": 253,
+    "text": "With just two answers per group?"
+  },
+  {
+    "startSeconds": 253,
+    "endSeconds": 258,
+    "text": "About nine groups in ten are all wrong. No signal at all."
+  },
+  {
+    "startSeconds": 258,
+    "endSeconds": 263,
+    "text": "With eight answers, about two in three. With sixteen, about four in ten."
+  },
+  {
+    "startSeconds": 263,
+    "endSeconds": 267,
+    "text": "So bigger groups go silent less often. Why not ask a hundred times?"
+  },
+  {
+    "startSeconds": 267,
+    "endSeconds": 275,
+    "text": "Because every answer costs time. For a real model, writing those answers is the slowest part. Eight is a common default."
+  },
+  {
+    "startSeconds": 276,
+    "endSeconds": 278,
+    "text": "Quick recap."
+  },
+  {
+    "startSeconds": 278,
+    "endSeconds": 284,
+    "text": "Ask the same question several times, and the group’s average is the yardstick. No critic needed."
+  },
+  {
+    "startSeconds": 284,
+    "endSeconds": 289,
+    "text": "Each answer’s advantage says how much better or worse it did than its group."
+  },
+  {
+    "startSeconds": 289,
+    "endSeconds": 292,
+    "text": "And when every answer scores the same, nobody learns anything."
+  },
+  {
+    "startSeconds": 293,
+    "endSeconds": 297,
+    "text": "But here’s the catch. Remember that plus two point six four?"
+  },
+  {
+    "startSeconds": 297,
+    "endSeconds": 300,
+    "text": "That’s a big push, on one lucky answer."
+  },
+  {
+    "startSeconds": 300,
+    "endSeconds": 306,
+    "text": "And what if we push it again? And again? Won’t Tiny end up saying twelve to everything?"
+  },
+  {
+    "startSeconds": 306,
+    "endSeconds": 314,
+    "text": "It could. One big step can wreck what Tiny already knew. Next episode: the two safety brakes that stop it."
+  },
+  {
+    "startSeconds": 315,
+    "endSeconds": 319,
+    "text": "Flip the answers in a group yourself, in the explorer below this video."
+  },
+  {
+    "startSeconds": 319,
+    "endSeconds": 321,
+    "text": "See you in the next episode!"
+  }
+]

@@ -1,0 +1,151 @@
+{
+  "key": "lab-reinforce-from-scratch",
+  "slug": "lab-reinforce-from-scratch",
+  "title": "Lab: REINFORCE from scratch in numpy",
+  "summary": "Build a complete REINFORCE learner in about 70 lines of numpy, watch a four-answer \"model\" learn that 3 + 4 = 7 from scores alone, and measure with real numbers why a baseline matters. Runs on any CPU.",
+  "type": "concept",
+  "durationMinutes": 30,
+  "learningObjectives": [
+    "Implement one REINFORCE step: sample, score, compute advantages and update logits.",
+    "Explain what a bandit is and why it is the simplest setting for learning from a score.",
+    "Run the learner across many seeds and read both the average and the spread.",
+    "Explain, using the experiment's results, why adding the same points to every answer breaks learning without a baseline but not with one.",
+    "Describe how learning rate and batch size trade speed against stability."
+  ],
+  "concepts": [
+    "REINFORCE",
+    "bandit",
+    "policy",
+    "logits and softmax",
+    "advantage",
+    "mean baseline",
+    "random seed",
+    "variance across runs",
+    "learning rate",
+    "batch size"
+  ],
+  "studyGuide": {
+    "mentalModel": "Imagine a quiz contestant who can only answer by spinning a weighted wheel with four slices. After each round of eight spins, the host reads out the scores. Slices that scored above the round's average get widened a little; slices below get narrowed. Over 60 rounds the right slice takes over the wheel. If the host secretly adds 10 points to every score and the contestant does not compare with the average, every slice looks great and the wheel changes almost at random.",
+    "keyIdeas": [
+      "A bandit is one choice and one score, with no sequence of moves: the simplest place to see learning from a score.",
+      "One REINFORCE step: sample a batch from the policy, look up scores, subtract the batch mean, and add lr x advantage x (onehot - probs), averaged over the batch.",
+      "With a mean baseline, P(correct) rose from 0.25 to 0.96 in 60 steps in the real run.",
+      "Adding +10 to every score without a baseline left P(correct) at 0.23 after 60 steps with a spread of 0.40; with a mean baseline it reached 0.96, the bonus cancelling exactly.",
+      "Averaging over many seeds and reporting the spread shows whether a method is reliable, not just lucky.",
+      "Bigger learning rates and bigger batches each changed speed and stability; on this easy bandit, big steps were safe, which is not true for real models."
+    ],
+    "misconceptions": [
+      "\"A baseline makes learning faster.\" In the honest-score run it was slightly slower early on; its main benefit is reliability, and immunity to shared offsets.",
+      "\"Adding the same points to every answer cannot matter.\" Without a baseline it wrecked learning, because every sampled answer was pushed up.",
+      "\"One training run tells you how good a method is.\" Runs vary with the random seed; average many and look at the spread.",
+      "\"If a big learning rate works here, it will work on Qwen.\" The bandit is tiny and its scores never lie; real models are far more fragile."
+    ],
+    "recallPrompts": [
+      "What are the four parts of one REINFORCE step?",
+      "Why is this toy called a bandit?",
+      "What does np.eye(4)[k] - probs represent?",
+      "What happened with +10 for everyone and no baseline, and why?",
+      "Why does the file average over 20 seeds?",
+      "What changed when the batch size dropped from 8 to 2?"
+    ],
+    "explainBackPrompt": "Explain to a friend how a program can learn that 3 + 4 = 7 without ever being told the answer, and why giving every answer 10 free points confuses it unless it compares each score with the average."
+  },
+  "quiz": [
+    {
+      "key": "step-order",
+      "prompt": "What is the correct order of one REINFORCE step in reinforce_bandit.py?",
+      "options": [
+        "Update logits, sample answers, score them, compute advantages",
+        "Sample answers, score them, compute advantages, update logits",
+        "Compute advantages, sample answers, update logits, score them",
+        "Score all four answers, pick the best, set its probability to 1"
+      ],
+      "correctOption": 1,
+      "explanation": "The policy first samples from its current probabilities, the samples are scored, scores are turned into advantages with the baseline, and the logits are nudged."
+    },
+    {
+      "key": "bonus-no-baseline",
+      "prompt": "In the real run, adding +10 points to every answer with no baseline left P(correct) at 0.23 after 60 steps. Why?",
+      "options": [
+        "The +10 made 7 no longer the best answer.",
+        "Numpy cannot handle numbers above 10.",
+        "Every sampled answer had a large positive score, so every pick was pushed up and early luck snowballed.",
+        "The learning rate was automatically set to zero."
+      ],
+      "correctOption": 2,
+      "explanation": "The best answer is unchanged, but without a baseline even wrong answers get pushed up whenever sampled. The small differences between answers are drowned out by the shared 10 points."
+    },
+    {
+      "key": "baseline-cancels",
+      "prompt": "With a mean baseline, the +10 bonus run reached 0.96, almost identical to the run with no bonus. What does that show?",
+      "options": [
+        "Subtracting the batch average cancels any points that every answer receives.",
+        "The bonus was ignored because of a bug.",
+        "Mean baselines only work when rewards are large.",
+        "The model memorized the answer."
+      ],
+      "correctOption": 0,
+      "explanation": "Each advantage is score minus the batch average, and adding 10 to every score adds 10 to the average too, so the advantages are unchanged."
+    },
+    {
+      "key": "why-seeds",
+      "prompt": "Why does average_runs train with 20 different seeds?",
+      "options": [
+        "To make the code run faster.",
+        "Because numpy requires at least 20 seeds.",
+        "To train 20 different questions.",
+        "Because single runs can be lucky or unlucky; the average and spread show how reliable the method is."
+      ],
+      "correctOption": 3,
+      "explanation": "Sampling makes every run a little different. A method that only sometimes works shows a big spread, which one run would hide."
+    },
+    {
+      "key": "small-batch",
+      "prompt": "Dropping the batch size from 8 to 2 (with a mean baseline) made learning slower and the spread larger. What is the best explanation?",
+      "options": [
+        "Smaller batches use a bigger learning rate.",
+        "With only 2 samples, the batch average is a shaky estimate of usual, so each step is noisier.",
+        "The softmax function needs at least 8 inputs.",
+        "Small batches remove the baseline."
+      ],
+      "correctOption": 1,
+      "explanation": "The baseline is the batch's average score. With two samples it jumps around a lot, so advantages and updates are noisier. Bigger batches give steadier steps at more cost per step."
+    }
+  ],
+  "resources": [
+    {
+      "key": "reinforce-notebook",
+      "title": "REINFORCE lab notebook",
+      "description": "The same learner in a notebook, with a plot of the baseline experiment and knobs to try. CPU only, under a minute.",
+      "kind": "notebook",
+      "url": "/courses/teach-a-small-ai-to-think/notebooks/03-reinforce-lab.ipynb"
+    },
+    {
+      "key": "deepseekmath-paper",
+      "title": "DeepSeekMath paper (Shao et al., 2024)",
+      "description": "Where GRPO, REINFORCE's group-baseline cousin, was introduced.",
+      "kind": "link",
+      "url": "https://arxiv.org/abs/2402.03300"
+    }
+  ],
+  "exercises": [
+    {
+      "key": "running-baseline",
+      "title": "Swap in a running-average baseline",
+      "hints": [
+        "Keep one number, the running average, outside the training loop.",
+        "Update it after you use it: running = decay * running + (1 - decay) * rewards.mean().",
+        "Think about what the running average should start at, and test with bonus=10.0."
+      ]
+    },
+    {
+      "key": "explore-the-knobs",
+      "title": "Turn the knobs and explain what you see",
+      "hints": [
+        "Use average_runs(\"mean\", lr=...) and average_runs(\"mean\", batch_size=...).",
+        "Change one setting at a time so you know what caused the difference.",
+        "Look at both the mean and the spread."
+      ]
+    }
+  ]
+}
