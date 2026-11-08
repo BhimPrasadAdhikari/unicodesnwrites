@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 
 import { CourseCatalog } from '@/components/public/CourseCatalog';
+import { FeaturedVideoSeries } from '@/components/public/VideoSeries';
+import { listPublishedVideoSeries } from '@/lib/services/video-series';
 import { Container } from '@/components/ui/Section';
 import { SiteIconCell } from '@/components/ui/SiteIcon';
 import { listPublishedCourses } from '@/lib/services/course-platform';
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CoursesPage() {
-  const courses = await listPublishedCourses().catch(() => []);
+  const [courses, videoSeries] = await Promise.all([listPublishedCourses().catch(() => []), listPublishedVideoSeries()]);
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -52,6 +54,9 @@ export default async function CoursesPage() {
           <p className="max-w-md text-sm leading-6 text-muted-foreground">Each course explains the big ideas behind AI in plain words, so you understand how it works, not just how to use it.</p>
         </div>
         <CourseCatalog courses={courses} />
+        <div className="mt-16 empty:hidden">
+          <FeaturedVideoSeries seriesList={videoSeries} />
+        </div>
       </Container>
     </div>
   );

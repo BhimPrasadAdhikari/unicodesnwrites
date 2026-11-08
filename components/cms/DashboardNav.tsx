@@ -9,6 +9,7 @@ import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
+  Clapperboard,
   Cpu,
   CreditCard,
   GraduationCap,
@@ -45,6 +46,7 @@ const navGroups: { label: string | null; items: NavItem[] }[] = [
     items: [
       { href: '/dashboard/posts', label: 'Posts', glyph: 'papers' },
       { href: '/dashboard/series', label: 'Series', icon: Layers },
+      { href: '/dashboard/videos', label: 'Videos', icon: Clapperboard },
       { href: '/dashboard/projects', label: 'Builds', glyph: 'builds' },
     ],
   },

@@ -22,6 +22,9 @@ import Link from 'next/link';
 import { extractMarkdownHeadings } from '@/lib/utils/toc-headings';
 import { siteConfig } from '@/lib/config/site.config';
 import { livePostFilter } from '@/lib/utils/post-visibility';
+import { VideoPartEmbed } from '@/components/public/VideoSeries';
+import { listPublishedVideoSeries } from '@/lib/services/video-series';
+import { findPartForPost } from '@/lib/utils/video-series';
 
 export async function generateMetadata({
   params,
@@ -141,6 +144,11 @@ export default async function BlogPostPage({
   }
 
   const tocHeadings = extractMarkdownHeadings(post.content);
+  const relatedVideo = findPartForPost(await listPublishedVideoSeries(), {
+    title: post.title,
+    tags: Array.isArray(post.tags) ? post.tags : [],
+    excerpt: post.excerpt,
+  });
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -252,6 +260,8 @@ export default async function BlogPostPage({
               readingTime={post.readingTime}
               storageKey={post.slug}
             />
+
+            {relatedVideo && <VideoPartEmbed series={relatedVideo.series} part={relatedVideo.part} />}
 
             {/* Tags */}
             {post.tags && post.tags.length > 0 && (
