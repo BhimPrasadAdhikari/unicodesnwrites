@@ -8,6 +8,7 @@ import { Post } from '@/lib/models/Post';
 import Product from '@/lib/models/Product';
 import { Project } from '@/lib/models/Project';
 import { Series } from '@/lib/models/Series';
+import { VideoSeries } from '@/lib/models/VideoSeries';
 import { livePostFilter } from '@/lib/utils/post-visibility';
 
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,7 @@ const staticRoutes: MetadataRoute.Sitemap = [
   ['/start', 'weekly', 0.95],
   ['/courses', 'weekly', 0.95],
   ['/blog', 'daily', 0.9],
+  ['/videos', 'weekly', 0.85],
   ['/blog/series', 'weekly', 0.7],
   ['/projects', 'weekly', 0.9],
   ['/products', 'weekly', 0.9],
@@ -37,13 +39,14 @@ const staticRoutes: MetadataRoute.Sitemap = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     await connectDB();
-    const [courses, posts, projects, products, newsletters, series] = await Promise.all([
+    const [courses, posts, projects, products, newsletters, series, videoSeries] = await Promise.all([
       Course.find({ status: 'published' }).select('slug updatedAt').lean<Array<{ slug: string; updatedAt: Date }>>(),
       Post.find(livePostFilter()).select('slug updatedAt').lean<Array<{ slug: string; updatedAt: Date }>>(),
       Project.find({ published: true }).select('slug updatedAt').lean<Array<{ slug: string; updatedAt: Date }>>(),
       Product.find({ published: true }).select('slug updatedAt').lean<Array<{ slug: string; updatedAt: Date }>>(),
       Newsletter.find({ status: 'sent' }).select('_id sentAt updatedAt').lean<Array<{ _id: { toString(): string }; sentAt?: Date; updatedAt: Date }>>(),
       Series.find({ published: true }).select('slug updatedAt').lean<Array<{ slug: string; updatedAt: Date }>>(),
+      VideoSeries.find({ published: true }).select('slug updatedAt').lean<Array<{ slug: string; updatedAt: Date }>>(),
     ]);
 
     return [
@@ -51,6 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...courses.map((item) => ({ url: `${baseUrl}/courses/${item.slug}`, lastModified: item.updatedAt, changeFrequency: 'monthly' as const, priority: 0.9 })),
       ...posts.map((item) => ({ url: `${baseUrl}/blog/${item.slug}`, lastModified: item.updatedAt, changeFrequency: 'monthly' as const, priority: 0.8 })),
       ...series.map((item) => ({ url: `${baseUrl}/blog/series/${item.slug}`, lastModified: item.updatedAt, changeFrequency: 'monthly' as const, priority: 0.75 })),
+      ...videoSeries.map((item) => ({ url: `${baseUrl}/videos/${item.slug}`, lastModified: item.updatedAt, changeFrequency: 'weekly' as const, priority: 0.8 })),
       ...projects.map((item) => ({ url: `${baseUrl}/projects/${item.slug}`, lastModified: item.updatedAt, changeFrequency: 'monthly' as const, priority: 0.75 })),
       ...products.map((item) => ({ url: `${baseUrl}/products/${item.slug}`, lastModified: item.updatedAt, changeFrequency: 'monthly' as const, priority: 0.8 })),
       ...newsletters.map((item) => ({ url: `${baseUrl}/newsletter/${item._id.toString()}`, lastModified: item.sentAt || item.updatedAt, changeFrequency: 'never' as const, priority: 0.65 })),

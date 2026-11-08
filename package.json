@@ -23,6 +23,7 @@
     "migrate:lesson-types": "tsx scripts/migrate-legacy-lesson-types.ts",
     "migrate:razorpay": "tsx scripts/migrate-stripe-to-razorpay.ts",
     "test:razorpay": "tsx scripts/regression/razorpay-signatures.ts",
+    "test:video-series": "tsx scripts/regression/video-series.ts",
     "seed:prod": "tsx scripts/seed-production.ts",
     "test:regression:markdown": "node scripts/regression/markdown-blockquote.mjs",
     "test:course-content": "tsx scripts/regression/course-content.ts && tsx scripts/course-content/render-check.tsx",

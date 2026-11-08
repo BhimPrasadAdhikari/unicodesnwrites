@@ -10,6 +10,8 @@ import { Section, Container } from '@/components/ui/Section';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { BookOpen } from 'lucide-react';
 import { livePostFilter } from '@/lib/utils/post-visibility';
+import { FeaturedVideoSeries } from '@/components/public/VideoSeries';
+import { listPublishedVideoSeries } from '@/lib/services/video-series';
 
 export const metadata = {
   title: 'Articles',
@@ -149,6 +151,7 @@ export default async function BlogPage({
   // Count for header stat (series + standalone posts)
   const totalArticles = standaloneTotal + (showSeries ? augmentedSeries.reduce((acc, s) => acc + s.partCount, 0) : 0);
   const normalizedCategories = categories.filter(Boolean) as string[];
+  const videoSeries = await listPublishedVideoSeries();
 
   return (
     <div className="min-h-screen">
@@ -165,6 +168,10 @@ export default async function BlogPage({
             <p className="mt-5 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">
               <AnimatedCounter value={totalArticles} /> ARTICLES · <AnimatedCounter value={augmentedSeries.length} /> SERIES · <AnimatedCounter value={normalizedCategories.length} /> TOPICS
             </p>
+          </div>
+
+          <div className="mb-12 empty:hidden">
+            <FeaturedVideoSeries seriesList={videoSeries} />
           </div>
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px]">
