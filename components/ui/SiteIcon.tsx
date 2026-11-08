@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
  * logo's pen — one stroke, round caps, 48-unit cell — plus one small red-pen detail each.
  * The math glyphs in Glyph.tsx stay for the admin studio; the public site uses these.
  */
-export type SiteIconKind = "articles" | "courses" | "projects" | "shop" | "newsletter" | "about" | "search" | "learning"
+export type SiteIconKind = "articles" | "videos" | "courses" | "projects" | "shop" | "newsletter" | "about" | "search" | "learning"
 
 type IconArt = { name: string; ink: ReactNode; accent: ReactNode }
 
@@ -24,6 +24,18 @@ export const SITE_ICONS: Record<SiteIconKind, IconArt> = {
       </>
     ),
     accent: <path d="M28.5 21.5h5" />,
+  },
+  // A clapperboard; the red play button starts the video.
+  videos: {
+    name: "Videos",
+    ink: (
+      <>
+        <rect x="8" y="19" width="32" height="20" rx="3.5" />
+        <path d="M8.5 19l-1.2-6.4 30.4-5.6 1.2 6.4" />
+        <path d="M17 11.3l3.6 6.2M27.2 9.4l3.6 6.2" />
+      </>
+    ),
+    accent: <path d="M21 24.5v9l7.5-4.5z" />,
   },
   // A little screen on a stand; the red play button starts the lesson.
   courses: {
