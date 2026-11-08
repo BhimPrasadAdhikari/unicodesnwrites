@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 
 import ProjectGrid from '@/app/(public)/portfolio/ProjectGridClient';
+import { ProjectsBox } from '@/components/illustrations/ProjectsBox';
+import { PenMark } from '@/components/motion/PenMark';
 import { Container, Section } from '@/components/ui/Section';
 import { connectDB } from '@/lib/db/connection';
 import { IProject, Project } from '@/lib/models/Project';
@@ -63,8 +65,9 @@ export default async function ProjectsPage() {
             <ProjectGrid initialProjects={serializedProjects} />
           ) : (
             <div className="rounded-3xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
+              <ProjectsBox className="mx-auto mb-6 w-full max-w-[240px]" />
               <h2 className="text-xl font-medium">New projects are on their way</h2>
-              <p className="mt-2 text-sm text-muted-foreground">They will show up here soon.</p>
+              <p className="mt-2 text-sm text-muted-foreground">They will show up here <PenMark delay={0.9} duration={0.3}>soon</PenMark>.</p>
             </div>
           )}
         </Container>

@@ -86,6 +86,8 @@ export default function RootLayout({
       <body
         className="min-h-screen bg-background text-foreground antialiased"
       >
+        {/* Arms the red pen drawings before first paint; without it they simply show drawn. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('pen-armed')" }} />
         <Providers>
           {children}
         </Providers>

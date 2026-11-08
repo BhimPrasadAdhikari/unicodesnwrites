@@ -8,6 +8,7 @@ import Link from 'next/link';
 import BlogSidebar from '@/components/public/BlogSidebar';
 import { Section, Container } from '@/components/ui/Section';
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
+import { ArticlesPaper } from '@/components/illustrations/ArticlesPaper';
 import { BookOpen } from 'lucide-react';
 import { livePostFilter } from '@/lib/utils/post-visibility';
 
@@ -154,7 +155,8 @@ export default async function BlogPage({
     <div className="min-h-screen">
       <Section className="pb-12 pt-12 md:pb-16 md:pt-16">
         <Container>
-          <div className="mb-10 max-w-3xl">
+          <div className="mb-10 grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="max-w-3xl">
             <p className="text-eyebrow text-primary">Articles</p>
             <h1 className="mt-3 text-title text-foreground">
               Easy reads on how AI works.
@@ -165,6 +167,8 @@ export default async function BlogPage({
             <p className="mt-5 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">
               <AnimatedCounter value={totalArticles} /> ARTICLES · <AnimatedCounter value={augmentedSeries.length} /> SERIES · <AnimatedCounter value={normalizedCategories.length} /> TOPICS
             </p>
+          </div>
+          <ArticlesPaper className="hidden w-full lg:block" />
           </div>
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px]">

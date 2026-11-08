@@ -483,3 +483,49 @@ select option {
   background-size: 56px 56px;
   mask-image: linear-gradient(to bottom, black 0%, transparent 92%);
 }
+
+/*
+  Red pen pass: drawings that ink themselves in when they scroll into view (≤1.2 s).
+  A pre-paint script in app/layout.tsx adds `pen-armed` to <html>; usePenInView flips
+  `data-pen` from "idle" to "play". Without JS, or with reduced motion, every stroke shows drawn.
+*/
+.pen-draw {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 0;
+}
+.pen-mark { stroke: hsl(var(--primary)); }
+
+/* Spot illustrations: ink line art, one red pen, a highlighter fill */
+.spot { display: block; height: auto; overflow: visible; }
+.spot .ink { stroke: hsl(var(--foreground)); stroke-width: 2.2; }
+.spot .bold { stroke-width: 5; }
+.spot .thin { stroke: hsl(var(--muted-foreground)); stroke-width: 1.4; }
+.spot .pen { stroke: hsl(var(--primary)); stroke-width: 2.4; }
+.spot .hlf { fill: hsl(var(--highlight)); opacity: 0.85; }
+.spot .solid { fill: hsl(var(--card)); stroke: none; }
+.spot .penfill { fill: hsl(var(--primary)); }
+.spot .inkfill { fill: hsl(var(--foreground)); }
+.spot .drop { transform-box: fill-box; transform-origin: 50% 100%; }
+.spot text { font-family: var(--font-serif); fill: hsl(var(--foreground)); }
+.spot text.mono { font-family: var(--font-mono); fill: hsl(var(--muted-foreground)); }
+.spot text.note { fill: hsl(var(--primary)); font-style: italic; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pen-armed [data-pen] .pen-draw {
+    transition: stroke-dashoffset var(--t, 0.45s) cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0s);
+  }
+  .pen-armed [data-pen] .fade { transition: opacity 0.3s ease-out var(--d, 0.4s); }
+  .pen-armed [data-pen]:not([data-pen="play"]) .pen-draw { stroke-dashoffset: 1; }
+  .pen-armed [data-pen]:not([data-pen="play"]) .fade,
+  .pen-armed [data-pen]:not([data-pen="play"]) .drop { opacity: 0; }
+  .pen-armed [data-pen="play"] .drop { animation: pen-drop 0.4s ease-in var(--d, 0s) both; }
+}
+
+@keyframes pen-drop {
+  0% { opacity: 0; transform: translateY(-14px); }
+  70% { opacity: 1; transform: translateY(0) scaleY(0.8); }
+  100% { opacity: 1; transform: none; }
+}
