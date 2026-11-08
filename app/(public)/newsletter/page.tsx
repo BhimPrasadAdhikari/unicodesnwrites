@@ -5,7 +5,7 @@ import dbConnect from '@/lib/db/connection';
 import Newsletter, { INewsletter } from '@/lib/models/Newsletter';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { SiteIcon } from '@/components/ui/SiteIcon';
+import { NewsletterLetter } from '@/components/illustrations/NewsletterLetter';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
 
@@ -36,8 +36,8 @@ export default async function NewsletterPage() {
             <Section className="border-b border-border pb-12 pt-12 md:pb-16 md:pt-16">
                 <Container>
                     <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
-                        <div className="flex gap-6">
-                            <SiteIcon kind="newsletter" size={72} className="hidden shrink-0 sm:block" />
+                        <div>
+                            <NewsletterLetter className="mb-6 hidden w-full max-w-[240px] sm:block" />
                             <div>
                                 <p className="text-eyebrow text-primary">Free newsletter</p>
                                 <h1 className="mt-3 text-title text-foreground">

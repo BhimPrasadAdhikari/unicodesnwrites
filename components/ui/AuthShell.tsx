@@ -1,8 +1,9 @@
 import Link from "next/link"
 import type { ReactNode } from "react"
 
+import { AuthDesk } from "@/components/illustrations/AuthDesk"
+import { HowItHelps } from "@/components/illustrations/HowItHelps"
 import { Lockup } from "@/components/ui/Logo"
-import { SiteIcon } from "@/components/ui/SiteIcon"
 
 interface AuthShellProps {
   eyebrow?: string
@@ -25,7 +26,8 @@ export function AuthShell({ eyebrow, title, description, children, back }: AuthS
           <Link href="/" className="w-fit" aria-label="unicodesnwrites home">
             <Lockup />
           </Link>
-          <div className="my-auto max-w-xl py-16">
+          <div className="my-auto max-w-xl py-10">
+            <AuthDesk className="mb-8 w-full max-w-[340px]" />
             <p className="text-eyebrow text-primary">Your account</p>
             <p className="mt-5 font-serif text-[clamp(3rem,5vw,4.5rem)] font-medium leading-[0.98] tracking-[-0.03em]">
               Learn how AI works, <span className="hl">one step at a time</span>.
@@ -33,12 +35,7 @@ export function AuthShell({ eyebrow, title, description, children, back }: AuthS
             <p className="mt-6 max-w-md text-lg leading-[1.6] text-muted-foreground">
               Sign in to see your courses, your notes and how far you have got. Pick up right where you left off.
             </p>
-            <div className="mt-10 flex gap-5 text-foreground/80">
-              <SiteIcon kind="articles" size={30} />
-              <SiteIcon kind="courses" size={30} />
-              <SiteIcon kind="learning" size={30} />
-              <SiteIcon kind="shop" size={30} />
-            </div>
+            <HowItHelps className="mt-8 max-w-md" />
           </div>
           <p className="font-mono text-[12px] tracking-[0.06em] text-muted-foreground">SAFE SIGN-IN · YOUR COURSES IN ONE PLACE</p>
         </section>

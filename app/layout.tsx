@@ -62,7 +62,8 @@ const newsreader = Newsreader({
   display: 'swap',
 });
 const inter = Inter({ subsets: ['latin', 'latin-ext', 'greek'], variable: '--font-inter', display: 'swap' });
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin', 'greek'], weight: ['400', '500'], variable: '--font-jetbrains-mono', display: 'swap' });
+// Variable weight on purpose: Google serves the fixed 400+500 pair from extensionless "font?kit=" URLs, which crash next/font's loader.
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin', 'greek'], variable: '--font-jetbrains-mono', display: 'swap' });
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -86,6 +87,8 @@ export default function RootLayout({
       <body
         className="min-h-screen bg-background text-foreground antialiased"
       >
+        {/* Arms the red pen drawings before first paint; without it they simply show drawn. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('pen-armed')" }} />
         <Providers>
           {children}
         </Providers>

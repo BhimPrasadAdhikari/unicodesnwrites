@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { HomeDesk } from '@/components/illustrations/HomeDesk';
+import { PenMark } from '@/components/motion/PenMark';
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Section';
 import { glyphFor } from '@/components/ui/Glyph';
@@ -52,7 +54,7 @@ export async function PublicationHero() {
         <div className="flex flex-col gap-6 sm:gap-7">
           <p className="text-eyebrow text-primary">AI, explained simply · by Bhim Prasad Adhikari</p>
           <h1 className="font-serif text-[clamp(2.5rem,6vw,4.75rem)] font-medium leading-[0.98] tracking-[-0.025em] text-foreground">
-            Learn how AI really works, <span className="hl">explained simply</span>.
+            Learn how AI really works, <PenMark delay={0.6}>explained simply</PenMark>.
           </h1>
           <p className="max-w-[560px] text-[17px] leading-[1.6] text-muted-foreground sm:text-[19px]">
             Easy-to-follow articles, step-by-step courses and ready-to-use guides. I take the big ideas behind AI, break them into small steps and show you how they work.
@@ -70,6 +72,8 @@ export async function PublicationHero() {
           </Link>
         </div>
 
+        <div className="flex flex-col gap-6">
+        <HomeDesk className="mx-auto hidden w-full max-w-[340px] lg:block" />
         {desk ? (
           <Link
             href={`/blog/${desk.slug}`}
@@ -101,6 +105,7 @@ export async function PublicationHero() {
             <p className="pen-note mt-5">subscribe to the newsletter to get it first</p>
           </div>
         )}
+        </div>
       </Container>
     </section>
   );

@@ -4,7 +4,7 @@ import { CourseCatalog } from '@/components/public/CourseCatalog';
 import { FeaturedVideoSeries } from '@/components/public/VideoSeries';
 import { listPublishedVideoSeries } from '@/lib/services/video-series';
 import { Container } from '@/components/ui/Section';
-import { SiteIconCell } from '@/components/ui/SiteIcon';
+import { CoursesStairs } from '@/components/illustrations/CoursesStairs';
 import { listPublishedCourses } from '@/lib/services/course-platform';
 import { siteConfig } from '@/lib/config/site.config';
 
@@ -43,7 +43,7 @@ export default async function CoursesPage() {
               <p className="mt-5 max-w-2xl text-[17px] leading-[1.6] text-muted-foreground sm:text-lg">Short lessons that explain how AI works, from the basics up. Watch a video, read the notes, try a quick quiz, and see how much you have learned.</p>
               <p className="mt-6 font-mono text-[12px] tracking-[0.06em] text-muted-foreground">SHORT LESSONS · QUICK QUIZZES · YOUR OWN NOTES</p>
             </div>
-            <SiteIconCell kind="courses" iconSize={110} className="hidden h-[220px] w-[220px] rounded-3xl border border-border lg:flex" />
+            <CoursesStairs className="hidden w-[340px] lg:block" />
           </div>
         </Container>
       </section>
