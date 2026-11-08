@@ -49,7 +49,7 @@ function ProgressSlide() {
           <path className="thin" d="M10 12 H250" fill="none" />
           <path className="pen-draw ink" pathLength={1} style={{ ...d('.1s', '.6s'), strokeWidth: 3 }} d="M10 12 H166" />
           {nodes.map((n) => (
-            <circle key={n} cx={10 + n * 48} cy={12} r={5} className={n <= 3 ? 'inkfill' : 'solid'} stroke="hsl(var(--muted-foreground))" strokeWidth={1.4} />
+            <circle key={n} cx={10 + n * 48} cy={12} r={5} className={n <= 3 ? 'inkfill' : 'solid'} style={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1.4 }} />
           ))}
           <circle className="drop penfill" style={d('.75s')} cx={166} cy={3} r={3} />
         </svg>

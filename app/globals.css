@@ -499,7 +499,8 @@ select option {
 .pen-mark { stroke: hsl(var(--primary)); }
 
 /* Spot illustrations: ink line art, one red pen, a highlighter fill */
-.spot { display: block; height: auto; overflow: visible; }
+/* Layered so Tailwind display utilities (hidden, lg:block) still win over it. */
+@layer components { .spot { display: block; height: auto; overflow: visible; } }
 .spot .ink { stroke: hsl(var(--foreground)); stroke-width: 2.2; }
 .spot .bold { stroke-width: 5; }
 .spot .thin { stroke: hsl(var(--muted-foreground)); stroke-width: 1.4; }
