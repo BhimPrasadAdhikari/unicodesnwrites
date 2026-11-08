@@ -17,6 +17,7 @@ const readLinks = [
 
 const learnLinks = [
   { href: '/courses', label: 'Courses' },
+  { href: '/videos', label: 'Videos' },
   { href: '/products', label: 'Shop' },
   { href: '/newsletter', label: 'Newsletter' },
 ];

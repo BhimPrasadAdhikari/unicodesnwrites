@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 const primaryLinks: { href: string; label: string; icon: SiteIconKind }[] = [
   { href: '/blog', label: 'Articles', icon: 'articles' },
+  { href: '/videos', label: 'Videos', icon: 'videos' },
   { href: '/courses', label: 'Courses', icon: 'courses' },
   { href: '/projects', label: 'Projects', icon: 'projects' },
   { href: '/products', label: 'Shop', icon: 'shop' },
