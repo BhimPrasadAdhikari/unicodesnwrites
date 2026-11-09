@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db/connection';
 import Subscriber from '@/lib/models/Subscriber';
 import SubscriberList from '@/components/cms/SubscriberList';
 import SubscriberImport from '@/components/cms/SubscriberImport';
+import SubscriberEngagedTag from '@/components/cms/SubscriberEngagedTag';
 import SubscriberSuppressList from '@/components/cms/SubscriberSuppressList';
 import { Users, UserPlus, UserMinus, TrendingUp } from 'lucide-react';
 import { DashboardPageHeader } from '@/components/cms/DashboardPageHeader';
@@ -166,6 +167,19 @@ export default async function SubscribersPage(props: {
                         Unsubscribes and tags &ldquo;bounced&rdquo; every subscriber in the file, for reconciling the Amazon SES suppression list; addresses not on the list are ignored.
                     </p>
                     <SubscriberSuppressList />
+                </div>
+            </details>
+
+            <details className="group rounded-lg border border-border bg-card">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-sm font-medium">
+                    Tag engaged readers
+                    <span className="font-mono text-[12px] text-muted-foreground">tag: engaged</span>
+                </summary>
+                <div className="border-t border-border p-5">
+                    <p className="mb-4 text-sm text-muted-foreground">
+                        Tags confirmed subscribers who opened or clicked an issue recently as &ldquo;engaged&rdquo; and removes the tag from everyone else. Send campaigns to &ldquo;Only subscribers tagged&hellip; engaged&rdquo; so most recipients open, which keeps mail out of spam. Run it again before each send.
+                    </p>
+                    <SubscriberEngagedTag />
                 </div>
             </details>
 
