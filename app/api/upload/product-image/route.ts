@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
 import { randomUUID } from 'crypto';
-import fs from 'fs';
-import path from 'path';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { storePublicFile, StorageNotConfiguredError } from '@/lib/storage/files';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,32 +27,12 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];
     const fileName = `${randomUUID()}.${fileExtension}`;
 
-    const useVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
-
-    if (useVercelBlob) {
-      const blob = await put(`products/${fileName}`, file, {
-        access: 'public',
-      });
-
-      return NextResponse.json({ url: blob.url });
-    } else if (process.env.CODEX_PROJECT_SANDBOX === '1') {
+    const url = await storePublicFile(`products/${fileName}`, file, file.type);
+    return NextResponse.json({ url });
+  } catch (error) {
+    if (error instanceof StorageNotConfiguredError) {
       return NextResponse.json({ error: 'Blob storage is not configured' }, { status: 500 });
     }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
-
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const filePath = path.join(uploadDir, fileName);
-    fs.writeFileSync(filePath, buffer);
-
-    return NextResponse.json({ url: `/uploads/products/${fileName}` });
-  } catch (error) {
     if (error instanceof AdminAccessError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }

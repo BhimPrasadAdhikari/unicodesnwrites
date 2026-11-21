@@ -6,21 +6,7 @@ import {
   ProductPurchaseError,
 } from '@/lib/services/purchase';
 import { clientAddressFromHeaders } from '@/lib/utils/client-ip';
-
-function getApprovedFileUrl(value: string) {
-  try {
-    const url = new URL(value);
-    if (
-      url.protocol !== 'https:' ||
-      !url.hostname.endsWith('.public.blob.vercel-storage.com')
-    ) {
-      return null;
-    }
-    return url;
-  } catch {
-    return null;
-  }
-}
+import { privateFileFetchUrl } from '@/lib/storage/files';
 
 function contentDisposition(fileName: string) {
   const fallback = fileName.replace(/[^a-zA-Z0-9._-]/g, '_') || 'download';
@@ -39,7 +25,7 @@ export async function GET(req: NextRequest) {
     };
     const { purchase, product } = await authorizeProductDownload(token || '');
 
-    const fileUrl = getApprovedFileUrl(product.fileUrl);
+    const fileUrl = await privateFileFetchUrl(product.fileUrl);
     if (fileUrl) {
         const response = await fetch(fileUrl, { redirect: 'error' });
         if (!response.ok) {
