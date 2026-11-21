@@ -58,6 +58,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
   }
   if (!valid) {
+    // Usually the Razorpay dashboard webhook uses a different secret than RAZORPAY_WEBHOOK_SECRET.
+    console.warn(`Razorpay webhook rejected: ${signature ? 'signature does not match RAZORPAY_WEBHOOK_SECRET' : 'no signature header'}`);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 

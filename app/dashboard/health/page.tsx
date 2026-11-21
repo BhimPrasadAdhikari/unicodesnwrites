@@ -11,6 +11,8 @@ import NewsletterSend from '@/lib/models/NewsletterSend';
 import { Post } from '@/lib/models/Post';
 import Review from '@/lib/models/Review';
 import Comment from '@/lib/models/Comment';
+import Purchase from '@/lib/models/Purchase';
+import WebhookEvent from '@/lib/models/WebhookEvent';
 import { livePostFilter } from '@/lib/utils/post-visibility';
 
 export const metadata: Metadata = { title: 'System health | CMS' };
@@ -78,6 +80,7 @@ export default async function HealthPage() {
   }
 
   const queue: Check[] = [];
+  const payments: Check[] = [];
   const content: Check[] = [];
   if (dbOk) {
     const [pending, failed, lastSend, active, newMessages, waitingReviews, livePosts, waitingComments, worstIssue] = await Promise.all([
@@ -151,6 +154,24 @@ export default async function HealthPage() {
       });
     }
 
+    // Razorpay webhooks: the only way refunds and failed payments reach the site. They fail
+    // silently when the dashboard webhook is missing or uses another secret.
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const [lastWebhook, recentSales] = await Promise.all([
+      WebhookEvent.findOne({ provider: 'razorpay' }).sort({ processedAt: -1 }).select('processedAt event').lean<{ processedAt: Date; event: string } | null>(),
+      Purchase.countDocuments({ status: 'completed', purchasedAt: { $gte: ninetyDaysAgo } }),
+    ]);
+    payments.push({
+      label: 'Razorpay webhook',
+      level: lastWebhook ? 'ok' : recentSales ? 'warn' : 'ok',
+      detail: lastWebhook
+        ? `Last event ${lastWebhook.event} received ${relative(lastWebhook.processedAt)}.`
+        : recentSales
+          ? `No webhook received in 90 days despite ${recentSales} completed ${recentSales === 1 ? 'sale' : 'sales'}. Paid orders still complete (checkout callback, plus the scheduler checks pending orders every 5 minutes), but refunds and failed payments are not recorded. In Razorpay → Settings → Webhooks add ${process.env.NEXT_PUBLIC_APP_URL || 'https://www.unicodesnwrites.tech'}/api/webhooks/razorpay with the same secret as RAZORPAY_WEBHOOK_SECRET.`
+          : 'No sales in the last 90 days, so nothing to check yet.',
+      href: '/dashboard/purchases',
+    });
+
     content.push({ label: 'New messages', level: newMessages ? 'warn' : 'ok', detail: newMessages ? `${newMessages} unread in the inbox.` : 'Inbox is clear.', href: '/dashboard/inbox' });
     content.push({ label: 'Comments waiting', level: waitingComments ? 'warn' : 'ok', detail: waitingComments ? `${waitingComments} waiting for approval.` : 'None waiting.', href: '/dashboard/comments' });
     content.push({ label: 'Reviews waiting', level: waitingReviews ? 'warn' : 'ok', detail: waitingReviews ? `${waitingReviews} waiting for approval.` : 'None waiting.', href: '/dashboard/reviews' });
@@ -169,6 +190,7 @@ export default async function HealthPage() {
     { title: 'Services', items: checks },
     { title: 'Configuration', items: configChecks() },
     { title: 'Newsletter delivery', items: queue },
+    { title: 'Payments', items: payments },
     { title: 'Needs attention', items: content },
   ].filter((section) => section.items.length);
 
