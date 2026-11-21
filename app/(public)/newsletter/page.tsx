@@ -9,6 +9,11 @@ import { NewsletterLetter } from '@/components/illustrations/NewsletterLetter';
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker';
 import { Section, Container } from '@/components/ui/Section';
 
+// Reads the database on every request. Without this, Next prerenders the page at
+// build time, and the AWS image build has no database, so it baked in an empty or
+// error page that was then served for the life of the deployment.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Newsletter',
     alternates: { canonical: '/newsletter' },
