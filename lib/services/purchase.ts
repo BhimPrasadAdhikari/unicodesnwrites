@@ -205,6 +205,39 @@ export async function reconcileRazorpayOrder(orderId: string) {
   return paid ? completeRazorpayPayment(paid) : null;
 }
 
+/**
+ * Completes pending orders that Razorpay says were paid, for buyers who paid and
+ * closed the tab before the checkout callback ran when no webhook arrives either
+ * (the Razorpay account is shared, so its webhook may not point at this site).
+ * Run by the 5-minute scheduler. Orders younger than 2 minutes are left to the
+ * checkout callback; orders older than 2 days are left alone.
+ */
+export async function reconcilePendingRazorpayOrders({ limit = 10 }: { limit?: number } = {}) {
+  await dbConnect();
+  const now = Date.now();
+  const pending = await Purchase.find({
+    status: 'pending',
+    createdAt: { $gte: new Date(now - 2 * 24 * 60 * 60 * 1000), $lte: new Date(now - 2 * 60 * 1000) },
+  })
+    .select('razorpayOrderId')
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean<Array<{ razorpayOrderId: string }>>();
+
+  let completed = 0;
+  let failed = 0;
+  for (const { razorpayOrderId } of pending) {
+    try {
+      if (await reconcileRazorpayOrder(razorpayOrderId)) completed += 1;
+    } catch (error) {
+      failed += 1;
+      console.error(`Could not reconcile Razorpay order ${razorpayOrderId}:`, error instanceof Error ? error.message : error);
+    }
+  }
+  if (completed) console.log(`Reconciled ${completed} paid Razorpay order(s) that had no callback or webhook`);
+  return { checked: pending.length, completed, failed };
+}
+
 export async function markRazorpayPaymentFailed(payment: RazorpayPayment) {
   if (!payment.order_id) return null;
   await dbConnect();
