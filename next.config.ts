@@ -133,6 +133,14 @@ const nextConfig: NextConfig = {
   // Redirects
   async redirects() {
     return [
+      // www is the canonical host (NEXTAUTH_URL, emails, sitemap). Vercel did this
+      // redirect at its edge; on AWS the app does it.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'unicodesnwrites.tech' }],
+        destination: 'https://www.unicodesnwrites.tech/:path*',
+        permanent: true,
+      },
       {
         source: '/home',
         destination: '/',

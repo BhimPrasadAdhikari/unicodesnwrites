@@ -11,7 +11,7 @@ FROM node:22-bookworm-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 NEXT_OUTPUT=standalone NODE_ENV=production
 # Public values inlined into the client bundle at build time.
-ARG NEXT_PUBLIC_APP_URL=https://unicodesnwrites.tech
+ARG NEXT_PUBLIC_APP_URL=https://www.unicodesnwrites.tech
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
