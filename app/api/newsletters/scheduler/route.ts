@@ -6,6 +6,7 @@ import {
   startOrContinueNewsletterDelivery,
 } from '@/lib/services/newsletter-delivery';
 import { sendDueWelcomeEmails, type WelcomeSeriesRunResult } from '@/lib/services/welcome-series';
+import { reconcilePendingRazorpayOrders } from '@/lib/services/purchase';
 import crypto from 'crypto';
 
 const DEFAULT_BATCH_SIZE = 500;
@@ -163,6 +164,16 @@ async function runScheduler(request: NextRequest) {
     }
   }
 
+  // Paid orders whose buyer closed the tab before the checkout callback, with no
+  // webhook to fall back on. A few Razorpay lookups at most, so it always runs.
+  let payments: { checked: number; completed: number; failed: number; error?: string } = { checked: 0, completed: 0, failed: 0 };
+  try {
+    payments = await reconcilePendingRazorpayOrders();
+  } catch (error) {
+    console.error('Payment reconciliation failed:', error);
+    payments = { ...payments, error: error instanceof Error ? error.message : 'Unknown payment reconciliation error' };
+  }
+
   return NextResponse.json({
     runAt: now.toISOString(),
     consideredCampaigns: dueCampaigns.length,
@@ -170,6 +181,7 @@ async function runScheduler(request: NextRequest) {
     processed,
     errors,
     welcome,
+    payments,
   });
 }
 
