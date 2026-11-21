@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { put } from '@vercel/blob';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
+import { storePublicFile, StorageNotConfiguredError } from '@/lib/storage/files';
 import { randomUUID } from 'crypto';
 
 const MAX_FILES = 10;
@@ -34,47 +32,16 @@ export async function POST(req: NextRequest) {
 
     const uploadedUrls: string[] = [];
 
-    // Check environment for storage strategy
-    const useVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
-
-    if (useVercelBlob) {
-      // Vercel Blob Storage
-      for (const file of files) {
-        const filename = `${randomUUID()}.${EXTENSIONS[file.type]}`;
-        
-        const blob = await put(`projects/${filename}`, file, {
-          access: 'public',
-        });
-        
-        uploadedUrls.push(blob.url);
-      }
-    } else if (process.env.CODEX_PROJECT_SANDBOX === '1') {
-      return NextResponse.json({ error: 'Blob storage is not configured' }, { status: 500 });
-    } else {
-      // Local Storage (Development)
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'projects');
-      
-      try {
-        await mkdir(uploadDir, { recursive: true });
-      } catch (e) {
-        // Ignore if exists
-      }
-
-      for (const file of files) {
-            const bytes = await file.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-            
-            const filename = `${randomUUID()}.${EXTENSIONS[file.type]}`;
-            const filepath = join(uploadDir, filename);
-
-            await writeFile(filepath, buffer);
-            
-            uploadedUrls.push(`/uploads/projects/${filename}`);
-      }
+    for (const file of files) {
+      const filename = `${randomUUID()}.${EXTENSIONS[file.type]}`;
+      uploadedUrls.push(await storePublicFile(`projects/${filename}`, file, file.type));
     }
 
     return NextResponse.json({ urls: uploadedUrls }, { status: 201 });
   } catch (error) {
+    if (error instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: 'Blob storage is not configured' }, { status: 500 });
+    }
     if (error instanceof AdminAccessError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }

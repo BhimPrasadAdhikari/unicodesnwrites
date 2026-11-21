@@ -262,6 +262,44 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
   };
 
   // Large proof videos go straight from the browser to Vercel Blob (server routes cap bodies at ~4.5 MB).
+  // S3 (AWS hosting) hands back a signed PUT URL; Vercel Blob uses its own client.
+  const uploadPreviewFile = async (file: File, onProgress: (percentage: number) => void): Promise<string> => {
+    const pathname = previewPathnameFor(file);
+    const response = await fetch('/api/upload/preview-file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'presign', pathname, contentType: file.type, size: file.size }),
+    });
+    const target = (await response.json().catch(() => ({}))) as { backend?: string; uploadUrl?: string; url?: string; error?: string };
+    if (!response.ok) throw new Error(target.error || 'upload failed.');
+
+    if (target.backend === 's3' && target.uploadUrl && target.url) {
+      const { uploadUrl, url } = target;
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.setRequestHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) onProgress(Math.round((event.loaded / event.total) * 100));
+        };
+        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`upload failed (${xhr.status}).`)));
+        xhr.onerror = () => reject(new Error('upload failed. Check your connection.'));
+        xhr.send(file);
+      });
+      return url;
+    }
+
+    const blob = await upload(pathname, file, {
+      access: 'public',
+      handleUploadUrl: '/api/upload/preview-file',
+      contentType: file.type,
+      multipart: file.size > 20 * 1024 * 1024,
+      onUploadProgress: ({ percentage }) => onProgress(percentage),
+    });
+    return blob.url;
+  };
+
   const handlePreviewUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     e.target.value = '';
@@ -281,14 +319,8 @@ export default function ProductEditor({ initialData, isEditing = false }: Produc
 
       setPreviewUpload({ name: file.name, percentage: 0 });
       try {
-        const blob = await upload(previewPathnameFor(file), file, {
-          access: 'public',
-          handleUploadUrl: '/api/upload/preview-file',
-          contentType: file.type,
-          multipart: file.size > 20 * 1024 * 1024,
-          onUploadProgress: ({ percentage }) => setPreviewUpload({ name: file.name, percentage }),
-        });
-        appendPreview({ type, url: blob.url, title: '' });
+        const url = await uploadPreviewFile(file, (percentage) => setPreviewUpload({ name: file.name, percentage }));
+        appendPreview({ type, url, title: '' });
       } catch (error) {
         console.error(error);
         setFeedback(`${file.name}: ${error instanceof Error ? error.message : 'upload failed.'}`);

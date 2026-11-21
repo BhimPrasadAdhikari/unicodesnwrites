@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
 import { v4 as uuidv4 } from 'uuid';
 import { AdminAccessError, requireAdminSession } from '@/lib/auth/admin';
 import { cleanSingleLine } from '@/lib/utils/sanitize';
+import { storePrivateFile, StorageNotConfiguredError } from '@/lib/storage/files';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -34,20 +34,20 @@ export async function POST(req: NextRequest) {
     const fileName = displayName.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 120) || 'download';
     const uniqueFileName = `${uuidv4()}-${fileName}`;
 
-    // Upload to Vercel Blob
-    // We use 'products' as the directory prefix in the blob store
-    const blob = await put(`products/${uniqueFileName}`, file, {
-      access: 'public', // Currently Vercel Blob only supports 'public' with unguessable URLs
-    });
+    // Paid files are private on S3 (served through signed links by /api/download).
+    const url = await storePrivateFile(`products/${uniqueFileName}`, file, file.type);
 
     return NextResponse.json({
-      url: blob.url, 
+      url,
       fileName: displayName,
       fileSize: file.size,
-      storageKey: uniqueFileName, // Keeping this for reference, though url is primary now
+      storageKey: uniqueFileName,
     });
 
   } catch (error) {
+    if (error instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: 'Blob storage is not configured' }, { status: 500 });
+    }
     if (error instanceof AdminAccessError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }
