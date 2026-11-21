@@ -15,7 +15,10 @@ ARG NEXT_PUBLIC_APP_URL=https://unicodesnwrites.tech
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+# Env validation runs while Next collects page data, so the build needs
+# placeholder values. They exist only for this command and this throwaway
+# stage; the real values come from the Lightsail deployment at runtime.
+RUN MONGODB_URI=mongodb://127.0.0.1:27017/build     NEXTAUTH_URL=$NEXT_PUBLIC_APP_URL     NEXTAUTH_SECRET=build-only-placeholder-not-a-secret-000000     npm run build
 
 FROM node:22-bookworm-slim AS run
 WORKDIR /app
