@@ -35,7 +35,9 @@ function configChecks(): Check[] {
     group('Sign-in', ['NEXTAUTH_SECRET', 'NEXTAUTH_URL'], 'fail', 'Sessions cannot be issued.'),
     group('Email (SMTP)', ['EMAIL_HOST', 'EMAIL_USER', 'EMAIL_PASSWORD', 'EMAIL_FROM'], 'fail', 'Verification, receipts and newsletters will not send.'),
     group('Payments (Razorpay)', ['RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'RAZORPAY_WEBHOOK_SECRET'], 'fail', 'Checkout or purchase recording will fail.'),
-    group('File storage', ['BLOB_READ_WRITE_TOKEN'], 'fail', 'Uploads will fail.'),
+    set('S3_BUCKET')
+      ? group('File storage (S3)', ['S3_BUCKET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'], 'fail', 'Uploads and paid downloads will fail.')
+      : group('File storage (Vercel Blob)', ['BLOB_READ_WRITE_TOKEN'], 'fail', 'Uploads will fail.'),
     group('Newsletter scheduler', ['CRON_SECRET'], 'warn', 'Scheduled issues will not go out.'),
     group('Unsubscribe links', ['NEWSLETTER_UNSUBSCRIBE_SECRET'], 'warn', 'A key derived from NEXTAUTH_SECRET is used instead.'),
     group('Newsletter footer address', ['NEWSLETTER_POSTAL_ADDRESS'], 'warn', 'The default business address from lib/config/business.ts is used.'),
