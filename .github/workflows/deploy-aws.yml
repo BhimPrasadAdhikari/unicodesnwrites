@@ -1,0 +1,93 @@
+name: Deploy to AWS
+
+# Builds the Docker image and rolls it out to the Lightsail container service
+# that serves unicodesnwrites.tech. Runtime secrets live only in the Lightsail
+# deployment's environment; each run copies them from the active deployment and
+# swaps in the new image, so they never pass through GitHub.
+#
+# Setup (one time):
+#   - repository variable AWS_DEPLOY_ROLE_ARN: IAM role trusted for this repo via
+#     GitHub OIDC, allowed lightsail:* on the service (see docs/deploy-aws.md)
+#   - optional variables AWS_REGION (default ap-south-1) and
+#     LIGHTSAIL_SERVICE (default unicodesnwrites)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-aws
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
+  SERVICE: ${{ vars.LIGHTSAIL_SERVICE || 'unicodesnwrites' }}
+
+jobs:
+  deploy:
+    if: vars.AWS_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install Lightsail plugin
+        run: |
+          curl -fsSL "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o /usr/local/bin/lightsailctl
+          chmod +x /usr/local/bin/lightsailctl
+
+      - name: Build image
+        run: docker build -t web:${{ github.sha }} .
+
+      - name: Push image
+        id: push
+        run: |
+          out=$(aws lightsail push-container-image --service-name "$SERVICE" --label web --image "web:${{ github.sha }}")
+          echo "$out"
+          image=$(echo "$out" | grep -o ':'"$SERVICE"'\.web\.[0-9]*' | tail -1)
+          test -n "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy, keeping the current environment
+        env:
+          IMAGE: ${{ steps.push.outputs.image }}
+        run: |
+          set -euo pipefail
+          # The environment holds secrets: never print it.
+          aws lightsail get-container-services --service-name "$SERVICE" \
+            --query 'containerServices[0].currentDeployment.containers.web.environment' --output json > /tmp/env.json
+          if [ "$(cat /tmp/env.json)" = "null" ]; then echo "::error::No current deployment to copy the environment from"; exit 1; fi
+          jq -n --arg image "$IMAGE" --slurpfile env /tmp/env.json \
+            '{web: {image: $image, environment: $env[0], ports: {"3000": "HTTP"}}}' > /tmp/containers.json
+          cat > /tmp/endpoint.json <<'JSON'
+          {"containerName": "web", "containerPort": 3000,
+           "healthCheck": {"path": "/api/health", "intervalSeconds": 30, "timeoutSeconds": 5,
+                           "healthyThreshold": 2, "unhealthyThreshold": 3, "successCodes": "200"}}
+          JSON
+          aws lightsail create-container-service-deployment --service-name "$SERVICE" \
+            --containers file:///tmp/containers.json --public-endpoint file:///tmp/endpoint.json \
+            --query 'containerService.nextDeployment.version' --output text
+          rm -f /tmp/env.json /tmp/containers.json
+
+      - name: Wait for the rollout
+        run: |
+          for i in $(seq 1 60); do
+            state=$(aws lightsail get-container-services --service-name "$SERVICE" --query 'containerServices[0].[state,nextDeployment.state]' --output text)
+            echo "$state"
+            case "$state" in
+              RUNNING*None*) exit 0 ;;
+              *FAILED*) echo "::error::Deployment failed; the previous one keeps serving"; exit 1 ;;
+            esac
+            sleep 20
+          done
+          echo "::error::Timed out waiting for the deployment"; exit 1

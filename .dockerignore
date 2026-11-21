@@ -1,0 +1,15 @@
+.git
+.github
+.next
+node_modules
+.env*
+!.env.sandbox.example
+.vercel
+.codex
+.claude
+tests
+coverage
+playwright-report
+test-results
+*.md
+!content/**/*.md

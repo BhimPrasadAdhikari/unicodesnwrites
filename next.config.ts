@@ -70,6 +70,10 @@ const pyodideWorkerCsp = [
 const nextConfig: NextConfig = {
   // Enable React strict mode for development
   reactStrictMode: true,
+
+  // The AWS container build (Dockerfile) sets NEXT_OUTPUT=standalone to get a
+  // self-contained server in .next/standalone. Vercel builds leave it unset.
+  ...(process.env.NEXT_OUTPUT === 'standalone' ? { output: 'standalone' as const } : {}),
   
   // Optimize images
   images: {
