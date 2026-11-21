@@ -2,7 +2,8 @@
 
 Production runs as one Docker container on an Amazon Lightsail container service:
 
-- **Service:** `unicodesnwrites` in `ap-south-1`, power `small` (0.5 vCPU, 1 GB), scale 1.
+- **Service:** `unicodesnwrites` in `ap-south-1`, power `micro` (0.25 vCPU, 1 GB RAM, $10/month per node).
+- **Scaling:** Lightsail has no autoscaling, so Lambda `unicodesnwrites-autoscaler` (source in `infra/lightsail-autoscaler/`) runs every 5 minutes from EventBridge rule `unicodesnwrites-autoscaler-5min`. It adds a node (max 2) when CPU or memory averages over 70% for 10 minutes and removes one (min 1) after 30 minutes under 30%, with a 15-minute cooldown. Settings are the function's env vars (`MIN_NODES`, `MAX_NODES`, `SCALE_OUT_PERCENT`, `SCALE_IN_PERCENT`, `COOLDOWN_MINUTES`, `DRY_RUN`). Cost: $10/month normally, $20 while two nodes run; the Lambda stays inside the free tier.
 - **Image:** built from `Dockerfile` (Next.js `output: 'standalone'`, switched on by `NEXT_OUTPUT=standalone`).
 - **Deploys:** `.github/workflows/deploy-aws.yml` runs on every push to `main`. It builds the image, pushes it to the service and creates a new deployment that keeps the current environment variables. If the new container fails `/api/health`, Lightsail keeps the previous one serving.
 - **Auth:** GitHub OIDC assumes `arn:aws:iam::240939827156:role/unicodesnwrites-github-deploy` (main branch of this repo only, Lightsail deploy actions only). Set the repository variable `AWS_DEPLOY_ROLE_ARN` to that ARN.
