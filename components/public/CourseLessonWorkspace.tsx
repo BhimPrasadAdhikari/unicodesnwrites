@@ -325,6 +325,8 @@ export function CourseLessonWorkspace({
 
   const seekTo = (seconds: number) => {
     setVideoSeek(seconds);
+    // On a phone the transcript sheet covers the video, so close it to show the jump.
+    setSideSheet(false);
     if (hasVideo && step !== "video") openStep("video");
   };
 
@@ -335,14 +337,25 @@ export function CourseLessonWorkspace({
   }, [railOpen]);
 
   useEffect(() => {
-    if (!curriculumOpen) return;
-    activeLessonRef.current?.scrollIntoView({ block: "center" });
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setCurriculumOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    if (curriculumOpen) activeLessonRef.current?.scrollIntoView({ block: "center" });
   }, [curriculumOpen]);
+
+  // While a phone sheet is open: Escape closes it and the page behind stays still.
+  useEffect(() => {
+    if (!curriculumOpen && !sideSheet) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setCurriculumOpen(false);
+      setSideSheet(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [curriculumOpen, sideSheet]);
 
   const markComplete = async ({ advance = true }: { advance?: boolean } = {}) => {
     const willBeComplete = !isComplete;
