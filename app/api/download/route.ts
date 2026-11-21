@@ -5,21 +5,8 @@ import {
   consumeAuthorizedProductDownload,
   ProductPurchaseError,
 } from '@/lib/services/purchase';
-
-function getApprovedFileUrl(value: string) {
-  try {
-    const url = new URL(value);
-    if (
-      url.protocol !== 'https:' ||
-      !url.hostname.endsWith('.public.blob.vercel-storage.com')
-    ) {
-      return null;
-    }
-    return url;
-  } catch {
-    return null;
-  }
-}
+import { clientAddressFromHeaders } from '@/lib/utils/client-ip';
+import { privateFileFetchUrl } from '@/lib/storage/files';
 
 function contentDisposition(fileName: string) {
   const fallback = fileName.replace(/[^a-zA-Z0-9._-]/g, '_') || 'download';
@@ -33,12 +20,12 @@ export async function GET(req: NextRequest) {
 
     const headersList = await headers();
     const context = {
-      ip: headersList.get('x-forwarded-for')?.split(',')[0] || headersList.get('x-real-ip') || 'unknown',
+      ip: clientAddressFromHeaders(headersList),
       userAgent: headersList.get('user-agent') || 'unknown',
     };
     const { purchase, product } = await authorizeProductDownload(token || '');
 
-    const fileUrl = getApprovedFileUrl(product.fileUrl);
+    const fileUrl = await privateFileFetchUrl(product.fileUrl);
     if (fileUrl) {
         const response = await fetch(fileUrl, { redirect: 'error' });
         if (!response.ok) {

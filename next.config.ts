@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+// Public uploads on AWS (lib/storage/files.ts). Pages show them, and the product
+// editor PUTs large previews straight to the bucket.
+const S3_PUBLIC_HOST = process.env.S3_PUBLIC_HOST || 'unicodesnwrites-media.s3.ap-south-1.amazonaws.com';
+
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
@@ -37,8 +41,8 @@ const securityHeaders = [
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
       font-src 'self' data:;
-      media-src 'self' blob: https://*.public.blob.vercel-storage.com;
-      connect-src 'self' https://*.razorpay.com https://*.sentry.io https://vitals.vercel-insights.com https://vercel.com/api/blob/;
+      media-src 'self' blob: https://*.public.blob.vercel-storage.com https://${S3_PUBLIC_HOST};
+      connect-src 'self' https://*.razorpay.com https://*.sentry.io https://vitals.vercel-insights.com https://vercel.com/api/blob/ https://${S3_PUBLIC_HOST};
       frame-src https://*.razorpay.com https://www.youtube.com https://www.youtube-nocookie.com;
       worker-src 'self';
     `.replace(/\s{2,}/g, ' ').trim()
@@ -70,6 +74,10 @@ const pyodideWorkerCsp = [
 const nextConfig: NextConfig = {
   // Enable React strict mode for development
   reactStrictMode: true,
+
+  // The AWS container build (Dockerfile) sets NEXT_OUTPUT=standalone to get a
+  // self-contained server in .next/standalone. Vercel builds leave it unset.
+  ...(process.env.NEXT_OUTPUT === 'standalone' ? { output: 'standalone' as const } : {}),
   
   // Optimize images
   images: {
@@ -85,6 +93,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '*.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: S3_PUBLIC_HOST,
       },
       {
         protocol: 'https',
@@ -129,6 +141,14 @@ const nextConfig: NextConfig = {
   // Redirects
   async redirects() {
     return [
+      // www is the canonical host (NEXTAUTH_URL, emails, sitemap). Vercel did this
+      // redirect at its edge; on AWS the app does it.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'unicodesnwrites.tech' }],
+        destination: 'https://www.unicodesnwrites.tech/:path*',
+        permanent: true,
+      },
       {
         source: '/home',
         destination: '/',
