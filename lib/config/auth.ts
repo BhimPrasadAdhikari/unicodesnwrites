@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db/connection';
 import { User } from '@/lib/models/User';
 import bcrypt from 'bcryptjs';
 import { consumeRateLimit, normalizeEmail } from '@/lib/auth/security';
+import { clientAddressFromRecord } from '@/lib/utils/client-ip';
 
 const dummyPasswordHash = bcrypt.hash('timing-equalization-only', 12);
 
@@ -21,8 +22,7 @@ export const authOptions: AuthOptions = {
         }
 
         const email = normalizeEmail(credentials.email);
-        const forwarded = request.headers?.['x-forwarded-for'];
-        const clientAddress = (Array.isArray(forwarded) ? forwarded[0] : forwarded || 'unknown').split(',')[0].trim();
+        const clientAddress = clientAddressFromRecord(request.headers);
         const [emailLimit, ipLimit] = await Promise.all([
           consumeRateLimit({ scope: 'signin-email', identifier: email, limit: 10, windowSeconds: 15 * 60 }),
           consumeRateLimit({ scope: 'signin-ip', identifier: clientAddress, limit: 40, windowSeconds: 15 * 60 }),

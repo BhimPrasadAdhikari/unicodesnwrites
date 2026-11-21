@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { connectDB } from '@/lib/db/connection';
 import RateLimitBucket from '@/lib/models/RateLimitBucket';
 import { safeInternalPath as safeSamePath } from '@/lib/utils/safe-path';
+import { clientAddressFromHeaders } from '@/lib/utils/client-ip';
 
 const privateIdentifierKey = process.env.NEXTAUTH_SECRET || crypto.randomBytes(32).toString('hex');
 
@@ -18,12 +19,7 @@ export function hashPrivateIdentifier(value: string) {
 }
 
 export function getClientAddress(request: Pick<NextRequest, 'headers'> | { headers: Headers }) {
-  return (
-    request.headers.get('x-vercel-forwarded-for') ||
-    request.headers.get('x-forwarded-for') ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  ).split(',')[0].trim();
+  return clientAddressFromHeaders(request.headers);
 }
 
 export function safeInternalPath(value: string | null | undefined, fallback = '/learn') {

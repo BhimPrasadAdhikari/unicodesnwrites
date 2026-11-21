@@ -93,7 +93,8 @@ export default function RootLayout({
           {children}
         </Providers>
         
-        <Analytics />
+        {/* Vercel Analytics only exists on Vercel; elsewhere its script 404s. */}
+        {process.env.VERCEL ? <Analytics /> : null}
         
         <script
           type="application/ld+json"

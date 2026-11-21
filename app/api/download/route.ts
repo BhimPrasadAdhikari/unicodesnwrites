@@ -5,6 +5,7 @@ import {
   consumeAuthorizedProductDownload,
   ProductPurchaseError,
 } from '@/lib/services/purchase';
+import { clientAddressFromHeaders } from '@/lib/utils/client-ip';
 
 function getApprovedFileUrl(value: string) {
   try {
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     const headersList = await headers();
     const context = {
-      ip: headersList.get('x-forwarded-for')?.split(',')[0] || headersList.get('x-real-ip') || 'unknown',
+      ip: clientAddressFromHeaders(headersList),
       userAgent: headersList.get('user-agent') || 'unknown',
     };
     const { purchase, product } = await authorizeProductDownload(token || '');

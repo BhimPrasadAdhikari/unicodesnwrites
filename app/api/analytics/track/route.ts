@@ -11,6 +11,7 @@ import { hashPrivateIdentifier } from '@/lib/auth/security';
 
 // Parse user agent for device/browser/OS info
 import { UAParser } from 'ua-parser-js';
+import { clientAddressFromHeaders } from '@/lib/utils/client-ip';
 
 // Get country/city from IP (optional)
 // import geoip from 'geoip-lite'; // Disabled to fix build ENOENT error
@@ -80,8 +81,7 @@ export async function POST(request: NextRequest) {
       }
     }
     // Keyed on the IP as well: the session id comes from the client and can be rotated freely.
-    const forwarded = request.headers.get('x-vercel-forwarded-for') || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const rateKey = `${forwarded.split(',')[0].trim()}`;
+    const rateKey = clientAddressFromHeaders(request.headers);
     const limitData = rateLimitMap.get(rateKey) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
     
     if (now > limitData.resetAt) {
@@ -98,9 +98,7 @@ export async function POST(request: NextRequest) {
     
     // Get IP address and hash it for privacy
     const headersList = await headers();
-    const ip = headersList.get('x-forwarded-for')?.split(',')[0] || 
-               headersList.get('x-real-ip') || 
-               'unknown';
+    const ip = clientAddressFromHeaders(headersList);
     const ipHash = hashPrivateIdentifier(ip);
     
     // Parse user agent

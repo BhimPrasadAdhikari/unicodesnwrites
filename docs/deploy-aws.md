@@ -10,3 +10,5 @@ Production runs as one Docker container on an Amazon Lightsail container service
 - **Domain:** `unicodesnwrites.tech` and `www.unicodesnwrites.tech` are attached to the service with a Lightsail certificate. DNS points them at the service's public hostname.
 - **Crons:** the newsletter scheduler is called by `.github/workflows/newsletter-scheduler.yml`.
 - **Uploads:** files still go to Vercel Blob (`BLOB_READ_WRITE_TOKEN`).
+- **Client IP:** off Vercel, `lib/utils/client-ip.ts` trusts only the last `X-Forwarded-For` entry (the one the Lightsail load balancer appends). `x-vercel-*` and `x-real-ip` are ignored there because visitors can send them. If another proxy is ever put in front (e.g. CloudFront), set `TRUSTED_PROXY_HOPS=2`.
+- **Analytics:** Vercel Analytics renders only on Vercel; the site's own analytics (`/api/analytics/track`) works everywhere.
